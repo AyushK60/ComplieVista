@@ -1,0 +1,45 @@
+# --- Secrets / environment ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Dependencies / virtualenvs ---
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# --- Build outputs ---
+dist/
+build/
+frontend/dist/
+
+# --- Generated binaries (raw text artifacts are committed evidence; binaries are regenerable) ---
+*.o
+*.obj
+*.out
+*.exe
+*.a
+*.so
+*.pyc
+*.wasm
+
+# --- Databases / run state ---
+*.db
+*.sqlite3
+*.log
+
+# --- Docker credentials / local tool state ---
+.docker/
+docker-credentials/
+
+# --- Disposable Linux-native job staging (ADR-0001: never a second repository) ---
+# Job staging lives OUTSIDE the repo, under /home/khana/.cache/compilevista/jobs/<job-id>.
+
+# --- Editor / OS noise ---
+.DS_Store
+Thumbs.db
