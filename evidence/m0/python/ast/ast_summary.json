@@ -1,0 +1,46 @@
+{
+ "node_kind_counts": {
+  "Name": 22,
+  "Load": 17,
+  "Constant": 11,
+  "Store": 6,
+  "Assign": 4,
+  "Expr": 3,
+  "Call": 3,
+  "FunctionDef": 2,
+  "If": 2,
+  "arguments": 2,
+  "Return": 2,
+  "Compare": 2,
+  "arg": 2,
+  "Module": 1,
+  "For": 1,
+  "BinOp": 1,
+  "List": 1,
+  "AugAssign": 1,
+  "Eq": 1,
+  "Mult": 1,
+  "Gt": 1,
+  "Add": 1,
+  "JoinedStr": 1,
+  "FormattedValue": 1
+ },
+ "definitions": [
+  {
+   "name": "scale_and_adjust",
+   "kind": "FunctionDef",
+   "lineno": 10,
+   "end_lineno": 14,
+   "col_offset": 0,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "name": "main",
+   "kind": "FunctionDef",
+   "lineno": 17,
+   "end_lineno": 22,
+   "col_offset": 0,
+   "mapping_confidence": "EXACT"
+  }
+ ]
+}

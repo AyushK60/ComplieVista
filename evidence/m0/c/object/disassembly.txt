@@ -1,0 +1,60 @@
+
+/mnt/e/ComplieVista/evidence/m0/c/object/c_fixture.o:	file format elf64-x86-64
+
+Disassembly of section .text:
+
+0000000000000000 <main>:
+       0: 55                           	pushq	%rbp
+       1: 48 89 e5                     	movq	%rsp, %rbp
+       4: 48 83 ec 30                  	subq	$0x30, %rsp
+       8: c7 45 fc 00 00 00 00         	movl	$0x0, -0x4(%rbp)
+       f: 48 8b 05 00 00 00 00         	movq	(%rip), %rax            # 0x16 <main+0x16>
+      16: 48 89 45 e0                  	movq	%rax, -0x20(%rbp)
+      1a: 48 8b 05 00 00 00 00         	movq	(%rip), %rax            # 0x21 <main+0x21>
+      21: 48 89 45 e8                  	movq	%rax, -0x18(%rbp)
+      25: c7 45 dc 00 00 00 00         	movl	$0x0, -0x24(%rbp)
+      2c: c7 45 d8 00 00 00 00         	movl	$0x0, -0x28(%rbp)
+      33: 83 7d d8 04                  	cmpl	$0x4, -0x28(%rbp)
+      37: 0f 8d 30 00 00 00            	jge	0x6d <main+0x6d>
+      3d: 8b 45 dc                     	movl	-0x24(%rbp), %eax
+      40: 89 45 d4                     	movl	%eax, -0x2c(%rbp)
+      43: 48 63 45 d8                  	movslq	-0x28(%rbp), %rax
+      47: 8b 7c 85 e0                  	movl	-0x20(%rbp,%rax,4), %edi
+      4b: be 0a 00 00 00               	movl	$0xa, %esi
+      50: e8 3b 00 00 00               	callq	0x90 <scale_and_adjust>
+      55: 89 c1                        	movl	%eax, %ecx
+      57: 8b 45 d4                     	movl	-0x2c(%rbp), %eax
+      5a: 01 c8                        	addl	%ecx, %eax
+      5c: 89 45 dc                     	movl	%eax, -0x24(%rbp)
+      5f: 8b 45 d8                     	movl	-0x28(%rbp), %eax
+      62: 83 c0 01                     	addl	$0x1, %eax
+      65: 89 45 d8                     	movl	%eax, -0x28(%rbp)
+      68: e9 c6 ff ff ff               	jmp	0x33 <main+0x33>
+      6d: 8b 75 dc                     	movl	-0x24(%rbp), %esi
+      70: 48 8d 3d 00 00 00 00         	leaq	(%rip), %rdi            # 0x77 <main+0x77>
+      77: b0 00                        	movb	$0x0, %al
+      79: e8 00 00 00 00               	callq	0x7e <main+0x7e>
+      7e: 31 c0                        	xorl	%eax, %eax
+      80: 48 83 c4 30                  	addq	$0x30, %rsp
+      84: 5d                           	popq	%rbp
+      85: c3                           	retq
+      86: 66 2e 0f 1f 84 00 00 00 00 00	nopw	%cs:(%rax,%rax)
+
+0000000000000090 <scale_and_adjust>:
+      90: 55                           	pushq	%rbp
+      91: 48 89 e5                     	movq	%rsp, %rbp
+      94: 89 7d f8                     	movl	%edi, -0x8(%rbp)
+      97: 89 75 f4                     	movl	%esi, -0xc(%rbp)
+      9a: 6b 45 f8 03                  	imull	$0x3, -0x8(%rbp), %eax
+      9e: 89 45 f0                     	movl	%eax, -0x10(%rbp)
+      a1: 8b 45 f0                     	movl	-0x10(%rbp), %eax
+      a4: 3b 45 f4                     	cmpl	-0xc(%rbp), %eax
+      a7: 0f 8e 0b 00 00 00            	jle	0xb8 <scale_and_adjust+0x28>
+      ad: 8b 45 f4                     	movl	-0xc(%rbp), %eax
+      b0: 89 45 fc                     	movl	%eax, -0x4(%rbp)
+      b3: e9 06 00 00 00               	jmp	0xbe <scale_and_adjust+0x2e>
+      b8: 8b 45 f0                     	movl	-0x10(%rbp), %eax
+      bb: 89 45 fc                     	movl	%eax, -0x4(%rbp)
+      be: 8b 45 fc                     	movl	-0x4(%rbp), %eax
+      c1: 5d                           	popq	%rbp
+      c2: c3                           	retq

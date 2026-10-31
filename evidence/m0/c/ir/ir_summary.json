@@ -1,0 +1,18 @@
+{
+ "functions": [
+  "main",
+  "scale_and_adjust"
+ ],
+ "function_count": 2,
+ "basic_block_labels": [
+  "5",
+  "8",
+  "16",
+  "19",
+  "12",
+  "14",
+  "16"
+ ],
+ "basic_block_count_derived": 7,
+ "mapping_confidence": "DERIVED"
+}

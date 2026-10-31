@@ -1,0 +1,1427 @@
+{
+ "node_kind_counts": {
+  "ParmVarDecl": 207,
+  "TypedefDecl": 109,
+  "FunctionDecl": 96,
+  "BuiltinType": 87,
+  "NonNullAttr": 43,
+  "FieldDecl": 42,
+  "BuiltinAttr": 40,
+  "FormatAttr": 39,
+  "RecordDecl": 31,
+  "ElaboratedType": 28,
+  "NoThrowAttr": 27,
+  "TypedefType": 20,
+  "RecordType": 12,
+  "PointerType": 10,
+  "RestrictAttr": 7,
+  "AsmLabelAttr": 6,
+  "FunctionProtoType": 4,
+  "ConstantArrayType": 3,
+  "VarDecl": 3,
+  "QualType": 1
+ },
+ "total_nodes_walked": 815,
+ "top_level_declarations": [
+  {
+   "kind": "TypedefDecl",
+   "name": "__int128_t",
+   "range_begin": null,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint128_t",
+   "range_begin": null,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__NSConstantString",
+   "range_begin": null,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__builtin_ms_va_list",
+   "range_begin": null,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__builtin_va_list",
+   "range_begin": null,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "size_t",
+   "range_begin": 670,
+   "range_end": 692,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__gnuc_va_list",
+   "range_begin": 418,
+   "range_end": 444,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__u_char",
+   "range_begin": 1080,
+   "range_end": 1102,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__u_short",
+   "range_begin": 1112,
+   "range_end": 1139,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__u_int",
+   "range_begin": 1150,
+   "range_end": 1171,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__u_long",
+   "range_begin": 1180,
+   "range_end": 1206,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__int8_t",
+   "range_begin": 1293,
+   "range_end": 1313,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint8_t",
+   "range_begin": 1323,
+   "range_end": 1345,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__int16_t",
+   "range_begin": 1356,
+   "range_end": 1381,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint16_t",
+   "range_begin": 1392,
+   "range_end": 1419,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__int32_t",
+   "range_begin": 1431,
+   "range_end": 1450,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint32_t",
+   "range_begin": 1461,
+   "range_end": 1482,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__int64_t",
+   "range_begin": 1515,
+   "range_end": 1539,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint64_t",
+   "range_begin": 1550,
+   "range_end": 1576,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__int_least8_t",
+   "range_begin": 1764,
+   "range_end": 1781,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint_least8_t",
+   "range_begin": 1797,
+   "range_end": 1815,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__int_least16_t",
+   "range_begin": 1832,
+   "range_end": 1850,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint_least16_t",
+   "range_begin": 1867,
+   "range_end": 1886,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__int_least32_t",
+   "range_begin": 1904,
+   "range_end": 1922,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint_least32_t",
+   "range_begin": 1939,
+   "range_end": 1958,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__int_least64_t",
+   "range_begin": 1976,
+   "range_end": 1994,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uint_least64_t",
+   "range_begin": 2011,
+   "range_end": 2030,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__quad_t",
+   "range_begin": 2101,
+   "range_end": 2118,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__u_quad_t",
+   "range_begin": 2128,
+   "range_end": 2154,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__intmax_t",
+   "range_begin": 2335,
+   "range_end": 2352,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uintmax_t",
+   "range_begin": 2364,
+   "range_end": 2390,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__dev_t",
+   "range_begin": null,
+   "range_end": 5308,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__uid_t",
+   "range_begin": null,
+   "range_end": 5372,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__gid_t",
+   "range_begin": null,
+   "range_end": 5442,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__ino_t",
+   "range_begin": null,
+   "range_end": 5513,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__ino64_t",
+   "range_begin": null,
+   "range_end": 5584,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__mode_t",
+   "range_begin": null,
+   "range_end": 5660,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__nlink_t",
+   "range_begin": null,
+   "range_end": 5736,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__off_t",
+   "range_begin": null,
+   "range_end": 5804,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__off64_t",
+   "range_begin": null,
+   "range_end": 5878,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__pid_t",
+   "range_begin": null,
+   "range_end": 5958,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": null,
+   "range_begin": null,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__fsid_t",
+   "range_begin": null,
+   "range_end": 6032,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__clock_t",
+   "range_begin": null,
+   "range_end": 6100,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__rlim_t",
+   "range_begin": null,
+   "range_end": 6169,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__rlim64_t",
+   "range_begin": null,
+   "range_end": 6244,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__id_t",
+   "range_begin": null,
+   "range_end": 6323,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__time_t",
+   "range_begin": null,
+   "range_end": 6386,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__useconds_t",
+   "range_begin": null,
+   "range_end": 6457,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__suseconds_t",
+   "range_begin": null,
+   "range_end": 6531,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__suseconds64_t",
+   "range_begin": null,
+   "range_end": 6615,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__daddr_t",
+   "range_begin": null,
+   "range_end": 6659,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__key_t",
+   "range_begin": null,
+   "range_end": 6729,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__clockid_t",
+   "range_begin": null,
+   "range_end": 6845,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__timer_t",
+   "range_begin": null,
+   "range_end": 6929,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__blksize_t",
+   "range_begin": null,
+   "range_end": 7006,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__blkcnt_t",
+   "range_begin": null,
+   "range_end": 7144,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__blkcnt64_t",
+   "range_begin": null,
+   "range_end": 7185,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__fsblkcnt_t",
+   "range_begin": null,
+   "range_end": 7270,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__fsblkcnt64_t",
+   "range_begin": null,
+   "range_end": 7315,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__fsfilcnt_t",
+   "range_begin": null,
+   "range_end": 7401,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__fsfilcnt64_t",
+   "range_begin": null,
+   "range_end": 7446,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__fsword_t",
+   "range_begin": null,
+   "range_end": 7539,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__ssize_t",
+   "range_begin": null,
+   "range_end": 7578,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__syscall_slong_t",
+   "range_begin": null,
+   "range_end": 7707,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__syscall_ulong_t",
+   "range_begin": null,
+   "range_end": 7806,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__loff_t",
+   "range_begin": 7933,
+   "range_end": 7951,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__caddr_t",
+   "range_begin": 8006,
+   "range_end": 8020,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__intptr_t",
+   "range_begin": null,
+   "range_end": 8123,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__socklen_t",
+   "range_begin": null,
+   "range_end": 8199,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__sig_atomic_t",
+   "range_begin": 8401,
+   "range_end": 8413,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": null,
+   "range_begin": 425,
+   "range_end": 541,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__mbstate_t",
+   "range_begin": 417,
+   "range_end": 543,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_G_fpos_t",
+   "range_begin": 302,
+   "range_end": 361,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__fpos_t",
+   "range_begin": 294,
+   "range_end": 363,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_G_fpos64_t",
+   "range_begin": 325,
+   "range_end": 388,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__fpos64_t",
+   "range_begin": 317,
+   "range_end": 390,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_IO_FILE",
+   "range_begin": 53,
+   "range_end": 60,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "__FILE",
+   "range_begin": 70,
+   "range_end": 94,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_IO_FILE",
+   "range_begin": 49,
+   "range_end": 56,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "FILE",
+   "range_begin": 142,
+   "range_end": 166,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_IO_FILE",
+   "range_begin": 1339,
+   "range_end": 1346,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_IO_marker",
+   "range_begin": 1356,
+   "range_end": 1363,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_IO_codecvt",
+   "range_begin": 1375,
+   "range_end": 1382,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_IO_wide_data",
+   "range_begin": 1395,
+   "range_end": 1402,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "_IO_lock_t",
+   "range_begin": 1552,
+   "range_end": 1565,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_IO_FILE",
+   "range_begin": 1757,
+   "range_end": 3349,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "cookie_read_function_t",
+   "range_begin": 1062,
+   "range_end": 1190,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "cookie_write_function_t",
+   "range_begin": 1589,
+   "range_end": 1725,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "cookie_seek_function_t",
+   "range_begin": 2007,
+   "range_end": 2084,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "cookie_close_function_t",
+   "range_begin": 2109,
+   "range_end": 2160,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "RecordDecl",
+   "name": "_IO_cookie_io_functions_t",
+   "range_begin": 2433,
+   "range_end": 2692,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "cookie_io_functions_t",
+   "range_begin": 2425,
+   "range_end": 2694,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "va_list",
+   "range_begin": 1544,
+   "range_end": 1567,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "off_t",
+   "range_begin": 1762,
+   "range_end": 1778,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "ssize_t",
+   "range_begin": 2038,
+   "range_end": 2056,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "fpos_t",
+   "range_begin": 2203,
+   "range_end": 2220,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "VarDecl",
+   "name": "stdin",
+   "range_begin": 3637,
+   "range_end": 3650,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "VarDecl",
+   "name": "stdout",
+   "range_begin": 3688,
+   "range_end": 3701,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "VarDecl",
+   "name": "stderr",
+   "range_begin": 3741,
+   "range_end": 3754,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "remove",
+   "range_begin": 3947,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "rename",
+   "range_begin": 4030,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "renameat",
+   "range_begin": 4184,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fclose",
+   "range_begin": 4782,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "tmpfile",
+   "range_begin": 5098,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "tmpnam",
+   "range_begin": 5513,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "tmpnam_r",
+   "range_begin": 5698,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "tempnam",
+   "range_begin": 6279,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fflush",
+   "range_begin": 6554,
+   "range_end": 6587,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fflush_unlocked",
+   "range_begin": 6898,
+   "range_end": 6940,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fopen",
+   "range_begin": 7453,
+   "range_end": 7453,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fopen",
+   "range_begin": 7440,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "freopen",
+   "range_begin": 7736,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fdopen",
+   "range_begin": 8763,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fopencookie",
+   "range_begin": 9021,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fmemopen",
+   "range_begin": 9336,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "open_memstream",
+   "range_begin": 9678,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "setbuf",
+   "range_begin": 10257,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "setvbuf",
+   "range_begin": 10505,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "setbuffer",
+   "range_begin": 10751,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "setlinebuf",
+   "range_begin": 10909,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fprintf",
+   "range_begin": 11128,
+   "range_end": 11128,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fprintf",
+   "range_begin": 11117,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "printf",
+   "range_begin": 11370,
+   "range_end": 11370,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "printf",
+   "range_begin": 11359,
+   "range_end": 11414,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "sprintf",
+   "range_begin": 11464,
+   "range_end": 11464,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "sprintf",
+   "range_begin": 11453,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vfprintf",
+   "range_begin": 11714,
+   "range_end": 11714,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vfprintf",
+   "range_begin": 11703,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vprintf",
+   "range_begin": 11993,
+   "range_end": 11993,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vprintf",
+   "range_begin": 11982,
+   "range_end": 12055,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vsprintf",
+   "range_begin": 12128,
+   "range_end": 12128,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vsprintf",
+   "range_begin": 12117,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "snprintf",
+   "range_begin": 12345,
+   "range_end": 12345,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "snprintf",
+   "range_begin": 12334,
+   "range_end": 12500,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vsnprintf",
+   "range_begin": 12515,
+   "range_end": 12515,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vsnprintf",
+   "range_begin": 12504,
+   "range_end": 12689,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vasprintf",
+   "range_begin": 12874,
+   "range_end": 13040,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "__asprintf",
+   "range_begin": 13049,
+   "range_end": 13202,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "asprintf",
+   "range_begin": 13211,
+   "range_end": 13360,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vdprintf",
+   "range_begin": 13451,
+   "range_end": 13592,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "dprintf",
+   "range_begin": 13595,
+   "range_end": 13711,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fscanf",
+   "range_begin": 13868,
+   "range_end": 13868,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fscanf",
+   "range_begin": 13857,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "scanf",
+   "range_begin": 14113,
+   "range_end": 14113,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "scanf",
+   "range_begin": 14102,
+   "range_end": 14156,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "sscanf",
+   "range_begin": 14212,
+   "range_end": 14212,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "sscanf",
+   "range_begin": 14201,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "_Float32",
+   "range_begin": 7042,
+   "range_end": 7056,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "_Float64",
+   "range_begin": 8205,
+   "range_end": 8220,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "_Float32x",
+   "range_begin": 8617,
+   "range_end": 8632,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "TypedefDecl",
+   "name": "_Float64x",
+   "range_begin": 9053,
+   "range_end": 9073,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fscanf",
+   "range_begin": 15555,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "scanf",
+   "range_begin": 15706,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "sscanf",
+   "range_begin": 15808,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vfscanf",
+   "range_begin": 16566,
+   "range_end": 16566,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vfscanf",
+   "range_begin": 16555,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vscanf",
+   "range_begin": 16901,
+   "range_end": 16901,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vscanf",
+   "range_begin": 16890,
+   "range_end": 17014,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vsscanf",
+   "range_begin": 17094,
+   "range_end": 17094,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vsscanf",
+   "range_begin": 17083,
+   "range_end": 17250,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vfscanf",
+   "range_begin": 18727,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vscanf",
+   "range_begin": 18952,
+   "range_end": 19111,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "vsscanf",
+   "range_begin": 19120,
+   "range_end": 19329,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fgetc",
+   "range_begin": 20037,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "getc",
+   "range_begin": 20088,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "getchar",
+   "range_begin": 20268,
+   "range_end": 20292,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "getc_unlocked",
+   "range_begin": 20458,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "getchar_unlocked",
+   "range_begin": 20517,
+   "range_end": 20550,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fgetc_unlocked",
+   "range_begin": 20886,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fputc",
+   "range_begin": 21198,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "putc",
+   "range_begin": 21258,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "putchar",
+   "range_begin": 21447,
+   "range_end": 21474,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fputc_unlocked",
+   "range_begin": 21785,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "putc_unlocked",
+   "range_begin": 22041,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "putchar_unlocked",
+   "range_begin": 22109,
+   "range_end": 22145,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "getw",
+   "range_begin": 22292,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "putw",
+   "range_begin": 22380,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fgets",
+   "range_begin": 22610,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "__getdelim",
+   "range_begin": 24426,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "getdelim",
+   "range_begin": 24633,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "getline",
+   "range_begin": 25122,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fputs",
+   "range_begin": 25438,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "puts",
+   "range_begin": 25681,
+   "range_end": 25713,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "ungetc",
+   "range_begin": 25873,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fread",
+   "range_begin": 26091,
+   "range_end": 26091,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fread",
+   "range_begin": 26077,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fwrite",
+   "range_begin": 26361,
+   "range_end": 26361,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fwrite",
+   "range_begin": 26347,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fread_unlocked",
+   "range_begin": 27228,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fwrite_unlocked",
+   "range_begin": 27370,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fseek",
+   "range_begin": 27661,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "ftell",
+   "range_begin": 27883,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "rewind",
+   "range_begin": 28080,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fseeko",
+   "range_begin": 28628,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "ftello",
+   "range_begin": 28850,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fgetpos",
+   "range_begin": 29386,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "fsetpos",
+   "range_begin": 29601,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "clearerr",
+   "range_begin": 30425,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  },
+  {
+   "kind": "FunctionDecl",
+   "name": "feof",
+   "range_begin": 30532,
+   "range_end": null,
+   "mapping_confidence": "EXACT"
+  }
+ ]
+}

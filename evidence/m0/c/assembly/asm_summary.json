@@ -1,0 +1,9 @@
+{
+ "function_labels": [
+  "main",
+  "scale_and_adjust"
+ ],
+ "basic_block_comments_derived": 5,
+ "line_count": 108,
+ "mapping_confidence": "DERIVED"
+}

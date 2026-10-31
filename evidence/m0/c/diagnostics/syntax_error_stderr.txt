@@ -1,0 +1,5 @@
+/mnt/e/ComplieVista/demos/m0/c_syntax_error.c:4:19: error: expected ';' at end of declaration
+    4 |     int broken = 1
+      |                   ^
+      |                   ;
+1 error generated.

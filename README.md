@@ -69,7 +69,7 @@ The purpose of the portfolio project is to demonstrate engineering strength in c
 |---|---|
 | Host | Windows 11; Intel i7-13650HX, 24 GB RAM, NVIDIA RTX 5050 Laptop GPU (GPU not required) |
 | Agent | ZCode/Jet Windows desktop, **normal local project**, promotional GLM model appears |
-| Project path | `E:\CompileVista` — **one source-of-truth repository** |
+| Project path | **`E:\ComplieVista`** — actual verified spelling (intended name `E:\CompileVista`; see Path Note) — **one source-of-truth repository** |
 | WSL distro | Ubuntu 24.04 LTS on WSL2 |
 | C toolchain | Clang 18.1.3, LLVM 18.1.3 |
 | Debugger / tracing | GDB 15.1, strace 6.8; package installation completed; advanced capabilities not yet proven |
@@ -81,11 +81,11 @@ The purpose of the portfolio project is to demonstrate engineering strength in c
 
 ### Deliberate non-negotiable workflow decision
 
-**Path note:** `E:\CompileVista` is the documented intended folder convention. If the real Windows directory uses a space or another spelling, use its actual verified path consistently; do not rename or move the user’s folder without permission.
+**Path note:** `E:\CompileVista` is the documented intended folder convention. If the real Windows directory uses a space or another spelling, use its actual verified path consistently; do not rename or move the user’s folder without permission. **M0 verification:** the actual directory is `E:\ComplieVista` (↔ `/mnt/e/ComplieVista`); this correction is recorded in `docs/DECISIONS/ADR-0001-workspace-and-linux-staging.md`. The product name remains CompileVista.
 
 **Do not move the main ZCode project to a remote WSL workspace merely for convenience.** The promotional GLM model is available in normal Windows ZCode, but was unavailable in the remote WSL chat. Keep the working Windows-local agent and use the Linux tools through `wsl.exe`. Do not recommend dual boot, Zorin, Kubuntu, or a separate Linux installation without a **reproducible demonstrated blocker**. Do not create two divergent source repositories.
 
-`E:\CompileVista` maps to `/mnt/e/CompileVista` under Ubuntu. Cross-filesystem operations may be expensive. Implement **immutable per-job snapshots** into Linux-native staging under `/home/khana/.cache/compilevista/jobs/<job-id>` or another configured native Linux location. Compute SHA-256 of the staged snapshot and associate outputs with it; capture artifacts back into the canonical repository-managed state store or a configured results directory. The staging directory is **not a second development repository**. Never execute arbitrary shell composed from user filenames. Use argument arrays, validated paths, `wslpath`, deterministic working directories, and atomic staging/cleanup.
+`E:\ComplieVista` maps to `/mnt/e/ComplieVista` under Ubuntu. Cross-filesystem operations may be expensive. Implement **immutable per-job snapshots** into Linux-native staging under `/home/khana/.cache/compilevista/jobs/<job-id>` or another configured native Linux location. Compute SHA-256 of the staged snapshot and associate outputs with it; capture artifacts back into the canonical repository-managed state store or a configured results directory. The staging directory is **not a second development repository**. Never execute arbitrary shell composed from user filenames. Use argument arrays, validated paths, `wslpath`, deterministic working directories, and atomic staging/cleanup.
 
 **Frontend development strategy:** test whether Vite dev-server/file watching performs adequately using Windows source and Linux Node. If not, use a verified Windows-native Node runtime for frontend development or controlled workspace synchronization; benchmark the options. **Backend execution strategy:** run the Python analysis worker inside WSL to access Clang/GDB and Docker. Test Windows-browser-to-WSL localhost API access explicitly. Do not presuppose port forwarding behavior or cross-OS filesystem performance.
 
@@ -444,7 +444,7 @@ Intended pace: **intensive development over a few days**, but this is not a guar
 ## 18. Initial repository structure (proposed, adjust with ADR)
 
 ```text
-E:\CompileVista\
+E:\ComplieVista\                    # actual verified path (product name: CompileVista)
   README.md                         # This authoritative specification
   AGENTS.md                         # Short coding-agent rules; links to README
   .gitignore

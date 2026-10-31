@@ -1,0 +1,4 @@
+/mnt/e/ComplieVista/demos/m0/c_semantic_error.c:3:12: error: use of undeclared identifier 'undefined_variable'
+    3 |     return undefined_variable;
+      |            ^
+1 error generated.

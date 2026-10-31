@@ -1,0 +1,205 @@
+{
+ "schema_version": "m0.v1",
+ "analysis_id": "m0-python",
+ "language": "python",
+ "source_snapshot": {
+  "files": [
+   {
+    "path": "demos/m0/py_fixture.py",
+    "sha256": "5e8c27b2ec1fc9f426a5ebf947e532f6f07159ae1475b985fa5fa03cfefbf32c"
+   },
+   {
+    "path": "demos/m0/py_syntax_error.py",
+    "sha256": "eadec4402740cc68937954ffb684bf372ccdc78bd2b089ce5544173afd2a453b"
+   }
+  ],
+  "combined_sha256": "3bc005d320cdcb2eadb1dffedc1f1c67b8889a2709090ca24c23fa839cebbba0"
+ },
+ "tools": {
+  "cpython": "3.12.3",
+  "implementation": "CPython",
+  "git_commit_at_collection": "2e97212"
+ },
+ "stages": [
+  {
+   "stage": "tokens",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "/usr/bin/python3",
+     "-c",
+     "<CPython 3.12.3 stdlib tokens collection>"
+    ],
+    "tool": "cpython",
+    "version": "3.12.3",
+    "exit_code": 0,
+    "duration_ms": 16
+   },
+   "artifacts": [
+    {
+     "path": "evidence/m0/python/tokens/tokens_raw.txt",
+     "sha256": "7d332e3d4941b5b3eb55dac588022fa3f188ab571a1831c2df939e8c54bc0967",
+     "bytes": 4443
+    },
+    {
+     "path": "evidence/m0/python/tokens/tokens.json",
+     "sha256": "b94cdd16bd7b28c6a9c6cfd56473d98dcc1ad909552cde61656658cac1f95729",
+     "bytes": 16069
+    }
+   ],
+   "counts": {
+    "tokens": 117
+   },
+   "limitations": [
+    "Token positions are tool-reported (EXACT); token stream is CPython-3.12-specific."
+   ],
+   "duration_ms": 16
+  },
+  {
+   "stage": "ast",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "/usr/bin/python3",
+     "-c",
+     "<CPython 3.12.3 stdlib ast collection>"
+    ],
+    "tool": "cpython",
+    "version": "3.12.3",
+    "exit_code": 0,
+    "duration_ms": 17
+   },
+   "artifacts": [
+    {
+     "path": "evidence/m0/python/ast/ast_dump.txt",
+     "sha256": "bb05d3bd322c0ab4a126eeeb99354b42129e532b83f996f1ad0a8bcc7f304665",
+     "bytes": 10574
+    },
+    {
+     "path": "evidence/m0/python/ast/ast_summary.json",
+     "sha256": "61082b7d2dd87989bbcf2370fad9e6976d98cc10b3e4f5ba743bf25cb7dec138",
+     "bytes": 704
+    }
+   ],
+   "counts": {
+    "total_nodes": 89,
+    "distinct_kinds": 24
+   },
+   "limitations": [
+    "ast.dump is a debug serialization; it is genuine CPython AST data, not a public parse-tree contract (README P2). Position attributes are tool-reported (EXACT)."
+   ],
+   "duration_ms": 17
+  },
+  {
+   "stage": "code_object",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "/usr/bin/python3",
+     "-c",
+     "<CPython 3.12.3 stdlib code_object collection>"
+    ],
+    "tool": "cpython",
+    "version": "3.12.3",
+    "exit_code": 0,
+    "duration_ms": 0
+   },
+   "artifacts": [
+    {
+     "path": "evidence/m0/python/code_object/code_objects.json",
+     "sha256": "ef3382c00d3c7535ccaaafc1a20d60273e2d3ecda8112c9b1955edf2ec60642c",
+     "bytes": 1253
+    }
+   ],
+   "counts": {
+    "code_objects": 3
+   },
+   "limitations": [
+    "Code-object metadata reflects CPython 3.12.3 exactly; bytecode is NOT CPU machine code and is version-specific."
+   ],
+   "duration_ms": 0
+  },
+  {
+   "stage": "bytecode",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "/usr/bin/python3",
+     "-c",
+     "<CPython 3.12.3 stdlib bytecode collection>"
+    ],
+    "tool": "cpython",
+    "version": "3.12.3",
+    "exit_code": 0,
+    "duration_ms": 35
+   },
+   "artifacts": [
+    {
+     "path": "evidence/m0/python/bytecode/dis.txt",
+     "sha256": "a90b1c0b3c5c28226cbe68de6416ff5d9fc3e9869443a8fc5d95a3bfcf3119b4",
+     "bytes": 3836
+    },
+    {
+     "path": "evidence/m0/python/bytecode/instructions.json",
+     "sha256": "8f611d63652d8df9317640c058af9a88d8225094c9bb74e39ebbe5705409b356",
+     "bytes": 16313
+    }
+   ],
+   "counts": {
+    "instructions": 70,
+    "code_objects": 3
+   },
+   "limitations": [
+    "dis output and instruction positions are CPython-3.12-specific; trace events are not assumed one-to-one with bytecode instructions (README P4/P5)."
+   ],
+   "duration_ms": 35
+  },
+  {
+   "stage": "diagnostics",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "/usr/bin/python3",
+     "-c",
+     "<CPython 3.12.3 stdlib diagnostics collection>"
+    ],
+    "tool": "cpython",
+    "version": "3.12.3",
+    "exit_code": 0,
+    "duration_ms": 0
+   },
+   "artifacts": [
+    {
+     "path": "evidence/m0/python/diagnostics/syntax_error.json",
+     "sha256": "656f03c3ad33c59dfad4dc5390dc6a5ee9bfb0cd0c9ada5baadd8896d45111ff",
+     "bytes": 181
+    }
+   ],
+   "counts": {
+    "syntax_error_captured": 1
+   },
+   "limitations": [
+    "Diagnostic fields (msg/lineno/offset/text) are exactly what CPython raised; fixture is never executed."
+   ],
+   "diagnostic": {
+    "error_type": "SyntaxError",
+    "msg": "invalid syntax",
+    "lineno": 2,
+    "offset": 12,
+    "end_lineno": 2,
+    "end_offset": 13,
+    "text": "def broken(:",
+    "mapping_confidence": "EXACT"
+   }
+  }
+ ],
+ "limitations_global": [
+  "No top-level execution: tokenize/ast/compile/dis only; compile() does not run code.",
+  "Python is not assigned LLVM or -O0/-O1/-O2 stages (README non-goals)."
+ ]
+}

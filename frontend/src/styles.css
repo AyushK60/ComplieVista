@@ -1,0 +1,30 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #0e1116;
+  color: #dbe2ea;
+}
+main { max-width: 860px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { font-size: 1.5rem; letter-spacing: 0.02em; }
+h2 { font-size: 1.05rem; margin-top: 2rem; color: #9fb3c8; }
+.muted { color: #7c8b9c; font-size: 0.9rem; }
+.err { color: #ff8f8f; }
+.chip {
+  display: inline-block; margin: 0 0.5rem 0.5rem 0; padding: 0.1rem 0.55rem;
+  border-radius: 999px; font-size: 0.78rem; border: 1px solid #2c3844;
+}
+.chip.ok { color: #7fd39a; border-color: #2f5d42; }
+.chip.blocked { color: #ff9d9d; border-color: #6b3434; }
+.chip.partial { color: #ffd479; border-color: #6b5a34; }
+.tokenRibbon { display: flex; flex-wrap: wrap; gap: 4px; margin: 0.75rem 0; }
+.token {
+  font-family: Consolas, monospace; font-size: 0.78rem; padding: 2px 7px;
+  background: #161c24; border: 1px solid #2c3844; border-radius: 4px;
+}
+.excerpt {
+  font-family: Consolas, monospace; font-size: 0.75rem; background: #12161c;
+  border: 1px solid #222c37; border-radius: 6px; padding: 0.75rem; overflow-x: auto;
+  max-height: 320px;
+}
+.limits { color: #8a7d5c; font-size: 0.8rem; }
+code { color: #9ecbff; }

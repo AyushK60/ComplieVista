@@ -1,0 +1,338 @@
+{
+ "schema_version": "m0.v1",
+ "analysis_id": "m0-c",
+ "language": "c",
+ "source_snapshot": {
+  "files": [
+   {
+    "path": "demos/m0/c_fixture.c",
+    "sha256": "b2fcbfe2b3181e468b60dcb7edece0c41f5b721475e99e239982df84e6e1fa19"
+   }
+  ],
+  "combined_sha256": "b2fcbfe2b3181e468b60dcb7edece0c41f5b721475e99e239982df84e6e1fa19"
+ },
+ "tools": {
+  "clang": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+  "llvm-objdump-18": "Ubuntu LLVM version 18.1.3",
+  "readelf": "Ubuntu LLVM version 18.1.3",
+  "host": "Linux 6.18.54.1-microsoft-standard-WSL2"
+ },
+ "stages": [
+  {
+   "stage": "preprocess",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "clang",
+     "-E",
+     "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
+    ],
+    "exit_code": 0,
+    "duration_ms": 42,
+    "stdout_bytes": 21939,
+    "stderr_bytes": 0
+   },
+   "invocation_stdout_sha256": "1bac8ab33ccd898ddc17a3b2d7c1806953ea198f84ee9948731425d236827185",
+   "invocation_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stderr_excerpt": "",
+   "artifacts": [
+    {
+     "path": "evidence/m0/c/preprocess/preprocessed.i",
+     "sha256": "1bac8ab33ccd898ddc17a3b2d7c1806953ea198f84ee9948731425d236827185",
+     "bytes": 21939
+    }
+   ],
+   "counts": {
+    "lines": 849
+   },
+   "limitations": [
+    "Preprocessed output includes line markers; include-graph provenance not yet captured (README C1)."
+   ]
+  },
+  {
+   "stage": "tokens",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "clang",
+     "-fsyntax-only",
+     "-Xclang",
+     "-dump-tokens",
+     "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
+    ],
+    "exit_code": 0,
+    "duration_ms": 42,
+    "stdout_bytes": 0,
+    "stderr_bytes": 254494
+   },
+   "invocation_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "invocation_stderr_sha256": "8bf25393a59614f415b62f2dd68b17dacbdcfd1c64db5f4be33b33bcb901a691",
+   "stderr_excerpt": "typedef 'typedef'\t [StartOfLine]\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stddef_size_t.h:18:1>\nlong 'long'\t [LeadingSpace]\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stddef_size_t.h:18:9 <Spelling=<built-in>:107:23>>\nunsigned 'unsigned'\t [LeadingSpace]\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stddef_size_t.h:18:9 <Spelling=<built-in>:107:28>>\nint 'int'\t [LeadingSpace]\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stddef_size_t.h:18:9 <Spelling=<built-in>:107:37>>\nidentifier 'size_t'\t [LeadingSpace]\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stddef_size_t.h:18:23>\nsemi ';'\t\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stddef_size_t.h:18:29>\ntypedef 'typedef'\t [StartOfLine]\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stdarg___gnuc_va_list.h:12:1>\nidentifier '__builtin_va_list'\t [LeadingSpace]\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stdarg___gnuc_va_list.h:12:9>\nidentifier '__gnuc_va_list'\t [LeadingSpace]\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stdarg___gnuc_va_list.h:12:27>\nsemi ';'\t\tLoc=</usr/lib/llvm-18/lib/clang/18/include/__stdarg___gnuc_va_list.h:12:41>\ntypedef 'typedef'\t [StartOfLine]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:31:1>\nunsigned 'unsigned'\t [LeadingSpace]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:31:9>\nchar 'char'\t [LeadingSpace]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:31:18>\nidentifier '__u_char'\t [LeadingSpace]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:31:23>\nsemi ';'\t\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:31:31>\ntypedef 'typedef'\t [StartOfLine]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:32:1>\nunsigned 'unsigned'\t [LeadingSpace]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:32:9>\nshort 'short'\t [LeadingSpace]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:32:18>\nint 'int'\t [LeadingSpace]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:32:24>\nidentifier '__u_short'\t [LeadingSpace]\tLoc=</usr/include/x86_64-linux-gnu/bits/types.h:32:28>\nsemi ';'\t\tLoc=</usr/include/x86_64-linux-gnu/bits",
+   "artifacts": [
+    {
+     "path": "evidence/m0/c/tokens/dump_tokens.txt",
+     "sha256": "8bf25393a59614f415b62f2dd68b17dacbdcfd1c64db5f4be33b33bcb901a691",
+     "bytes": 254494
+    },
+    {
+     "path": "evidence/m0/c/tokens/tokens.json",
+     "sha256": "e02c3b9fc4c28310553f81c1c54b5a7d74bb0e39114d889edf8bb701d8a3aea4",
+     "bytes": 186576
+    }
+   ],
+   "counts": {
+    "tokens": 1247
+   },
+   "limitations": [
+    "Token dump format is clang-18-specific text; parsed fields are tool-reported (EXACT). Preprocessor-expanded token provenance not tracked."
+   ],
+   "stream_note": "token dump captured on stderr"
+  },
+  {
+   "stage": "ast",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "clang",
+     "-fsyntax-only",
+     "-Xclang",
+     "-ast-dump=json",
+     "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
+    ],
+    "exit_code": 0,
+    "duration_ms": 41,
+    "stdout_bytes": 753257,
+    "stderr_bytes": 0
+   },
+   "invocation_stdout_sha256": "0ce5e49a76b6ab5aedf120dddf0be1fd579731a6ad25abb3a2cd4dd2da075df6",
+   "invocation_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stderr_excerpt": "",
+   "artifacts": [
+    {
+     "path": "evidence/m0/c/ast/ast.json",
+     "sha256": "0ce5e49a76b6ab5aedf120dddf0be1fd579731a6ad25abb3a2cd4dd2da075df6",
+     "bytes": 753257
+    },
+    {
+     "path": "evidence/m0/c/ast/ast_summary.json",
+     "sha256": "e02a135d2339af14b13abc018f34919037932280696100ccbb7e949a85355854",
+     "bytes": 28284
+    }
+   ],
+   "counts": {
+    "total_nodes_walked": 815,
+    "distinct_kinds": 20
+   },
+   "limitations": [
+    "JSON AST is a clang -ast-dump serialization; node IDs/addresses are not stable semantic IDs across runs (README C3)."
+   ]
+  },
+  {
+   "stage": "ir",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "clang",
+     "-S",
+     "-emit-llvm",
+     "-g",
+     "-O0",
+     "-o",
+     "/mnt/e/ComplieVista/evidence/m0/c/ir/ir_O0.ll",
+     "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
+    ],
+    "exit_code": 0,
+    "duration_ms": 139,
+    "stdout_bytes": 0,
+    "stderr_bytes": 0
+   },
+   "invocation_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "invocation_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stderr_excerpt": "",
+   "artifacts": [
+    {
+     "path": "evidence/m0/c/ir/ir_O0.ll",
+     "sha256": "f47e5a19e8e9340d119bd6bab3905aa97e633f1fe97b3124b4238ad876f094f7",
+     "bytes": 9610
+    },
+    {
+     "path": "evidence/m0/c/ir/ir_summary.json",
+     "sha256": "8201e5e1505983b361b7dd7ecf7fac7117aaaf79217fb0d1622b3505ebf2017a",
+     "bytes": 224
+    }
+   ],
+   "counts": {
+    "functions": 2,
+    "basic_blocks_derived": 7
+   },
+   "limitations": [
+    "Source\u2192IR mapping is partial even at -O0 (README C4); block inventory is text-derived (DERIVED), not a verified CFG."
+   ]
+  },
+  {
+   "stage": "assembly",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "clang",
+     "-S",
+     "-O0",
+     "-o",
+     "/mnt/e/ComplieVista/evidence/m0/c/assembly/fixture_O0.s",
+     "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
+    ],
+    "exit_code": 0,
+    "duration_ms": 93,
+    "stdout_bytes": 0,
+    "stderr_bytes": 0
+   },
+   "invocation_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "invocation_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stderr_excerpt": "",
+   "artifacts": [
+    {
+     "path": "evidence/m0/c/assembly/fixture_O0.s",
+     "sha256": "fe27cf04e10df4687b85422dca717d2a7217886b851a258ef645b12ee3eb1838",
+     "bytes": 2816
+    },
+    {
+     "path": "evidence/m0/c/assembly/asm_summary.json",
+     "sha256": "775e8ba07910c5c8dc1abc1ea452bc101ed61ded5a32dc3e00a67ce72cc6237b",
+     "bytes": 149
+    }
+   ],
+   "counts": {
+    "function_labels": 2,
+    "lines": 108
+   },
+   "limitations": [
+    "Mnemonics are not raw machine code bytes (README C6)."
+   ]
+  },
+  {
+   "stage": "object",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "clang",
+     "-c",
+     "-g",
+     "-O0",
+     "-o",
+     "/mnt/e/ComplieVista/evidence/m0/c/object/c_fixture.o",
+     "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
+    ],
+    "exit_code": 0,
+    "duration_ms": 61,
+    "stdout_bytes": 0,
+    "stderr_bytes": 0
+   },
+   "invocation_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "invocation_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stderr_excerpt": "",
+   "artifacts": [
+    {
+     "path": "evidence/m0/c/object/c_fixture.o",
+     "sha256": "1b1be2cd72329c82235445a54ee8b46cff74fb4b6c64b9f1cdaf7c346a15484c",
+     "bytes": 4296
+    },
+    {
+     "path": "evidence/m0/c/object/disassembly.txt",
+     "sha256": "4413aafe142d8f189f1d0f74814634a06195d90dac5b87e723d8df0969de6801",
+     "bytes": 3399
+    },
+    {
+     "path": "evidence/m0/c/object/symbols.txt",
+     "sha256": "7ed01570dfd7b6c030a068ed90b83994cd6b9832dbd50a62740060ed974b9ea1",
+     "bytes": 1186
+    }
+   ],
+   "counts": {
+    "disassembled_instructions_derived": 52
+   },
+   "limitations": [
+    "Object binary excluded from git (regenerable); digest + disassembly text are the evidence.",
+    "Disassembly by llvm-objdump-18 (Ubuntu LLVM version 18.1.3); symbols by llvm-readelf-18."
+   ],
+   "tool_disassembly_version": "Ubuntu LLVM version 18.1.3"
+  },
+  {
+   "stage": "diagnostics_syntax",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "clang",
+     "-fsyntax-only",
+     "/mnt/e/ComplieVista/demos/m0/c_syntax_error.c"
+    ],
+    "exit_code": 1,
+    "duration_ms": 51,
+    "stdout_bytes": 0,
+    "stderr_bytes": 196
+   },
+   "invocation_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "invocation_stderr_sha256": "44a86e775f523c04b2713c2014e2b1011aa9e7afb2b8a3b8c089adf06cfc445b",
+   "stderr_excerpt": "/mnt/e/ComplieVista/demos/m0/c_syntax_error.c:4:19: error: expected ';' at end of declaration\n    4 |     int broken = 1\n      |                   ^\n      |                   ;\n1 error generated.\n",
+   "artifacts": [
+    {
+     "path": "evidence/m0/c/diagnostics/syntax_error_stderr.txt",
+     "sha256": "44a86e775f523c04b2713c2014e2b1011aa9e7afb2b8a3b8c089adf06cfc445b",
+     "bytes": 196
+    }
+   ],
+   "counts": {
+    "expected_nonzero_exit": true
+   },
+   "limitations": [
+    "Diagnostic text preserved verbatim from clang stderr; fixture 'c_syntax_error.c' is never executed or linked."
+   ],
+   "expected_exit_nonzero": true,
+   "diagnostic_verbatim": "/mnt/e/ComplieVista/demos/m0/c_syntax_error.c:4:19: error: expected ';' at end of declaration\n    4 |     int broken = 1\n      |                   ^\n      |                   ;\n1 error generated.\n"
+  },
+  {
+   "stage": "diagnostics_semantic",
+   "availability": "AVAILABLE",
+   "observation_class": "TOOL_OUTPUT",
+   "invocation": {
+    "argv": [
+     "clang",
+     "-fsyntax-only",
+     "/mnt/e/ComplieVista/demos/m0/c_semantic_error.c"
+    ],
+    "exit_code": 1,
+    "duration_ms": 32,
+    "stdout_bytes": 0,
+    "stderr_bytes": 190
+   },
+   "invocation_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "invocation_stderr_sha256": "5b9142c43c3752130b3e75f65e3ddbdacb137e2c36c3f95a176065a3b76de473",
+   "stderr_excerpt": "/mnt/e/ComplieVista/demos/m0/c_semantic_error.c:3:12: error: use of undeclared identifier 'undefined_variable'\n    3 |     return undefined_variable;\n      |            ^\n1 error generated.\n",
+   "artifacts": [
+    {
+     "path": "evidence/m0/c/diagnostics/semantic_error_stderr.txt",
+     "sha256": "5b9142c43c3752130b3e75f65e3ddbdacb137e2c36c3f95a176065a3b76de473",
+     "bytes": 190
+    }
+   ],
+   "counts": {
+    "expected_nonzero_exit": true
+   },
+   "limitations": [
+    "Diagnostic text preserved verbatim from clang stderr; fixture 'c_semantic_error.c' is never executed or linked."
+   ],
+   "expected_exit_nonzero": true,
+   "diagnostic_verbatim": "/mnt/e/ComplieVista/demos/m0/c_semantic_error.c:3:12: error: use of undeclared identifier 'undefined_variable'\n    3 |     return undefined_variable;\n      |            ^\n1 error generated.\n"
+  }
+ ],
+ "limitations_global": [
+  "Static analysis only; no C execution in this deliverable (Docker feasibility is separate).",
+  "No source\u2192IR instruction mapping is claimed (UNAVAILABLE in M0)."
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "error_type": "SyntaxError",
+ "msg": "invalid syntax",
+ "lineno": 2,
+ "offset": 12,
+ "end_lineno": 2,
+ "end_offset": 13,
+ "text": "def broken(:",
+ "mapping_confidence": "EXACT"
+}

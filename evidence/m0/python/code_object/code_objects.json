@@ -1,0 +1,75 @@
+[
+ {
+  "name": "<module>",
+  "qualname": "<module>",
+  "argcount": 0,
+  "varnames": [],
+  "names": [
+   "__doc__",
+   "M0_SCALE",
+   "int",
+   "scale_and_adjust",
+   "main",
+   "__name__"
+  ],
+  "consts_noncode": [
+   "'M0 Python fixture: deterministic, mirrors the C fixture.\\n\\nStatic inspection uses tokenize/ast/compile/dis ONLY and must never execute this module.\\nExpected stdout if ever (manually, curated context only) run: \"total=28\"\\n'",
+   "3",
+   "'base'",
+   "'limit'",
+   "'return'",
+   "None",
+   "'__main__'",
+   "('return', None)"
+  ],
+  "nested_code_objects": [
+   "scale_and_adjust",
+   "main"
+  ],
+  "byte_len": 66,
+  "depth": 0
+ },
+ {
+  "name": "scale_and_adjust",
+  "qualname": "scale_and_adjust",
+  "argcount": 2,
+  "varnames": [
+   "base",
+   "limit",
+   "scaled"
+  ],
+  "names": [
+   "M0_SCALE"
+  ],
+  "consts_noncode": [
+   "None"
+  ],
+  "nested_code_objects": [],
+  "byte_len": 38,
+  "depth": 1
+ },
+ {
+  "name": "main",
+  "qualname": "main",
+  "argcount": 0,
+  "varnames": [
+   "values",
+   "total",
+   "value"
+  ],
+  "names": [
+   "scale_and_adjust",
+   "print"
+  ],
+  "consts_noncode": [
+   "None",
+   "(1, 2, 3, 4)",
+   "0",
+   "10",
+   "'total='"
+  ],
+  "nested_code_objects": [],
+  "byte_len": 88,
+  "depth": 1
+ }
+]

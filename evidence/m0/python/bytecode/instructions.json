@@ -1,0 +1,1122 @@
+[
+ {
+  "code_object": "<module>",
+  "offset": 0,
+  "opname": "RESUME",
+  "opcode": 151,
+  "arg": 0,
+  "argval": "0",
+  "starts_line": 0,
+  "positions": [
+   0,
+   1,
+   0,
+   0
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 2,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 0,
+  "argval": "M0 Python fixture: deterministic, mirrors the C fixture.\n\nStatic inspection uses tokenize/ast/compile/dis ONLY and must never execute this module.\nExpected stdout if ever (manually, curated context only) run: \"total=28\"\n",
+  "starts_line": 1,
+  "positions": [
+   1,
+   5,
+   0,
+   3
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 4,
+  "opname": "STORE_NAME",
+  "opcode": 90,
+  "arg": 0,
+  "argval": "__doc__",
+  "starts_line": null,
+  "positions": [
+   1,
+   5,
+   0,
+   3
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 6,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 1,
+  "argval": "3",
+  "starts_line": 7,
+  "positions": [
+   7,
+   7,
+   11,
+   12
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 8,
+  "opname": "STORE_NAME",
+  "opcode": 90,
+  "arg": 1,
+  "argval": "M0_SCALE",
+  "starts_line": null,
+  "positions": [
+   7,
+   7,
+   0,
+   8
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 10,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 2,
+  "argval": "base",
+  "starts_line": 10,
+  "positions": [
+   10,
+   14,
+   0,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 12,
+  "opname": "LOAD_NAME",
+  "opcode": 101,
+  "arg": 2,
+  "argval": "int",
+  "starts_line": null,
+  "positions": [
+   10,
+   10,
+   27,
+   30
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 14,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 3,
+  "argval": "limit",
+  "starts_line": null,
+  "positions": [
+   10,
+   14,
+   0,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 16,
+  "opname": "LOAD_NAME",
+  "opcode": 101,
+  "arg": 2,
+  "argval": "int",
+  "starts_line": null,
+  "positions": [
+   10,
+   10,
+   39,
+   42
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 18,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 4,
+  "argval": "return",
+  "starts_line": null,
+  "positions": [
+   10,
+   14,
+   0,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 20,
+  "opname": "LOAD_NAME",
+  "opcode": 101,
+  "arg": 2,
+  "argval": "int",
+  "starts_line": null,
+  "positions": [
+   10,
+   10,
+   47,
+   50
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 22,
+  "opname": "BUILD_TUPLE",
+  "opcode": 102,
+  "arg": 6,
+  "argval": "6",
+  "starts_line": null,
+  "positions": [
+   10,
+   14,
+   0,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 24,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 5,
+  "argval": "<code scale_and_adjust>",
+  "starts_line": null,
+  "positions": [
+   10,
+   14,
+   0,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 26,
+  "opname": "MAKE_FUNCTION",
+  "opcode": 132,
+  "arg": 4,
+  "argval": "4",
+  "starts_line": null,
+  "positions": [
+   10,
+   14,
+   0,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 28,
+  "opname": "STORE_NAME",
+  "opcode": 90,
+  "arg": 3,
+  "argval": "scale_and_adjust",
+  "starts_line": null,
+  "positions": [
+   10,
+   14,
+   0,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 30,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 9,
+  "argval": "('return', None)",
+  "starts_line": 17,
+  "positions": [
+   17,
+   22,
+   0,
+   27
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 32,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 7,
+  "argval": "<code main>",
+  "starts_line": null,
+  "positions": [
+   17,
+   22,
+   0,
+   27
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 34,
+  "opname": "MAKE_FUNCTION",
+  "opcode": 132,
+  "arg": 4,
+  "argval": "4",
+  "starts_line": null,
+  "positions": [
+   17,
+   22,
+   0,
+   27
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 36,
+  "opname": "STORE_NAME",
+  "opcode": 90,
+  "arg": 4,
+  "argval": "main",
+  "starts_line": null,
+  "positions": [
+   17,
+   22,
+   0,
+   27
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 38,
+  "opname": "LOAD_NAME",
+  "opcode": 101,
+  "arg": 5,
+  "argval": "__name__",
+  "starts_line": 25,
+  "positions": [
+   25,
+   25,
+   3,
+   11
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 40,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 8,
+  "argval": "__main__",
+  "starts_line": null,
+  "positions": [
+   25,
+   25,
+   15,
+   25
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 42,
+  "opname": "COMPARE_OP",
+  "opcode": 107,
+  "arg": 40,
+  "argval": "==",
+  "starts_line": null,
+  "positions": [
+   25,
+   25,
+   3,
+   25
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 46,
+  "opname": "POP_JUMP_IF_FALSE",
+  "opcode": 114,
+  "arg": 8,
+  "argval": "64",
+  "starts_line": null,
+  "positions": [
+   25,
+   25,
+   3,
+   25
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 48,
+  "opname": "PUSH_NULL",
+  "opcode": 2,
+  "arg": null,
+  "argval": "None",
+  "starts_line": 26,
+  "positions": [
+   26,
+   26,
+   4,
+   8
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 50,
+  "opname": "LOAD_NAME",
+  "opcode": 101,
+  "arg": 4,
+  "argval": "main",
+  "starts_line": null,
+  "positions": [
+   26,
+   26,
+   4,
+   8
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 52,
+  "opname": "CALL",
+  "opcode": 171,
+  "arg": 0,
+  "argval": "0",
+  "starts_line": null,
+  "positions": [
+   26,
+   26,
+   4,
+   10
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 60,
+  "opname": "POP_TOP",
+  "opcode": 1,
+  "arg": null,
+  "argval": "None",
+  "starts_line": null,
+  "positions": [
+   26,
+   26,
+   4,
+   10
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 62,
+  "opname": "RETURN_CONST",
+  "opcode": 121,
+  "arg": 6,
+  "argval": "None",
+  "starts_line": null,
+  "positions": [
+   26,
+   26,
+   4,
+   10
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "<module>",
+  "offset": 64,
+  "opname": "RETURN_CONST",
+  "opcode": 121,
+  "arg": 6,
+  "argval": "None",
+  "starts_line": 25,
+  "positions": [
+   25,
+   25,
+   3,
+   25
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 0,
+  "opname": "RESUME",
+  "opcode": 151,
+  "arg": 0,
+  "argval": "0",
+  "starts_line": 10,
+  "positions": [
+   10,
+   10,
+   0,
+   0
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 2,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 0,
+  "argval": "base",
+  "starts_line": 11,
+  "positions": [
+   11,
+   11,
+   13,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 4,
+  "opname": "LOAD_GLOBAL",
+  "opcode": 116,
+  "arg": 0,
+  "argval": "M0_SCALE",
+  "starts_line": null,
+  "positions": [
+   11,
+   11,
+   20,
+   28
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 14,
+  "opname": "BINARY_OP",
+  "opcode": 122,
+  "arg": 5,
+  "argval": "5",
+  "starts_line": null,
+  "positions": [
+   11,
+   11,
+   13,
+   28
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 18,
+  "opname": "STORE_FAST",
+  "opcode": 125,
+  "arg": 2,
+  "argval": "scaled",
+  "starts_line": null,
+  "positions": [
+   11,
+   11,
+   4,
+   10
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 20,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 2,
+  "argval": "scaled",
+  "starts_line": 12,
+  "positions": [
+   12,
+   12,
+   7,
+   13
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 22,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 1,
+  "argval": "limit",
+  "starts_line": null,
+  "positions": [
+   12,
+   12,
+   16,
+   21
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 24,
+  "opname": "COMPARE_OP",
+  "opcode": 107,
+  "arg": 68,
+  "argval": ">",
+  "starts_line": null,
+  "positions": [
+   12,
+   12,
+   7,
+   21
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 28,
+  "opname": "POP_JUMP_IF_FALSE",
+  "opcode": 114,
+  "arg": 2,
+  "argval": "34",
+  "starts_line": null,
+  "positions": [
+   12,
+   12,
+   7,
+   21
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 30,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 1,
+  "argval": "limit",
+  "starts_line": 13,
+  "positions": [
+   13,
+   13,
+   15,
+   20
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 32,
+  "opname": "RETURN_VALUE",
+  "opcode": 83,
+  "arg": null,
+  "argval": "None",
+  "starts_line": null,
+  "positions": [
+   13,
+   13,
+   8,
+   20
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 34,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 2,
+  "argval": "scaled",
+  "starts_line": 14,
+  "positions": [
+   14,
+   14,
+   11,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "scale_and_adjust",
+  "offset": 36,
+  "opname": "RETURN_VALUE",
+  "opcode": 83,
+  "arg": null,
+  "argval": "None",
+  "starts_line": null,
+  "positions": [
+   14,
+   14,
+   4,
+   17
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 0,
+  "opname": "RESUME",
+  "opcode": 151,
+  "arg": 0,
+  "argval": "0",
+  "starts_line": 17,
+  "positions": [
+   17,
+   17,
+   0,
+   0
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 2,
+  "opname": "BUILD_LIST",
+  "opcode": 103,
+  "arg": 0,
+  "argval": "0",
+  "starts_line": 18,
+  "positions": [
+   18,
+   18,
+   13,
+   25
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 4,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 1,
+  "argval": "(1, 2, 3, 4)",
+  "starts_line": null,
+  "positions": [
+   18,
+   18,
+   13,
+   25
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 6,
+  "opname": "LIST_EXTEND",
+  "opcode": 162,
+  "arg": 1,
+  "argval": "1",
+  "starts_line": null,
+  "positions": [
+   18,
+   18,
+   13,
+   25
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 8,
+  "opname": "STORE_FAST",
+  "opcode": 125,
+  "arg": 0,
+  "argval": "values",
+  "starts_line": null,
+  "positions": [
+   18,
+   18,
+   4,
+   10
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 10,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 2,
+  "argval": "0",
+  "starts_line": 19,
+  "positions": [
+   19,
+   19,
+   12,
+   13
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 12,
+  "opname": "STORE_FAST",
+  "opcode": 125,
+  "arg": 1,
+  "argval": "total",
+  "starts_line": null,
+  "positions": [
+   19,
+   19,
+   4,
+   9
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 14,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 0,
+  "argval": "values",
+  "starts_line": 20,
+  "positions": [
+   20,
+   20,
+   17,
+   23
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 16,
+  "opname": "GET_ITER",
+  "opcode": 68,
+  "arg": null,
+  "argval": "None",
+  "starts_line": null,
+  "positions": [
+   20,
+   21,
+   4,
+   44
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 18,
+  "opname": "FOR_ITER",
+  "opcode": 93,
+  "arg": 17,
+  "argval": "56",
+  "starts_line": null,
+  "positions": [
+   20,
+   21,
+   4,
+   44
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 22,
+  "opname": "STORE_FAST",
+  "opcode": 125,
+  "arg": 2,
+  "argval": "value",
+  "starts_line": null,
+  "positions": [
+   20,
+   20,
+   8,
+   13
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 24,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 1,
+  "argval": "total",
+  "starts_line": 21,
+  "positions": [
+   21,
+   21,
+   8,
+   13
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 26,
+  "opname": "LOAD_GLOBAL",
+  "opcode": 116,
+  "arg": 1,
+  "argval": "scale_and_adjust",
+  "starts_line": null,
+  "positions": [
+   21,
+   21,
+   17,
+   33
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 36,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 2,
+  "argval": "value",
+  "starts_line": null,
+  "positions": [
+   21,
+   21,
+   34,
+   39
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 38,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 3,
+  "argval": "10",
+  "starts_line": null,
+  "positions": [
+   21,
+   21,
+   41,
+   43
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 40,
+  "opname": "CALL",
+  "opcode": 171,
+  "arg": 2,
+  "argval": "2",
+  "starts_line": null,
+  "positions": [
+   21,
+   21,
+   17,
+   44
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 48,
+  "opname": "BINARY_OP",
+  "opcode": 122,
+  "arg": 13,
+  "argval": "13",
+  "starts_line": null,
+  "positions": [
+   21,
+   21,
+   8,
+   44
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 52,
+  "opname": "STORE_FAST",
+  "opcode": 125,
+  "arg": 1,
+  "argval": "total",
+  "starts_line": null,
+  "positions": [
+   21,
+   21,
+   8,
+   13
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 54,
+  "opname": "JUMP_BACKWARD",
+  "opcode": 140,
+  "arg": 19,
+  "argval": "18",
+  "starts_line": null,
+  "positions": [
+   21,
+   21,
+   8,
+   13
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 56,
+  "opname": "END_FOR",
+  "opcode": 4,
+  "arg": null,
+  "argval": "None",
+  "starts_line": 20,
+  "positions": [
+   20,
+   21,
+   4,
+   44
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 58,
+  "opname": "LOAD_GLOBAL",
+  "opcode": 116,
+  "arg": 3,
+  "argval": "print",
+  "starts_line": 22,
+  "positions": [
+   22,
+   22,
+   4,
+   9
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 68,
+  "opname": "LOAD_CONST",
+  "opcode": 100,
+  "arg": 4,
+  "argval": "total=",
+  "starts_line": null,
+  "positions": [
+   22,
+   22,
+   12,
+   18
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 70,
+  "opname": "LOAD_FAST",
+  "opcode": 124,
+  "arg": 1,
+  "argval": "total",
+  "starts_line": null,
+  "positions": [
+   22,
+   22,
+   19,
+   24
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 72,
+  "opname": "FORMAT_VALUE",
+  "opcode": 155,
+  "arg": 0,
+  "argval": "(None, False)",
+  "starts_line": null,
+  "positions": [
+   22,
+   22,
+   18,
+   25
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 74,
+  "opname": "BUILD_STRING",
+  "opcode": 157,
+  "arg": 2,
+  "argval": "2",
+  "starts_line": null,
+  "positions": [
+   22,
+   22,
+   10,
+   26
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 76,
+  "opname": "CALL",
+  "opcode": 171,
+  "arg": 1,
+  "argval": "1",
+  "starts_line": null,
+  "positions": [
+   22,
+   22,
+   4,
+   27
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 84,
+  "opname": "POP_TOP",
+  "opcode": 1,
+  "arg": null,
+  "argval": "None",
+  "starts_line": null,
+  "positions": [
+   22,
+   22,
+   4,
+   27
+  ],
+  "mapping_confidence": "EXACT"
+ },
+ {
+  "code_object": "main",
+  "offset": 86,
+  "opname": "RETURN_CONST",
+  "opcode": 121,
+  "arg": 0,
+  "argval": "None",
+  "starts_line": null,
+  "positions": [
+   22,
+   22,
+   4,
+   27
+  ],
+  "mapping_confidence": "EXACT"
+ }
+]
