@@ -6,7 +6,7 @@
   "project_root_verified": "E:\\ComplieVista",
   "wsl_path_verified": "/mnt/e/ComplieVista",
   "prior_checkpoint": "e732c5a (M0 final)",
-  "git_commit": "recorded in repository log immediately after this file (M1 milestone commit); backend checkpoint 77cc5e4",
+  "git_commit": "347d768b08b650a60072114a028a192c35291213 (M1 milestone commit; hash recorded in this follow-up docs commit); backend checkpoint 77cc5e4",
   "environment": {
     "cpython": "3.12.3",
     "fastapi": "0.115.5",
