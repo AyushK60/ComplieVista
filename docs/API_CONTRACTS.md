@@ -1,8 +1,8 @@
-# API Contracts — M0 surface (`/api/v1`)
+# API Contracts — M0 surface (`/api/v1`) + M1 source workspace
 
-Versioned contracts per README §12; only the M0 subset is implemented. All responses are
-JSON, bounded (large bodies truncated with explicit `truncated: true` + digest of the full
-artifact), and never contain raw local absolute paths.
+Versioned contracts per README §12; M0 endpoints unchanged, M1 adds the source workspace.
+All responses are JSON, bounded (large bodies truncated with explicit flags), and never
+contain raw local absolute paths.
 
 ## GET /api/v1/health
 `{"status": "ok", "time_utc": "...", "python_version": "3.12.3", "schema_version": "m0.v1"}`
@@ -38,5 +38,46 @@ Structured, non-leaf paths: `404 {"error": {"code": "NOT_FOUND", "message": "unk
 `400` for malformed stage names, `503` when a backing tool is unavailable. No stack traces.
 
 ## Out of M0 scope (must not be faked)
-`POST /api/v1/sources`, `/imports/github`, `/executions`, `/comparisons`, `/sessions` —
-remain unimplemented; the README job lifecycle governs their later design.
+`POST /api/v1/executions`, `/comparisons`, `/sessions` — remain unimplemented; the README
+job lifecycle governs their later design.
+
+---
+
+# M1 additions (schema `m1.v1`, ADR-0004)
+
+## GET /api/v1/limits
+Discloses every bounded intake limit (bytes, counts, ratios, timeouts) for UI and tests.
+
+## POST /api/v1/sources
+Two forms:
+- JSON `{"kind": "paste", "language": "python"|"c", "filename", "content"}` → creates a
+  project + immutable snapshot.
+- `multipart/form-data` with file parts (`.c`/`.h`/`.py`, or one `.zip` ≤ 25 MB) →
+  archive validated by the shared safe extractor; rejected entries are returned and
+  persisted as snapshot diagnostics.
+Response: `{project_id, snapshot_id, existed, file_count, rejected[], rejected_count}`.
+Idempotent per `(project, combined_sha256)`.
+
+## POST /api/v1/imports/github
+`{"url": "https://github.com/OWNER/REPO", "ref"?: "branch|tag|sha"}` — strict URL
+validation (https, exact github.com host, no userinfo/port/query/fragment/traversal),
+metadata + full commit SHA via api.github.com, tarball only from codeload.github.com
+pinned to the SHA, redirect-host allowlist, streaming byte caps, rate-limit typed errors.
+Response adds `{canonical_owner, canonical_repo, commit_sha, archive_sha256,
+policy_version, download_ms}`. Nothing retrieved is executed or built.
+
+## GET /api/v1/projects · /projects/{id} · /projects/{id}/targets
+Project listing with snapshot identities; targets carry `status`
+(`STATIC_ANALYZABLE | COMPILATION_CANDIDATE | EXECUTABLE_CANDIDATE | BLOCKED |
+UNSUPPORTED`; `READY_FOR_CONTROLLED_EXECUTION` is never emitted in M1), machine-readable
+`reasons[]` each tagged `verified: true|false`, and `ready_for_controlled_execution:
+false` always in M1.
+
+## GET /api/v1/projects/{id}/snapshots/{sid} · …/files/{fid}
+Snapshot files (rel paths, sizes, encodings, digests, intake diagnostics) and bounded
+file text (`text` ≤ 200 KB with `text_truncated`; binary files return `text: null`).
+
+## Errors
+All M1 failures return `{"error": {"code", "message"}}` with typed codes, e.g.
+`INVALID_URL, REPO_NOT_FOUND, RATE_LIMITED, REDIRECT_DISALLOWED, ARCHIVE_TOO_LARGE,
+BOMB_RATIO, PATH_TRAVERSAL, PAYLOAD_TOO_LARGE, NO_ACCEPTABLE_FILES, MALFORMED_ARCHIVE`.
