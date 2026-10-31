@@ -4,7 +4,7 @@
   "verdict": "PASS",
   "date": "2026-10-31",
   "in_response_to": "Independent M3 audit: CONDITIONAL M3 PASS — HOLD M4 pending M3.5",
-  "git_commit": "recorded in repository log immediately after this file",
+  "git_commit": "a8b2c44 (M3.5 milestone commit; hash recorded in this follow-up docs commit)",
   "analyzer_image_id": "sha256:00f5bbb9b44ee01347c70f7a5cab113534cac43133ce2f9f92a05aff4baaa1f8",
   "findings_closed": {
     "M3-CV-01": {"fix": "layout and render share the identical visible subgraph (postedRef); collapse prunes descendants, root retained", "regression": "E2E collapse counts 69->n<69->69 exact restore"},
