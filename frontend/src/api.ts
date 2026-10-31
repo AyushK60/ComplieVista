@@ -55,7 +55,62 @@ export const api = {
     fetch(`/api/v1/projects/${pid}/snapshots/${sid}`).then(unwrap<SnapshotDetail>),
   file: (pid: string, sid: string, fid: string) =>
     fetch(`/api/v1/projects/${pid}/snapshots/${sid}/files/${fid}`).then(unwrap<FileDetail>),
+
+  createAnalysis: (snapshot_id: string, target_id: string) =>
+    fetch("/api/v1/analyses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ snapshot_id, target_id }),
+    }).then(unwrap<AnalysisJobRef>),
+  analysis: (id: string) => fetch(`/api/v1/analyses/${id}`).then(unwrap<AnalysisJob>),
+  stage: (id: string, stage: string) =>
+    fetch(`/api/v1/analyses/${id}/stages/${stage}`).then(unwrap<StageData>),
+  stageRaw: (id: string, stage: string) =>
+    fetch(`/api/v1/analyses/${id}/stages/${stage}/raw`).then(unwrap<StageRaw>),
+  cancelAnalysis: (id: string) =>
+    fetch(`/api/v1/analyses/${id}/cancel`, { method: "POST" }).then(unwrap),
 };
+
+export interface AnalysisJobRef { analysis_id: string; status: string; existed: boolean }
+export interface AnalysisJob {
+  id: string;
+  status: string;
+  language: string;
+  primary_file: string;
+  source_combined_sha256: string;
+  tool_fingerprint: string | null;
+  image_id: string | null;
+  error_code: string | null;
+  duration_ms: number | null;
+  ready_for_controlled_execution: boolean;
+  note: string;
+  stages: Array<{
+    stage: string; availability: string; observation_class: string;
+    exit_code: number | null; counts: Record<string, unknown>; truncated: boolean;
+    duration_ms: number | null;
+  }>;
+}
+export interface StageData {
+  analysis_id: string;
+  stage: string;
+  availability: string;
+  observation_class: string;
+  exit_code: number | null;
+  counts: Record<string, unknown>;
+  items: Array<Record<string, unknown>>;
+  limitations: string[];
+  raw_artifact_sha256: string | null;
+  stderr_artifact_sha256: string | null;
+  truncated: boolean;
+  duration_ms: number | null;
+  invocation: { argv_tail: string[]; note: string };
+}
+export interface StageRaw {
+  excerpt: string | null;
+  truncated: boolean;
+  bytes?: number;
+  artifact_sha256?: string;
+}
 
 export interface IngestResult {
   project_id: string;

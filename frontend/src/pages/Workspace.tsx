@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError, api, FileDetail, Project, Reason, SnapshotDetail, Target } from "../api";
+import AnalysisPanel from "../components/AnalysisPanel";
 import CodeView from "../components/CodeView";
 
 type Mode = "paste" | "upload" | "github";
@@ -37,6 +38,9 @@ export default function Workspace() {
   const [targets, setTargets] = useState<Target[]>([]);
   const [selected, setSelected] = useState<FileDetail | null>(null);
   const [tools, setTools] = useState<Record<string, { available: boolean; version: string }>>({});
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [highlightLine, setHighlightLine] = useState<number | null>(null);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
 
   useEffect(() => {
     api.capabilities().then((c) => setTools(c.tools)).catch(() => setTools({}));
@@ -88,9 +92,27 @@ export default function Workspace() {
   async function selectFile(id: string) {
     if (!project || !snapshot) return;
     setSelected(await api.file(project.id, snapshot.id, id));
+    setAnalysisId(null);
+    setHighlightLine(null);
+    setAnalyzeError(null);
   }
 
   const selectedTargets = selected ? fileTargets(selected.rel_path) : [];
+  const ANALYZABLE = new Set(["STATIC_ANALYZABLE", "COMPILATION_CANDIDATE", "EXECUTABLE_CANDIDATE"]);
+  const analyzableTarget = selectedTargets.find(
+    (t) => ANALYZABLE.has(t.status) && selected?.language !== "other");
+
+  async function startAnalysis() {
+    if (!snapshot || !analyzableTarget) return;
+    setAnalyzeError(null);
+    setAnalysisId(null);
+    try {
+      const ref = await api.createAnalysis(snapshot.id, analyzableTarget.target_id);
+      setAnalysisId(ref.analysis_id);
+    } catch (e) {
+      setAnalyzeError(e instanceof ApiError ? e.message : String(e));
+    }
+  }
 
   return (
     <main>
@@ -224,7 +246,8 @@ export default function Workspace() {
             <div className="detail">
               {selected ? (
                 <>
-                  <CodeView text={selected.text ?? "(binary content not previewable)"} path={selected.rel_path} />
+                  <CodeView text={selected.text ?? "(binary content not previewable)"}
+                            path={selected.rel_path} highlightLine={highlightLine} />
                   <p className="muted">
                     sha256 <code>{selected.content_sha256.slice(0, 32)}…</code> · encoding{" "}
                     <code>{selected.encoding}</code>
@@ -251,12 +274,22 @@ export default function Workspace() {
                           </li>
                         ))}
                       </ul>
-                      <button className="analyze" disabled title=
-                        "Static analysis for arbitrary sources arrives with M2; execution requires the M4 security gate.">
-                        Analyze
-                      </button>
+                      {t === analyzableTarget && (
+                        <button className="primary" onClick={startAnalysis} disabled={!snapshot}>
+                          Analyze with real {selected.language === "c" ? "Clang/LLVM 18" : "CPython 3.12"} (static)
+                        </button>
+                      )}
+                      {t !== analyzableTarget && (
+                        <button className="analyze" disabled title=
+                          "No bounded analysis path for this target yet; execution requires the M4 security gate.">
+                          Analyze
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {analyzeError && <p className="err">Analyze failed: {analyzeError}</p>}
+                  {analysisId && <AnalysisPanel analysisId={analysisId}
+                                                onSelectLine={(l) => setHighlightLine(l)} />}
                 </>
               ) : (
                 <p className="muted">Select a file.</p>

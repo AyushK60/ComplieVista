@@ -52,15 +52,21 @@ def main() -> None:
         src = f.read()
     text = src.decode("utf-8", "replace")
 
-    # P1 tokens
+    # P1 tokens (tokenize itself can raise on broken source — record it, never crash)
     t0 = time.perf_counter()
     toks = []
-    for tok in tokenize.tokenize(io.BytesIO(src).readline):
-        toks.append({"type": tokenize.tok_name[tok.type], "text": tok.string,
-                     "start": list(tok.start), "end": list(tok.end),
-                     "mapping_confidence": "EXACT"})
+    tok_error = None
+    try:
+        for tok in tokenize.tokenize(io.BytesIO(src).readline):
+            toks.append({"type": tokenize.tok_name[tok.type], "text": tok.string,
+                         "start": list(tok.start), "end": list(tok.end),
+                         "mapping_confidence": "EXACT"})
+    except (tokenize.TokenError, SyntaxError, IndentationError) as e:
+        tok_error = f"{type(e).__name__}: {e}"
     stage(args.out, "tokens",
-          {"tokens": toks, "counts": {"tokens": len(toks)},
+          {"tokens": toks,
+           "tokenize_error": tok_error,
+           "counts": {"tokens": len(toks)},
            "duration_ms": int((time.perf_counter() - t0) * 1000)})
 
     # P2/P3 parse + AST + symtable

@@ -67,3 +67,33 @@ button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .reasons .unverified { color: #ffd479; font-style: normal; }
 button.analyze { background: #161c24; color: #7c8b9c; border: 1px dashed #2c3844;
                  border-radius: 6px; padding: 0.3rem 0.9rem; cursor: not-allowed; }
+
+/* ---- M2 analysis panel ---- */
+.analysis { border: 1px solid #222c37; border-radius: 8px; padding: 0.75rem; margin-top: 0.75rem; }
+.stagenav { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; }
+.stagenav .tab { font-size: 0.78rem; }
+.provenance { font-size: 0.75rem; }
+.tree { font-family: Consolas, monospace; font-size: 0.78rem; max-height: 50vh; overflow: auto;
+        background: #0e1116; border: 1px solid #1d2630; border-radius: 6px; padding: 0.5rem; }
+.astnode { cursor: pointer; display: inline-block; padding: 0 4px; border-radius: 3px; }
+.astnode:hover { background: #1c242e; }
+.tw { background: none; border: none; color: #7c8b9c; cursor: pointer; width: 1.2rem; }
+.blocks { font-family: Consolas, monospace; font-size: 0.78rem; }
+.irfunc { border-left: 2px solid #2c3844; margin: 0.4rem 0; padding-left: 0.6rem; }
+table.grid { border-collapse: collapse; font-family: Consolas, monospace; font-size: 0.75rem;
+             max-height: 45vh; display: block; overflow: auto; }
+table.grid td { border: 1px solid #1d2630; padding: 2px 6px; }
+table.grid tr.clickable { cursor: pointer; }
+table.grid tr.clickable:hover { background: #1c242e; }
+.grid .k { color: #7c8b9c; font-size: 0.68rem; margin-right: 4px; }
+.gutter li.hl, .codeline.hl { background: #3a2f14; color: #ffd479; }
+.diags { list-style: none; padding: 0; font-family: Consolas, monospace; font-size: 0.78rem; }
+.diags .diag { cursor: pointer; padding: 2px 4px; }
+.diags .diag:hover { background: #1c242e; }
+.sev.error { color: #ff8f8f; }
+.sev.warning { color: #ffd479; }
+.sev.note { color: #9ecbff; }
+button.cancel { background: none; color: #ff8f8f; border: 1px solid #6b3434; border-radius: 4px;
+                margin-left: 0.6rem; cursor: pointer; }
+.token.clickable { cursor: pointer; }
+.token.clickable:hover { border-color: #2f5d8a; }

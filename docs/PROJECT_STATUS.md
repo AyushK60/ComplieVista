@@ -1,45 +1,37 @@
 # CompileVista Project Status
 
-Updated: 31 October 2026 (M1 execution)
+Updated: 31 October 2026 (M2 execution)
 
-## Current milestone: **M1 — Source workspace, safe ingestion & public GitHub import**
+## Current milestone: **M2 — Real C/CPython compiler observatory & first working analysis UI**
 
-Status: **implemented and verified; verdict PASS on all 7 M1 gates**
-(evidence: `docs/TEST_EVIDENCE/M1.md`, machine-readable `docs/milestones/M1.json`).
-Prior checkpoint: M0 PASS at `e732c5a`; M1 backend checkpoint `77cc5e4`.
+Status: **implemented and verified; verdict PASS on all 8 M2 gates**
+(evidence: `docs/TEST_EVIDENCE/M2.md`, machine-readable `docs/milestones/M2.json`,
+handoff: `docs/HANDOFF_AFTER_M2.md`). Prior checkpoints: M0 `5718e07`, M1 `347d768`,
+M2 backend `305446a`.
 
-## What exists now
+## What exists now (cumulative)
 
-- Everything from M0 (real C/CPython toolchain proofs, staging bridge, API, Docker
-  feasibility, tests) — regression-verified at M1 start and at the end (E2E + suite).
-- **Persistence** (ADR-0004): SQLite metadata (`data/compilevista.db`, schema `m1.v1`)
-  + content-addressed immutable source artifacts; idempotent snapshot re-import.
-- **Ingestion**: paste (C/Python), multipart upload (.c/.h/.py), bounded ZIP with the
-  shared safe extractor (zip-slip/symlink/bomb/collision/binary rejection, every
-  rejected entry recorded). No source is ever executed during intake (adversarial
-  fixtures prove it).
-- **GitHub import**: strict URL validation → api.github.com metadata + full commit SHA →
-  codeload tarball pinned to that SHA → safe extraction; redirect allowlist, rate-limit
-  typed errors, streaming caps. Verified against TWO real public repos
-  (`antirez/kilo` C, `pallets/click` Python).
-- **Classification**: per-file targets with statuses and machine-readable reasons, each
-  reason `verified` or `detected`; multi-file C hints; `READY_FOR_CONTROLLED_EXECUTION`
-  never emitted in M1.
-- **Frontend workspace** (`/workspace`): Paste/Upload/GitHub tabs, filtered file tree
-  with status badges, read-only line-numbered code view, target inspector, typed error
-  and empty/loading states, live tool-availability header. M0 home page retained.
-- **E2E**: 5/5 Playwright journeys pass with committed screenshots.
+- **M0**: toolchain proofs, staging bridge, Docker feasibility, API/UI skeleton.
+- **M1**: ingestion (paste/upload/ZIP with safe extraction), pinned GitHub import,
+  classification, source workspace UI, SQLite + content-addressed persistence.
+- **M2**: untrusted C/Python analyzed ONLY inside the pinned restricted container
+  (`compilevista/analyzer:m2`): C preprocess/tokens/AST/IR-O0+O2/assembly/object/symbols/
+  disassembly; Python tokenize/AST/symtable/code-objects/bytecode — never executed.
+  Analysis job lifecycle (queued/running/terminal/cancel/timeout/BLOCKED, idempotent),
+  typed bounded stage views with per-item mapping confidence, source-to-stage
+  highlighting, raw-output toggle, honest per-stage degradation on invalid source.
+  Independent host clang/CPython oracle tests. 103 backend tests passed (4 honest GitHub
+  rate-limit skips), 3/3 M2 browser journeys + M1 regression (4/5, one 429 skip).
 
 ## Deliberately NOT done (no false claims)
 
-- No analysis of arbitrary user sources (M2 wires the real analyzers; Analyze button is
-  disabled with an explanation). No execution of pasted/repository code (M4 gate).
-- No graph observatory (M3), no MemoryScope/ProcessScope/OptimizationLab (M5/M6),
-  no 20-demo suite (M7), no premium polish (M8), no independent audit (M9).
+- No runtime execution or tracing (M4 gate). No multi-file linked builds (M6).
+- No semantic-zoom graph observatory/Monaco/minimap (M3). No MemoryScope/ProcessScope
+  (M5), OptimizationLab (M6), 20-demo suite (M7), premium polish (M8), independent audit (M9).
 
 ## Next
 
-**M2 NOT STARTED; may enter its own independent preflight** (core analyzers, per README §16).
+**M3 NOT STARTED — awaiting post-M2 audit and user authorization.**
 
 ## Active risks / quirks
 

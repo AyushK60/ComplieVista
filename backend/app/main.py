@@ -43,6 +43,7 @@ class AppError(Exception):
 def create_app(store: Store | None = None) -> FastAPI:
     app = FastAPI(title="CompileVista API", version=__version__, docs_url="/api/docs")
     store = store or Store()
+    app.state.store = store  # exposed for tests/diagnostics; never serialized
 
     @app.exception_handler(AppError)
     async def app_error(_req, exc: AppError) -> JSONResponse:
@@ -183,6 +184,25 @@ def create_app(store: Store | None = None) -> FastAPI:
     @app.post("/api/v1/analyses/{analysis_id}/cancel")
     def cancel_analysis(analysis_id: str) -> dict:
         return {"analysis_id": analysis_id, "result": get_runner(store).cancel(analysis_id)}
+
+    @app.get("/api/v1/analyses/{analysis_id}/stages/{stage}/raw")
+    def stage_raw(analysis_id: str, stage: str) -> dict:
+        """Bounded raw tool output for the raw/normalized toggle (≤ 24 KB excerpt)."""
+        rec = store.query_one("SELECT * FROM analysis_stages WHERE analysis_id=? AND stage=?",
+                              (analysis_id, stage))
+        if not rec:
+            raise AppError("NOT_FOUND", "unknown analysis/stage", 404)
+        out: dict = {"analysis_id": analysis_id, "stage": stage, "excerpt": None,
+                     "truncated": False}
+        for key in ("raw_artifact", "stderr_artifact"):
+            sha = rec[key]
+            if sha and out["excerpt"] is None:
+                data = store.get_artifact(sha)
+                out["artifact_sha256"] = sha
+                out["excerpt"] = data[:24_000].decode("utf-8", "replace")
+                out["truncated"] = len(data) > 24_000
+                out["bytes"] = len(data)
+        return out
 
     # ---------------- M1: limits ----------------
     @app.get("/api/v1/limits")

@@ -6,6 +6,7 @@ IR/assembly relations are DERIVED; source→IR/asm mapping is UNAVAILABLE in M2)
 """
 from __future__ import annotations
 
+import bisect
 import json
 import re
 from pathlib import Path
@@ -38,32 +39,64 @@ def _capped(seq: list, cap: int = MAX_ITEMS) -> tuple[list, bool]:
     return seq[:cap], len(seq) > cap
 
 
-def _clang_ast_nodes(ast_json: dict) -> list[dict]:
+def _clang_ast_nodes(ast_json: dict, primary_basename: str | None = None,
+                     line_of_offset=None) -> list[dict]:
+    """Walk the clang JSON AST. Node ids are session-local. When primary_basename is
+    given, top-level declarations from that file become the tree roots (header
+    declarations stay counted but don't drown the user's code)."""
+    total = {"n": 0}
     nodes: list[dict] = []
 
-    def walk(node: dict, parent: str | None) -> None:
-        nid = f"n{len(nodes)}"
+    def walk(node: dict, parent: str | None) -> str:
+        nid = f"n{total['n']}"
+        total["n"] += 1
         loc = node.get("loc", {})
         rng = node.get("range", {})
+        offset = loc.get("offset") or (rng.get("begin") or {}).get("offset")
+        line, col = loc.get("line"), loc.get("col")
+        confidence = "EXACT" if line is not None else "UNAVAILABLE"
+        if line is None:
+            # Clang places brace-delimited statements' position in range.end only
+            # (no loc.line, no range.begin.line). Chain: range.end.line (EXACT),
+            # then a DERIVED line computed from the exact tool-reported offset.
+            eb = rng.get("end") or {}
+            bb = rng.get("begin") or {}
+            line, col = eb.get("line"), eb.get("col")
+            if line is not None:
+                confidence = "EXACT"
+            elif offset is not None and line_of_offset is not None:
+                line, col = line_of_offset(offset), bb.get("col")
+                confidence = "DERIVED"
         nodes.append({
             "id": nid, "parent": parent, "kind": node.get("kind", "?"),
             "name": node.get("name"),
-            "line": loc.get("line"), "col": loc.get("col"),
-            "offset": loc.get("offset"),
-            "end_offset": rng.get("end", {}).get("offset"),
+            "file": loc.get("file") or (rng.get("begin") or {}).get("file"),
+            "line": line, "col": col,
+            "offset": offset,
+            "end_offset": (rng.get("end") or {}).get("offset"),
             "children": [],
-            "mapping_confidence": "EXACT" if loc else "UNAVAILABLE",
+            "mapping_confidence": confidence,
         })
         for child in node.get("inner", []) or []:
-            if len(nodes) < 5000:
-                nodes[-1]["children"].append(walk(child, nid))
+            nodes[-1]["children"].append(walk(child, nid))
         return nid
 
-    for decl in ast_json.get("inner", []) or []:
-        if len(nodes) >= 5000:
-            break
+    def basename(loc: dict) -> str | None:
+        f = loc.get("file")
+        return f.rsplit("/", 1)[-1] if isinstance(f, str) else None
+
+    roots = ast_json.get("inner", []) or []
+    for decl in roots:
+        if primary_basename and basename(decl.get("loc", {})) != primary_basename:
+            # Count header subtrees without emitting them into the tree:
+            def count_all(d: dict) -> None:
+                total["n"] += 1
+                for c in d.get("inner", []) or []:
+                    count_all(c)
+            count_all(decl)
+            continue
         walk(decl, None)
-    return nodes
+    return nodes, total["n"]
 
 
 def _ir_summary(ir_text: str) -> dict:
@@ -166,7 +199,8 @@ _STAGE_LIMITS = {
 }
 
 
-def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language: str) -> int:
+def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language: str,
+                         primary_file: str = "") -> int:
     try:
         manifest = json.loads((out_dir / "manifest.json").read_text())
     except json.JSONDecodeError:
@@ -204,9 +238,28 @@ def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language
                 counts["token_files"] = len(main_file)
             elif stage == "ast" and "ast.json" in artifacts:
                 try:
-                    nodes = _clang_ast_nodes(json.loads(artifacts["ast.json"]))
+                    primary = Path(primary_file).name if primary_file else None
+                    job_row = store.query_one(
+                        "SELECT primary_file, snapshot_id FROM analyses WHERE id=?",
+                        (analysis_id,))
+                    src_bytes = b""
+                    if job_row:
+                        fr = store.query_one(
+                            "SELECT content_sha256 FROM source_files WHERE snapshot_id=?"
+                            " AND rel_path=?",
+                            (job_row["snapshot_id"], job_row["primary_file"]))
+                        if fr:
+                            src_bytes = store.get_artifact(fr["content_sha256"])
+                    nl = [i for i, byte in enumerate(src_bytes) if byte == 10]
+
+                    def line_of_offset(off: int) -> int:
+                        return bisect.bisect_right(nl, off) + 1
+
+                    nodes, total_nodes = _clang_ast_nodes(
+                        json.loads(artifacts["ast.json"]), primary, line_of_offset)
                     items, truncated = _capped(nodes)
-                    counts["ast_nodes"] = len(nodes)
+                    counts["ast_nodes"] = total_nodes
+                    counts["ast_nodes_primary_file"] = len(nodes)
                 except json.JSONDecodeError:
                     # Truncated capture (huge header-heavy TU) or malformed dump:
                     # degrade THIS stage honestly, never the whole job.
@@ -252,16 +305,17 @@ def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language
             key = next(iter(artifacts), None)
             if key and key.endswith(".json"):
                 payload = json.loads(artifacts[key])
-                items, truncated = _capped(payload.get("tokens", payload.get("nodes",
-                                           payload.get("instructions",
-                                           payload.get("code_objects",
-                                           payload.get("scopes", []))))))
-                counts = payload.get("counts", counts)
-                summary = {k: v for k, v in payload.items()
-                           if k in ("node_kind_counts", "error_type", "msg", "lineno",
-                                    "offset", "text")}
-                if "error_type" in payload:
+                if stage == "diagnostics" or "error_type" in payload:
+                    items, truncated = [payload], False
                     counts = {"syntax_errors": 1}
+                else:
+                    items, truncated = _capped(payload.get("tokens", payload.get("nodes",
+                                               payload.get("instructions",
+                                               payload.get("code_objects",
+                                               payload.get("scopes", []))))))
+                    counts = payload.get("counts", counts)
+                summary = {k: v for k, v in payload.items()
+                           if k in ("node_kind_counts", "tokenize_error")}
             if "py_bytecode_raw.txt" in artifacts:
                 raw_ref = store.put_artifact(artifacts["py_bytecode_raw.txt"])
         if rec.get("stderr") is not None:

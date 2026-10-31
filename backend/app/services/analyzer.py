@@ -165,7 +165,8 @@ class _JobRunner:
                 return
 
             from app.services.normalize import ingest_stage_records
-            stage_count = ingest_stage_records(store, analysis_id, out, job["language"])
+            stage_count = ingest_stage_records(store, analysis_id, out, job["language"],
+                                               job["primary_file"])
             if killed:
                 status = "CANCELLED" if store.query_one(
                     "SELECT cancel_requested FROM analyses WHERE id=?",
