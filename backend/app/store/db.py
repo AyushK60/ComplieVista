@@ -63,6 +63,20 @@ _SCHEMA = [
         id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL, kind TEXT NOT NULL,
         primary_file TEXT NOT NULL, status TEXT NOT NULL, reasons_json TEXT NOT NULL,
         created_utc TEXT NOT NULL)""",
+    """CREATE TABLE IF NOT EXISTS executions (
+        id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL, target_id TEXT NOT NULL,
+        language TEXT NOT NULL, primary_file TEXT NOT NULL, status TEXT NOT NULL,
+        fingerprint TEXT NOT NULL, source_combined_sha256 TEXT NOT NULL,
+        image_id TEXT, binary_sha256 TEXT, exit_code INTEGER,
+        stdout_sha256 TEXT, stderr_sha256 TEXT, trace_sha256 TEXT,
+        events_count INTEGER, events_truncated INTEGER DEFAULT 0,
+        stdout_truncated INTEGER DEFAULT 0, stderr_truncated INTEGER DEFAULT 0,
+        error_code TEXT, cancel_requested INTEGER DEFAULT 0,
+        created_utc TEXT NOT NULL, started_utc TEXT, finished_utc TEXT,
+        duration_ms INTEGER)""",
+    """CREATE TABLE IF NOT EXISTS execution_events (
+        id TEXT PRIMARY KEY, execution_id TEXT NOT NULL, seq INTEGER NOT NULL,
+        kind TEXT NOT NULL, payload_json TEXT NOT NULL, sha256 TEXT NOT NULL)""",
     """CREATE TABLE IF NOT EXISTS snapshot_diagnostics (
         id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL, file_path TEXT NOT NULL,
         severity TEXT NOT NULL, code TEXT NOT NULL, detail TEXT NOT NULL)""",
@@ -102,8 +116,11 @@ class Store:
             row = self._conn.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()
             if row is None:
                 self._conn.execute("INSERT INTO meta VALUES ('schema_version', ?)", (SCHEMA_VERSION,))
-            elif row["value"] == "m1.v1" and SCHEMA_VERSION == "m2.v1":
-                # Guarded additive upgrade: m2 only adds analyses tables (all IF NOT EXISTS).
+            elif row["value"] != SCHEMA_VERSION:
+                # Additive upgrade: any earlier m*.v1 schema upgrades to the current
+                # version because all tables/columns use IF NOT EXISTS and later
+                # columns are added via guarded ALTER. This must remain true for
+                # every future schema bump (audit T3: restart recovery).
                 self._conn.execute("UPDATE meta SET value=? WHERE key='schema_version'",
                                    (SCHEMA_VERSION,))
             elif row["value"] != SCHEMA_VERSION:

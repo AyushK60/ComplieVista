@@ -2,14 +2,13 @@
 
 Updated: 31 October 2026 (M2 execution)
 
-## Current milestone: **M4-G0 stabilization — post-M3.5-audit fixes (F01..F05 closed)**
+## Current milestone: **M4 — controlled C/Python execution, real traces & replay**
 
-Status: **M4-G0 stabilization PASS** — all 5 M3.5-audit findings fixed
-(`docs/TEST_EVIDENCE/M4G0.md`). M3.5 closed all 9 M3-audit findings
-(`docs/TEST_EVIDENCE/M3.5.md`); M2.5 closed the M2 audit findings. 134 backend tests
-passed / 0 failed; E2E M3 5/5, M2 3/3, M1 5/5. Wide three-pane observatory shell,
-structural semantic zoom, SCC-aware layout, race-guarded stage loads, bounded request
-bodies on all intake endpoints. Runtime execution remains BLOCKED (M4 gate).
+Status: **M4 PASS on all 9 gates (G0–G8)** (`docs/TEST_EVIDENCE/M4.md`,
+`docs/milestones/M4.json`, handoff `docs/HANDOFF_AFTER_M4.md`). M4-G0 closed F01–F05.
+143 backend tests passed / 0 failed; E2E M3 6/6 (incl. M4 execution), M2 3/3, M1 5/5.
+Real C and Python execution in restricted containers with genuine trace instrumentation.
+GDB/ptrace: UNSUPPORTED by policy. GitHub-imported code: execution fail-closed.
 
 ## What exists now (cumulative)
 
@@ -33,9 +32,7 @@ bodies on all intake endpoints. Runtime execution remains BLOCKED (M4 gate).
 
 ## Next
 
-**M4 execution work NOT STARTED.** The M3.5-audit stabilization gate (F01–F05) is
-satisfied; M4 may proceed per the audit with a privileged orchestrator and restricted
-runner images, and remains gated by the README §10 security admission tests.
+**M5 NOT STARTED — await independent M4 audit and explicit authorization.**
 
 ## Active risks / quirks
 

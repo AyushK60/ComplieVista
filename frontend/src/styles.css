@@ -139,3 +139,14 @@ button.cancel { background: none; color: #ff8f8f; border: 1px solid #6b3434; bor
   .cols.has-inspector { grid-template-columns: 220px minmax(0, 1fr); }
   .inspcol { grid-column: 1 / -1; }
 }
+
+/* ---- M4 execution / replay ---- */
+.execution { border: 1px solid #2c4a3a; border-radius: 8px; padding: 0.7rem 0.9rem; margin-top: 0.75rem; }
+.replay-banner { color: #7fd3b9; font-size: 0.8rem; background: #12241c;
+                 border: 1px solid #2c4a3a; border-radius: 4px; padding: 4px 8px; }
+.timeline-controls { display: flex; gap: 0.4rem; align-items: center; margin: 0.5rem 0; }
+.timeline-controls button { background: #161c24; color: #dbe2ea; border: 1px solid #2c3844;
+                            border-radius: 4px; padding: 3px 8px; cursor: pointer; }
+.event-detail p { font-family: Consolas, monospace; font-size: 0.8rem; }
+.locals { max-height: 200px; }
+button.run { background: #1f3a2f; border-color: #2f5d42; color: #b8e6cc; }

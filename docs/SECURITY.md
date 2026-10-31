@@ -3,6 +3,17 @@
 Authoritative threat model: README §10. This document records the M0-relevant subset and
 residual risks. Nothing here weakens the README.
 
+## Execution modes (M4)
+
+- Static analysis: never executes source (M0–M3 unchanged).
+- Curated/pasted execution: restricted containers only; explicit user action required;
+  admission checks target eligibility + provenance. GitHub-imported code: 403 fail-closed.
+- Runtime image: minimal (no compiler), pinned id per execution; build image separate.
+- C tracing via `-finstrument-functions` (compiler instrumentation, no ptrace);
+  GDB/ptrace UNSUPPORTED by policy (ADR-0007).
+- Python tracing via `sys.settrace` with bounded safe_locals (no user `__repr__`).
+- All previous constraints unchanged; Docker socket never enters containers.
+
 ## Trust assumptions
 
 | Asset | Trust level |

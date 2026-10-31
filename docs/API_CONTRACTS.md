@@ -81,3 +81,30 @@ file text (`text` ≤ 200 KB with `text_truncated`; binary files return `text: n
 All M1 failures return `{"error": {"code", "message"}}` with typed codes, e.g.
 `INVALID_URL, REPO_NOT_FOUND, RATE_LIMITED, REDIRECT_DISALLOWED, ARCHIVE_TOO_LARGE,
 BOMB_RATIO, PATH_TRAVERSAL, PAYLOAD_TOO_LARGE, NO_ACCEPTABLE_FILES, MALFORMED_ARCHIVE`.
+
+
+---
+
+# M4 execution endpoints
+
+## POST /api/v1/executions
+`{"snapshot_id", "target_id"}` → admission (eligibility + origin); returns
+`{execution_id, status, existed}` or typed error (NOT_EXECUTABLE,
+EXECUTION_ORIGIN_BLOCKED, BLOCKED/DOCKER_*).
+
+## GET /api/v1/executions/{id}
+Full execution record: status, exit_code, stdout/stderr/trace/binary SHA-256s,
+events_count, truncation flags, image_id, duration.
+
+## GET /api/v1/executions/{id}/events?after=0&limit=200
+Ordered, checksummed event pages (kind, payload, sha256). Caps: 5000 events.
+
+## GET /api/v1/executions/{id}/output
+Bounded stdout/stderr text (≤60 KB excerpt) with truncation flag.
+
+## POST /api/v1/executions/{id}/cancel
+Active cancellation: QUEUED → CANCELLED; RUNNING → `docker rm -f` + CANCEL_REQUESTED.
+
+## Limits
+Body ≤ 32 MB (streaming cap on raw ASGI receive); runtime 30 s; build 90 s;
+memory 256 MB; pids 64; cpus 0.5; stdout/stderr 1 MB each.

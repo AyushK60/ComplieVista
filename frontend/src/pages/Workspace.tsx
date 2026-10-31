@@ -5,6 +5,8 @@ import type { GraphSelection } from "../components/GraphView";
 import AnalysisPanel from "../components/AnalysisPanel";
 import CodeView from "../components/CodeView";
 import Inspector from "../components/Inspector";
+import ExecutionPanel from "../components/ExecutionPanel";
+import { executions } from "../api";
 
 type Mode = "paste" | "upload" | "github";
 
@@ -44,6 +46,8 @@ export default function Workspace() {
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [selection, setSelection] = useState<GraphSelection>(null);
+  const [executionId, setExecutionId] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
   const [stageData, setStageData] = useState<StageData | null>(null);
   useEffect(() => { setSelection(null); }, [stageData]);
 
@@ -102,12 +106,29 @@ export default function Workspace() {
     setAnalyzeError(null);
     setSelection(null);
     setStageData(null);
+    setExecutionId(null);
+    setRunError(null);
   }
 
   const selectedTargets = selected ? fileTargets(selected.rel_path) : [];
   const ANALYZABLE = new Set(["STATIC_ANALYZABLE", "COMPILATION_CANDIDATE", "EXECUTABLE_CANDIDATE"]);
+  const runnableTarget = selectedTargets.find(
+    (t) => (t.status === "EXECUTABLE_CANDIDATE" || t.status === "COMPILATION_CANDIDATE")
+      && snapshot?.origin !== "github");
   const analyzableTarget = selectedTargets.find(
     (t) => ANALYZABLE.has(t.status) && selected?.language !== "other");
+
+  async function startRun() {
+    if (!snapshot || !runnableTarget) return;
+    setRunError(null);
+    setExecutionId(null);
+    try {
+      const ref = await executions.create(snapshot.id, runnableTarget.target_id);
+      setExecutionId(ref.execution_id);
+    } catch (e) {
+      setRunError(e instanceof ApiError ? e.message : String(e));
+    }
+  }
 
   async function startAnalysis() {
     if (!snapshot || !analyzableTarget) return;
@@ -288,6 +309,12 @@ export default function Workspace() {
                           Analyze with real {selected.language === "c" ? "Clang/LLVM 18" : "CPython 3.12"} (static)
                         </button>
                       )}
+                      {t === runnableTarget && (
+                        <button className="primary run" onClick={startRun} disabled={!snapshot}
+                                title="Runs once in a restricted container; results are recorded for replay.">
+                          Run in restricted container
+                        </button>
+                      )}
                       {t !== analyzableTarget && (
                         <button className="analyze" disabled title=
                           "No bounded analysis path for this target yet; execution requires the M4 security gate.">
@@ -301,6 +328,9 @@ export default function Workspace() {
                                                 onSelectLine={(l) => setHighlightLine(l)}
                                                 onSelectNode={setSelection}
                                                 onSelectStageData={setStageData} />}
+                  {executionId && <ExecutionPanel executionId={executionId}
+                                                  onSelectLine={(l) => setHighlightLine(l)} />}
+                  {runError && <p className="err">Run failed: {runError}</p>}
                 </>
               ) : (
                 <p className="muted">Select a file.</p>

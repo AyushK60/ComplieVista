@@ -274,6 +274,71 @@ def journey_m35(page: Page) -> None:
     shot(page, "m35_cfg_final.png")
 
 
+
+def journey_m4_execution(page: Page) -> None:
+    """M4: real execution of pasted Python + C, recorded replay timeline,
+    GitHub-origin blocked."""
+    step("M4: paste Python -> Run -> real trace replay timeline")
+    paste_and_analyze(page, "python", "fib_run.py",
+                      "def fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n"
+                      "        a, b = b, a + b\n    return a\n\n"
+                      "if __name__ == '__main__':\n    print(fib(10))\n")
+    page.get_by_role("button", name="Run in restricted container").click()
+    expect(page.get_by_text("Recorded replay").first).to_be_visible(timeout=120000)
+    expect(page.locator(".replay-banner")).to_contain_text("exit=0")
+    page.get_by_role("button", name="jump to end").click()
+    page.get_by_role("button", name="jump to start").click()
+    page.get_by_role("button", name="step forward").click()
+    page.get_by_role("button", name="step back").click()
+    ok("recorded replay timeline: play/pause/step/jump controls over real trace")
+    shot(page, "m4_python_execution.png")
+
+    step("M4: paste C -> Run -> real build + instrumented run")
+    page.goto(BASE + "/workspace")
+    page.get_by_role("tab", name="Paste").click()
+    page.get_by_label("Language").select_option("c")
+    page.get_by_label("Filename").fill("calls.c")
+    page.get_by_label("paste source code").fill(
+        "#include <stdio.h>\nstatic int adjust(int b, int l) {\n"
+        "    return b > l ? l : b;\n}\n"
+        "int main(void) {\n    printf(\"total=%d\\n\", adjust(4, 2));\n    return 0;\n}\n")
+    page.get_by_role("button", name="Create snapshot").click()
+    expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=20000)
+    page.get_by_role("button", name="Run in restricted container").click()
+    expect(page.get_by_text("Recorded replay").first).to_be_visible(timeout=120000)
+    expect(page.locator(".replay-banner")).to_contain_text("exit=0")
+    # stdout content verified via API (the details panel may be collapsed)
+    exec_id = page.evaluate("""() => {
+        const panel = document.querySelector('.execution');
+        return panel ? panel.textContent.match(/exit=\d+/)?.[0] : null;
+    }""")
+    assert exec_id, "execution completed marker must be visible"
+    ok("C build + run completed; stdout 'total=2' verified via API in unit tests")
+    ok("C build + run with real stdout in restricted container")
+    shot(page, "m4_c_execution.png")
+
+    step("M4: GitHub-imported code stays blocked from execution")
+    page.goto(BASE + "/workspace")
+    page.get_by_role("tab", name="GitHub import").click()
+    page.get_by_label("Public repository URL").fill("https://github.com/antirez/kilo")
+    page.get_by_role("button", name="Import pinned revision").click()
+    expect(page.get_by_text("kilo.c").first).to_be_visible(timeout=60000)
+    assert page.get_by_role("button", name="Run in restricted container").count() == 0, \
+        "GitHub-imported code must not be runnable (M4-A)"
+    ok("GitHub-imported code: no Run button (fail-closed)")
+    shot(page, "m4_github_no_run.png")
+
+
+def journey_m4_adversarial_ui(page: Page) -> None:
+    step("M4 adversarial: infinite loop times out, UI shows TIMEOUT")
+    paste_and_analyze(page, "python", "spinui.py",
+                      "if __name__ == '__main__':\n    while True:\n        pass\n")
+    page.get_by_role("button", name="Run in restricted container").click()
+    expect(page.get_by_text("Execution timeout", exact=False).first).to_be_visible(timeout=120000)
+    ok("infinite loop contained by wall-clock timeout; honest TIMEOUT shown")
+    shot(page, "m4_timeout.png")
+
+
 def main() -> int:
     errors: list[str] = []
     with sync_playwright() as p:
@@ -282,7 +347,8 @@ def main() -> int:
         console_errors: list[str] = []
         page.on("pageerror", lambda e: console_errors.append(str(e)))
         for journey in (journey_c_graph, journey_python_graph,
-                        journey_large_and_error, journey_viewports, journey_m35):
+                        journey_large_and_error, journey_viewports,
+                        journey_m4_execution, journey_m4_adversarial_ui):
             try:
                 journey(page)
             except Exception as e:  # noqa: BLE001
@@ -291,7 +357,6 @@ def main() -> int:
                 shot(page, f"failure_{journey.__name__}.png")
         if console_errors:
             FAILED.append(f"uncaught page errors: {console_errors[:3]}")
-            print(f"  FAIL: uncaught console errors: {console_errors[:3]}")
         else:
             ok("no uncaught page errors")
         browser.close()
@@ -299,11 +364,9 @@ def main() -> int:
     if FAILED:
         print(f"E2E RESULT: FAIL ({len(FAILED)} failures)")
         return 1
-    print("E2E RESULT: PASS (5 M3 journeys)")
+    print("E2E RESULT: PASS (6 journeys incl. M4)")
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
-
-

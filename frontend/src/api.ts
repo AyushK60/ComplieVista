@@ -199,3 +199,35 @@ export interface FileDetail {
   text: string | null;
   text_truncated: boolean;
 }
+
+export interface ExecutionRef { execution_id: string; status: string; existed: boolean; error?: string }
+export interface ExecutionJob {
+  id: string; status: string; language: string; primary_file: string;
+  source_combined_sha256: string; image_id: string | null; binary_sha256: string | null;
+  exit_code: number | null; error_code: string | null;
+  events_count: number | null; events_truncated: number;
+  stdout_truncated: number; stderr_truncated: number;
+  stdout_sha256: string | null; stderr_sha256: string | null; trace_sha256: string | null;
+  duration_ms: number | null;
+  ready_for_controlled_execution: boolean; note: string;
+}
+export interface ExecutionEvent {
+  seq: number; kind: string; payload: Record<string, unknown>; sha256: string;
+}
+export interface ExecutionOutput {
+  exit_code: number | null; stdout: string | null; stderr: string | null; truncated: boolean;
+}
+
+export const executions = {
+  create: (snapshot_id: string, target_id: string) =>
+    fetch("/api/v1/executions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ snapshot_id, target_id }),
+    }).then(unwrap<ExecutionRef>),
+  get: (id: string) => fetch(`/api/v1/executions/${id}`).then(unwrap<ExecutionJob>),
+  events: (id: string, after = 0, limit = 500) =>
+    fetch(`/api/v1/executions/${id}/events?after=${after}&limit=${limit}`).then(unwrap<{events: ExecutionEvent[]}>),
+  output: (id: string) => fetch(`/api/v1/executions/${id}/output`).then(unwrap<ExecutionOutput>),
+  cancel: (id: string) => fetch(`/api/v1/executions/${id}/cancel`, { method: "POST" }).then(unwrap),
+};

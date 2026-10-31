@@ -211,6 +211,73 @@ def create_app(store: Store | None = None) -> FastAPI:
     def cancel_analysis(analysis_id: str) -> dict:
         return {"analysis_id": analysis_id, "result": get_runner(store).cancel(analysis_id)}
 
+    @app.post("/api/v1/executions")
+    async def create_execution(request: Request) -> dict:
+        from app.services.execution import ExecutionError, create_execution, get_execution_runner
+        try:
+            body = json.loads((await request.body()).decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            raise AppError("INVALID_BODY", "body must be JSON")
+        if not isinstance(body, dict) or not body.get("snapshot_id") or not body.get("target_id"):
+            raise AppError("INVALID_BODY", "body requires snapshot_id and target_id")
+        try:
+            return create_execution(store, body["snapshot_id"], body["target_id"])
+        except ExecutionError as e:
+            raise AppError(e.code, e.message, e.status)
+
+    @app.get("/api/v1/executions/{execution_id}")
+    def execution_detail(execution_id: str) -> dict:
+        from app.services.execution import ExecutionError, get_execution_runner
+        job = store.query_one("SELECT * FROM executions WHERE id=?", (execution_id,))
+        if not job:
+            raise AppError("NOT_FOUND", "unknown execution id", 404)
+        return {k: job[k] for k in job.keys() if k != "fingerprint"} | {
+            "ready_for_controlled_execution": False,
+            "note": "recorded replay - does not rewind the running process; "
+                    "execution ran once in a restricted container"}
+
+    @app.get("/api/v1/executions/{execution_id}/output")
+    def execution_output(execution_id: str) -> dict:
+        job = store.query_one("SELECT * FROM executions WHERE id=?", (execution_id,))
+        if not job:
+            raise AppError("NOT_FOUND", "unknown execution id", 404)
+        out = {"execution_id": execution_id, "exit_code": job["exit_code"],
+               "stdout": None, "stderr": None, "truncated": False}
+        for key, col in (("stdout", "stdout_sha256"), ("stderr", "stderr_sha256")):
+            sha = job[col]
+            if sha:
+                data = store.get_artifact(sha)
+                out[key] = data[:60_000].decode("utf-8", "replace")
+                if len(data) > 60_000:
+                    out["truncated"] = True
+        return out
+
+    @app.get("/api/v1/executions/{execution_id}/events")
+    def execution_events(execution_id: str, after: int = 0, limit: int = 200) -> dict:
+        limit = max(1, min(limit, 500))
+        job = store.query_one("SELECT status FROM executions WHERE id=?", (execution_id,))
+        if not job:
+            raise AppError("NOT_FOUND", "unknown execution id", 404)
+        rows = store.query(
+            "SELECT seq, kind, payload_json, sha256 FROM execution_events"
+            " WHERE execution_id=? AND seq>? ORDER BY seq LIMIT ?",
+            (execution_id, after, limit))
+        events = [{"seq": r["seq"], "kind": r["kind"],
+                   "payload": json.loads(r["payload_json"]), "sha256": r["sha256"]}
+                  for r in rows]
+        return {"execution_id": execution_id, "status": job["status"],
+                "events": events, "count": len(events),
+                "next_after": events[-1]["seq"] if events else after}
+
+    @app.post("/api/v1/executions/{execution_id}/cancel")
+    def cancel_execution(execution_id: str) -> dict:
+        from app.services.execution import ExecutionError, get_execution_runner
+        try:
+            result = get_execution_runner(store).cancel(execution_id)
+        except ExecutionError as e:
+            raise AppError(e.code, e.message, e.status)
+        return {"execution_id": execution_id, "result": result}
+
     @app.get("/api/v1/analyses/{analysis_id}/stages/{stage}/graph")
     def stage_graph(analysis_id: str, stage: str) -> dict:
         """M3-A typed graph view (schema m3.graph.v1) derived from stored stage items."""
