@@ -5,7 +5,7 @@
   "date": "2026-10-31",
   "project_root_verified": "E:\\ComplieVista",
   "prior_checkpoints": {"M0": "5718e07", "M1": "347d768", "M2_backend": "305446a"},
-  "git_commit": "recorded in repository log immediately after this file",
+  "git_commit": "78976fe417cae8be98af7f2a56441242aad9be14 (M2 milestone commit; hash recorded in this follow-up docs commit); backend checkpoint 305446a",
   "environment": {
     "analyzer_image": "compilevista/analyzer:m2",
     "analyzer_image_id": "sha256:94d7f4053bd53c2d3a3be042878655ee22f02383d0bce18d9c798fb71d343c83",
