@@ -241,18 +241,25 @@ def create_app(store: Store | None = None) -> FastAPI:
         if content_length > LIMITS["paste_max_bytes"] + 4096:
             raise AppError("PAYLOAD_TOO_LARGE",
                            f"paste exceeds {LIMITS['paste_max_bytes']} bytes", 413)
+        # Streaming cap: chunked/missing Content-Length must not bypass the limit.
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > LIMITS["paste_max_bytes"] + 4096:
+                raise AppError("PAYLOAD_TOO_LARGE",
+                               f"paste exceeds {LIMITS['paste_max_bytes']} bytes", 413)
         try:
-            body = json.loads((await request.body()).decode("utf-8"))
+            body_json = json.loads(bytes(body).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
             raise AppError("INVALID_BODY", "body must be JSON or multipart")
-        if not isinstance(body, dict):
+        if not isinstance(body_json, dict):
             raise AppError("INVALID_BODY", "JSON body must be an object")
-        if body.get("kind") != "paste":
+        if body_json.get("kind") != "paste":
             raise AppError("INVALID_BODY", "JSON body requires kind='paste' (use multipart for files/zip)")
-        content = body.get("content", "")
+        content = body_json.get("content", "")
         if isinstance(content, str):
             content = content.encode("utf-8")
-        return ingest_paste(store, body.get("language", ""), body.get("filename", "source"),
+        return ingest_paste(store, body_json.get("language", ""), body_json.get("filename", "source"),
                             content)
 
     @app.post("/api/v1/imports/github")
