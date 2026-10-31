@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ApiError, api, FileDetail, Project, Reason, SnapshotDetail, Target } from "../api";
+import { ApiError, api, FileDetail, Project, Reason, SnapshotDetail, StageData, Target } from "../api";
+import type { GraphSelection } from "../components/GraphView";
 import AnalysisPanel from "../components/AnalysisPanel";
 import CodeView from "../components/CodeView";
+import Inspector from "../components/Inspector";
 
 type Mode = "paste" | "upload" | "github";
 
@@ -41,6 +43,8 @@ export default function Workspace() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [selection, setSelection] = useState<GraphSelection>(null);
+  const [stageData, setStageData] = useState<StageData | null>(null);
 
   useEffect(() => {
     api.capabilities().then((c) => setTools(c.tools)).catch(() => setTools({}));
@@ -95,6 +99,8 @@ export default function Workspace() {
     setAnalysisId(null);
     setHighlightLine(null);
     setAnalyzeError(null);
+    setSelection(null);
+    setStageData(null);
   }
 
   const selectedTargets = selected ? fileTargets(selected.rel_path) : [];
@@ -247,7 +253,9 @@ export default function Workspace() {
               {selected ? (
                 <>
                   <CodeView text={selected.text ?? "(binary content not previewable)"}
-                            path={selected.rel_path} highlightLine={highlightLine} />
+                            path={selected.rel_path}
+                            language={selected.language}
+                            highlightLine={highlightLine} />
                   <p className="muted">
                     sha256 <code>{selected.content_sha256.slice(0, 32)}…</code> · encoding{" "}
                     <code>{selected.encoding}</code>
@@ -289,7 +297,13 @@ export default function Workspace() {
                   ))}
                   {analyzeError && <p className="err">Analyze failed: {analyzeError}</p>}
                   {analysisId && <AnalysisPanel analysisId={analysisId}
-                                                onSelectLine={(l) => setHighlightLine(l)} />}
+                                                onSelectLine={(l) => setHighlightLine(l)}
+                                                onSelectNode={setSelection}
+                                                onSelectStageData={setStageData} />}
+                  {analysisId && selection && (
+                    <Inspector selection={selection} stageData={stageData}
+                               onClose={() => setSelection(null)} />
+                  )}
                 </>
               ) : (
                 <p className="muted">Select a file.</p>

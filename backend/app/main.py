@@ -177,6 +177,13 @@ def create_app(store: Store | None = None) -> FastAPI:
                 "stderr_artifact_sha256": rec["stderr_artifact"],
                 "truncated": bool(rec["truncated"]),
                 "duration_ms": rec["duration_ms"],
+                "provenance": {
+                    "source_combined_sha256": job["source_combined_sha256"],
+                    "raw_artifact_sha256": rec["raw_artifact"],
+                    "stderr_artifact_sha256": rec["stderr_artifact"],
+                    "invocation": json.loads(rec["invocation_json"])
+                    if rec["invocation_json"] else {},
+                },
                 "invocation": json.loads(rec["invocation_json"]) if rec["invocation_json"]
                 else {"argv_tail": ["<unavailable>"], "note": "legacy stage record"}}
 

@@ -88,10 +88,12 @@ def journey_c(page: Page) -> None:
     stage = page.get_by_role("tab", name="ast AVAILABLE")
     expect(stage).to_be_visible(timeout=120000)
     stage.click()
+    page.get_by_role("tab", name="Table").click()  # M3 defaults to graph; Table preserved
     expect(page.locator(".tree")).to_be_visible()
     expect(page.locator(".tree").get_by_text("FunctionDecl", exact=False).first).to_be_visible()
     ok(page, "Clang AST tree renders real FunctionDecl nodes")
     page.get_by_role("tab", name="ir_o0 AVAILABLE").click()
+    page.get_by_role("tab", name="Table").click()  # M3 view toggle
     expect(page.locator(".irfunc").first).to_be_visible()
     expect(page.get_by_text("define @adjust", exact=False).first).to_be_visible()
     expect(page.locator(".blocks li").first).to_be_visible()
@@ -107,8 +109,9 @@ def journey_c(page: Page) -> None:
     expect(page.get_by_role("button", name="Show raw tool output")).to_be_visible()
     assert page.locator(".excerpt").count() == 0, "stale raw text across stages (CV-04)"
     ok(page, "raw output never shown under another stage's name")
-    # source highlighting via AST node click (expand root FunctionDecl via its toggle)
+    # source highlighting via AST node click (M2 tree view, preserved as fallback)
     page.get_by_role("tab", name="ast AVAILABLE").click()
+    page.get_by_role("tab", name="Table").click()  # M3 defaults graph; M2 tree in Table
     page.locator(".astnode", has_text="FunctionDecl").first.locator(".tw").click()
     node = page.locator(".astnode", has_text="CompoundStmt").first
     expect(node).to_be_visible()
@@ -136,6 +139,7 @@ def journey_python(page: Page) -> None:
     expect(page.locator("table.grid").get_by_text("argcount", exact=True)).to_be_visible()
     ok(page, "code-object inspector shows real fields (id/qualname/argcount)")
     page.get_by_role("tab", name="bytecode AVAILABLE").click()
+    page.get_by_role("tab", name="Table").click()  # M3 view toggle
     expect(page.locator("table.grid").first).to_be_visible()
     expect(page.locator("table.grid").get_by_text("BINARY_OP", exact=False).first).to_be_visible()
     instr = page.locator("table.grid tr.clickable").nth(3)

@@ -93,6 +93,7 @@ export interface AnalysisJob {
 export interface StageData {
   analysis_id: string;
   stage: string;
+  language: string;
   availability: string;
   observation_class: string;
   exit_code: number | null;
@@ -103,6 +104,12 @@ export interface StageData {
   stderr_artifact_sha256: string | null;
   truncated: boolean;
   duration_ms: number | null;
+  provenance?: {
+    source_combined_sha256: string;
+    raw_artifact_sha256: string | null;
+    stderr_artifact_sha256: string | null;
+    invocation: Record<string, unknown>;
+  };
   invocation: {
     tool?: string | null;
     argv_tail?: string[] | null;

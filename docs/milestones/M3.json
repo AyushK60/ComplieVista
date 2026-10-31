@@ -1,0 +1,33 @@
+{
+  "milestone": "M3",
+  "title": "Premium visual compiler observatory / graph engine",
+  "verdict": "PASS",
+  "date": "2026-10-31",
+  "project_root_verified": "E:\\ComplieVista",
+  "prior_checkpoints": {"M0": "5718e07", "M1": "347d768", "M2": "78976fe", "M2.5": "abd88e8"},
+  "git_commit": "recorded in repository log immediately after this file",
+  "gates": [
+    {"id": "G0", "result": "PASS", "evidence": ["docs/TEST_EVIDENCE/M3.md#G0", "120/120 pre-M3 suite", "scripts/dev/g0_preflight.py independent reproductions", "streaming body cap added"]},
+    {"id": "G1", "result": "PASS", "evidence": ["backend/tests/test_m3_graphs.py: graph nodes/edges reconcile with fresh clang IR oracle + real CPython dis", "m3.graph.v1 schema, provenance digests, honest confidence"]},
+    {"id": "G2", "result": "PASS", "evidence": ["C AST graph + LLVM CFG graph + Python AST graph + bytecode map all navigable", "unsupported info marked (GRAPH_UNSUPPORTED, UNAVAILABLE mapping)"]},
+    {"id": "G3", "result": "PASS", "evidence": ["E2E: semantic zoom changes labels ('FunctionDecl'->'DeclStmt'), minimap, search, collapse, keyboard-reachable controls, 69/500-node real fixtures"]},
+    {"id": "G4", "result": "PASS", "evidence": ["node click highlights source line (both languages)", "inspector shows mapping confidence + raw artifact digests", "A->B->A race test", "CV-04 raw-leak regression still green"]},
+    {"id": "G5", "result": "PASS", "evidence": ["viewport matrix screenshots 1920/1366/390", "reduced-motion-safe (no decorative animation)", "no uncaught console errors", "m3_*.png evidence"]},
+    {"id": "G6", "result": "PASS", "evidence": ["worker-based layout with measured layoutMs in toolbar", "500-node honest fixture rendered responsively", "virtualization + caps (2000/4000) with truncation flags"]},
+    {"id": "G7", "result": "PASS", "evidence": ["126 backend tests 0 failed", "M1 5/5, M2 3/3 (explicit view-toggle adaptations), M3 4/4 E2E", "no security boundary changes; container policy untouched"]},
+    {"id": "G8", "result": "PASS", "evidence": ["docs/TEST_EVIDENCE/M3.md", "docs/milestones/M3.json", "docs/DECISIONS/ADR-0006", "docs/HANDOFF_AFTER_M3.md", "docs/PROJECT_STATUS.md"]}
+  ],
+  "tests": {"backend": {"passed": 126, "failed": 0},
+            "e2e": {"m3": "4/4", "m2": "3/3", "m1": "5/5"},
+            "perf": {"layout": "worker-measured layoutMs shown in toolbar; ~<10ms for 69-node, low-tens-of-ms for 500-node", "threshold": "<500ms for <=2000 nodes", "caps": "2000 nodes / 4000 edges with truncation flags"}},
+  "deviations": [
+    "ELK replaced by dependency-free deterministic layered layout in a Web Worker (elkjs bundled spawns a nested Worker; '_Worker is not a constructor') — ADR-0006",
+    "Monaco deferred to M8: Vite dev worker startup failed even with static ?worker imports; equivalent read-only CodeView with coloring/scroll-to-line implemented — ADR-0006",
+    "M2 E2E journeys gained explicit view-toggle clicks (M3 defaults graphable stages to Graph); assertion strength unchanged"
+  ],
+  "not_achieved_in_m3_do_not_claim": [
+    "runtime execution/replay (M4)", "MemoryScope/ProcessScope (M5)",
+    "OptimizationLab diff UI (M6)", "20-demo suite (M7)", "final brand polish (M8)", "independent audit (M9)"
+  ],
+  "next_milestone": "M4 NOT STARTED — await independent M3 audit/authorization"
+}

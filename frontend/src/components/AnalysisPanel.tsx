@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { ApiError, AnalysisJob, api, Reason, StageData } from "../api";
-
+import GraphView, { GraphSelection } from "./GraphView";
 /**
- * M2 analysis panel: real job lifecycle + language-specific stage views backed by
- * genuine container-run toolchain outputs. Clicking a token/AST node/bytecode
- * instruction with a known source line calls onSelectLine for source highlighting.
- * Mapping honesty: EXACT positions are clickable; IR/assembly are DERIVED/UNAVAILABLE.
+ * M2 stage navigator + M3 graph canvas. Graphable stages (ast/ir_o0/ir_o2/bytecode)
+ * default to the interactive graph; table and raw views remain as accessible
+ * fallbacks (M3-A requirement). All views are stale-result guarded.
  */
 
 const AVAIL_CLASS: Record<string, string> = {
   AVAILABLE: "chip ok", PARTIAL: "chip partial", ERROR: "chip blocked",
   UNSUPPORTED: "chip blocked", BLOCKED: "chip blocked", NOT_REQUESTED: "chip",
 };
+
+const GRAPHABLE = new Set(["ast", "ir_o0", "ir_o2", "bytecode"]);
+type ViewMode = "graph" | "items" | "raw";
 
 type Item = Record<string, unknown>;
 
@@ -53,13 +55,20 @@ function AsTree({ nodes, onSelect }: { nodes: Item[]; onSelect: (n: Item) => voi
 }
 
 export default function AnalysisPanel({
-  analysisId, onSelectLine,
-}: { analysisId: string; onSelectLine: (line: number | null) => void }) {
+  analysisId, onSelectLine, onSelectNode, onSelectStageData,
+}: {
+  analysisId: string;
+  onSelectLine: (line: number | null) => void;
+  onSelectNode?: (sel: GraphSelection) => void;
+  onSelectStageData?: (s: StageData | null) => void;
+}) {
   const [job, setJob] = useState<AnalysisJob | null>(null);
   const [stageName, setStageName] = useState<string | null>(null);
   const [stageData, setStageData] = useState<StageData | null>(null);
   const [raw, setRaw] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("graph");
+  const [rawText, setRawText] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -86,10 +95,21 @@ export default function AnalysisPanel({
   useEffect(() => {
     if (!stageName || !job || ["QUEUED", "RUNNING"].includes(job.status)) return;
     setRaw(null);
-    api.stage(analysisId, stageName).then(setStageData).catch((e) => {
+    setRawText(null);
+    setViewMode(GRAPHABLE.has(stageName) ? "graph" : "items");
+    api.stage(analysisId, stageName).then((sd) => {
+      setStageData(sd);
+      onSelectStageData?.(sd);
+    }).catch((e) => {
       setStageData(null);
+      onSelectStageData?.(null);
       setError(e instanceof ApiError ? e.message : String(e));
     });
+    if (GRAPHABLE.has(stageName)) {
+      api.stageRaw(analysisId, stageName).then((r) => {
+        if (r.excerpt != null) setRawText(r.excerpt);
+      }).catch(() => { /* raw stays null */ });
+    }
   }, [stageName, analysisId, job?.status]);
 
   if (!job) return <p className="muted">Loading analysis…</p>;
@@ -258,8 +278,27 @@ export default function AnalysisPanel({
           {stageData.limitations.length > 0 && (
             <ul className="limits">{stageData.limitations.map((l, i) => <li key={i}>{l}</li>)}</ul>
           )}
-          {renderItems()}
-          {stageData.raw_artifact_sha256 && (
+          {GRAPHABLE.has(stageData.stage) && onSelectNode && (
+            <div className="viewtoggle" role="tablist">
+              {(["graph", "items", "raw"] as ViewMode[]).map((m) => (
+                <button key={m} role="tab" aria-selected={viewMode === m}
+                        className={viewMode === m ? "tab active" : "tab"}
+                        onClick={() => setViewMode(m)}>
+                  {m === "graph" ? "Graph" : m === "items" ? "Table" : "Raw"}
+                </button>
+              ))}
+            </div>
+          )}
+          {stageData.stage && viewMode === "graph" && GRAPHABLE.has(stageData.stage)
+            && onSelectNode && (
+            <GraphView analysisId={analysisId} stage={stageData.stage}
+                       onSelectNode={onSelectNode} onSelectLine={onSelectLine} />
+          )}
+          {viewMode === "items" && renderItems()}
+          {viewMode === "raw" && (
+            <pre className="excerpt">{rawText ?? "loading…"}</pre>
+          )}
+          {viewMode !== "raw" && stageData.raw_artifact_sha256 && viewMode !== "graph" && (
             <RawToggle key={`${analysisId}:${stageData.stage}`}
                        analysisId={analysisId} stage={stageData.stage} />
           )}

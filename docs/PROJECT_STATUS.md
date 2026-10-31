@@ -2,13 +2,13 @@
 
 Updated: 31 October 2026 (M2 execution)
 
-## Current milestone: **M2.5 — post-audit correctness repair (CV-01..CV-11 closed)**
+## Current milestone: **M3 — premium visual compiler observatory / graph engine**
 
-Status: **M2.5 PASS** — all 11 audit findings + the security note fixed with permanent
-regression tests (`docs/TEST_EVIDENCE/M2.5.md`, `docs/milestones/M2.5.json`). M2 itself
-passed 8/8 gates (`docs/TEST_EVIDENCE/M2.md`); the independent audit's CONDITIONAL PASS
-defects are now closed. 116 backend tests passed / 4 honest rate-limit skips; E2E M2 3/3,
-M1 4/5 (429 skip). Analyzer image `sha256:db5812b6…`.
+Status: **M3 PASS on all 9 gates (G0–G8)** (`docs/TEST_EVIDENCE/M3.md`,
+`docs/milestones/M3.json`, handoff `docs/HANDOFF_AFTER_M3.md`). M2.5 closed all audit
+findings (CV-01..CV-11). 126 backend tests passed / 0 failed; E2E M3 4/4, M2 3/3,
+M1 5/5. Graph canvas (@xyflow/react + worker layout), semantic zoom, inspector with
+three explanation levels, source-linked navigation — all backed by real tool artifacts.
 
 ## What exists now (cumulative)
 
@@ -32,7 +32,7 @@ M1 4/5 (429 skip). Analyzer image `sha256:db5812b6…`.
 
 ## Next
 
-**M3 NOT STARTED — awaiting post-M2 audit and user authorization.**
+**M4 NOT STARTED — await independent M3 audit and explicit authorization.**
 
 ## Active risks / quirks
 

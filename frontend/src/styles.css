@@ -97,3 +97,36 @@ button.cancel { background: none; color: #ff8f8f; border: 1px solid #6b3434; bor
                 margin-left: 0.6rem; cursor: pointer; }
 .token.clickable { cursor: pointer; }
 .token.clickable:hover { border-color: #2f5d8a; }
+
+/* ---- M3 graph observatory ---- */
+.graphwrap { height: 62vh; border: 1px solid #222c37; border-radius: 8px; overflow: hidden;
+             background: #0b0e13; position: relative; }
+.graphtoolbar { display: flex; gap: 0.6rem; align-items: center; padding: 0.4rem 0.6rem;
+                border-bottom: 1px solid #1d2630; background: #10151c; position: relative; z-index: 5; }
+.graphtoolbar .search { background: #0e1116; color: #dbe2ea; border: 1px solid #2c3844;
+                        border-radius: 4px; padding: 3px 8px; font-size: 0.8rem; width: 240px; }
+.cvnode { background: #141b24; border: 1px solid #2c3844; border-radius: 6px;
+          padding: 4px 8px; font-family: Consolas, monospace; font-size: 0.72rem;
+          color: #dbe2ea; display: flex; align-items: center; }
+.cvnode.group-cfg { border-color: #2f5d8a; }
+.cvnode.group-bytecode { border-color: #6b5a34; }
+.cvnode.conf-exact { border-left: 3px solid #7fd39a; }
+.cvnode.conf-derived { border-left: 3px solid #ffd479; }
+.cvnode.conf-unavailable { border-left: 3px solid #6b3434; }
+.cvnode-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.react-flow__node.dimmed { opacity: 0.25; }
+.react-flow__node.hit .cvnode { border-color: #ffd479; box-shadow: 0 0 0 2px #ffd47933; }
+.react-flow__node.collapsed-root .cvnode { background: #1c242e; border-style: dashed; }
+.inspector { border: 1px solid #2c3844; border-radius: 8px; padding: 0.7rem 0.9rem;
+             margin-top: 0.75rem; background: #12161c; }
+.insp-head { display: flex; justify-content: space-between; align-items: baseline; }
+.levels { display: flex; gap: 0.4rem; margin: 0.4rem 0; }
+.explanation { color: #c9d6e2; font-size: 0.86rem; }
+.inspgrid td { font-size: 0.78rem; }
+.viewtoggle { display: flex; gap: 0.4rem; margin: 0.5rem 0; }
+.monaco-wrap { border: 1px solid #222c37; border-radius: 8px; overflow: hidden; }
+.cv-monaco-hl { background: #3a2f14; }
+@media (max-width: 760px) {
+  .workspace .cols { grid-template-columns: 1fr; }
+  .graphwrap { height: 46vh; }
+}
