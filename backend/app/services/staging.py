@@ -14,6 +14,8 @@ import json
 import os
 import re
 import shutil
+import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path, PurePosixPath
@@ -174,3 +176,31 @@ def cleanup_job(job_id: str, dest_root: Path | None = None) -> bool:
         shutil.rmtree(root)
         return True
     return False
+
+
+def remove_disposable_dir(job_dir: Path, fallback_image: str) -> None:
+    """Remove a disposable per-job directory after a container used it.
+
+    Robust against two observed failure modes (M4QA):
+      1. EBUSY/race right after `docker run --rm` exits while the daemon is still
+         tearing down the bind mount — retried briefly.
+      2. Docker Desktop chowning container-written dirs to root — fall back to a
+         one-off privileged container bounded to the jobs parent (trusted
+         orchestration only; fixed argv, internally generated paths).
+    A failed fallback is reported loudly instead of disappearing silently
+    (M4-era leftovers proved the silent failure).
+    """
+    for _ in range(4):
+        shutil.rmtree(job_dir, ignore_errors=True)
+        if not job_dir.exists():
+            return
+        time.sleep(0.25)
+    jobs_parent = job_dir.parent.parent  # .../compilevista
+    r = subprocess.run(
+        ["docker", "run", "--rm", "--user", "0",
+         "-v", f"{jobs_parent}:/jobs",
+         fallback_image, "rm", "-rf", f"/jobs/{job_dir.parent.name}/{job_dir.name}"],
+        capture_output=True, timeout=120)
+    if r.returncode != 0 and job_dir.exists():
+        print(f"[compilevista] WARNING: job-dir cleanup failed for {job_dir}: "
+              f"{r.stderr.decode('utf-8', 'replace')[:200]}", file=sys.stderr)

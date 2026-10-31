@@ -121,11 +121,10 @@ class Store:
                 # version because all tables/columns use IF NOT EXISTS and later
                 # columns are added via guarded ALTER. This must remain true for
                 # every future schema bump (audit T3: restart recovery).
+                # (M4QA-07: the old code kept an unreachable SCHEMA_MISMATCH branch
+                # after this UPDATE — dead code, removed.)
                 self._conn.execute("UPDATE meta SET value=? WHERE key='schema_version'",
                                    (SCHEMA_VERSION,))
-            elif row["value"] != SCHEMA_VERSION:
-                raise StoreError("SCHEMA_MISMATCH",
-                                 f"db schema {row['value']} != application schema {SCHEMA_VERSION}")
             # Additive column upgrades (guarded; safe on fresh and upgraded stores).
             cols = {r["name"] for r in self._conn.execute(
                 "PRAGMA table_info(analysis_stages)").fetchall()}

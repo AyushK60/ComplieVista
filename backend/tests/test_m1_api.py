@@ -44,7 +44,10 @@ def test_paste_flow_full_contract(client):
     assert "print(x)" in f["text"]
     targets = client.get(f"/api/v1/projects/{body['project_id']}/targets").json()
     t = CompilationTargetModel(**targets[0])
-    assert t.ready_for_controlled_execution is False
+    # M4QA-08: readiness reflects the real admission decision — a pasted, entry-guarded
+    # executable candidate IS ready for controlled execution (M4 gate passed).
+    assert t.ready_for_controlled_execution is (t.status in (
+        "EXECUTABLE_CANDIDATE", "COMPILATION_CANDIDATE"))
     assert t.status in ("STATIC_ANALYZABLE", "EXECUTABLE_CANDIDATE", "COMPILATION_CANDIDATE")
 
 
@@ -140,7 +143,7 @@ def test_m0_regression_health_and_analyses(client):
     ids = {a["id"] for a in client.get("/api/v1/analyses").json()}
     assert {"m0-c", "m0-python"} <= ids
     cap = client.get("/api/v1/capabilities").json()
-    assert cap["modes"]["pasted_execution"] == "BLOCKED"
+    assert cap["modes"]["pasted_execution"] == "PARTIAL"  # M4QA-05: honest since the M4 gate passed
 
 
 def test_project_model_contract(client):

@@ -1,14 +1,18 @@
 # CompileVista Project Status
 
-Updated: 31 October 2026 (M2 execution)
+Updated: 1 November 2026 (M4QA adversarial audit)
 
-## Current milestone: **M4 — controlled C/Python execution, real traces & replay**
+## Current milestone: **M4QA — adversarial runtime/sandbox audit & surgical repair**
 
-Status: **M4 PASS on all 9 gates (G0–G8)** (`docs/TEST_EVIDENCE/M4.md`,
-`docs/milestones/M4.json`, handoff `docs/HANDOFF_AFTER_M4.md`). M4-G0 closed F01–F05.
-143 backend tests passed / 0 failed; E2E M3 6/6 (incl. M4 execution), M2 3/3, M1 5/5.
-Real C and Python execution in restricted containers with genuine trace instrumentation.
-GDB/ptrace: UNSUPPORTED by policy. GitHub-imported code: execution fail-closed.
+Status: **M4QA PASS on all exit gates Q1–Q6** (`docs/TEST_EVIDENCE/M4QA.md`,
+`docs/milestones/M4QA.json`, handoff `docs/HANDOFF_AFTER_M4QA.md`).
+The second-pass audit (same-agent, NOT an independent external review) reproduced a
+blocker — execution timeouts left live ghost containers — plus unbounded Python
+stdout (1.75 GB / 10 s probe) and unbounded C trace files (442 MB / 10 s), and six
+more medium/low findings; all 9 fixed surgically with 14 permanent regression/oracle
+tests. Backend: 154 passed / 0 failed / 0 skipped. E2E: M3 6/6 (incl. M4), M2 3/3,
+M1 5 journeys (1 reasoned GitHub rate-limit skip). TSC clean, Vite build OK.
+**M4QA PASS authorizes M5; M5 not started.**
 
 ## What exists now (cumulative)
 
@@ -26,13 +30,15 @@ GDB/ptrace: UNSUPPORTED by policy. GitHub-imported code: execution fail-closed.
 
 ## Deliberately NOT done (no false claims)
 
-- No runtime execution or tracing (M4 gate). No multi-file linked builds (M6).
+- No multi-file linked builds (M6). Single-file C/Python execution only, in
+  restricted containers, local-only (M4, audited M4QA).
 - No semantic-zoom graph observatory/Monaco/minimap (M3). No MemoryScope/ProcessScope
   (M5), OptimizationLab (M6), 20-demo suite (M7), premium polish (M8), independent audit (M9).
 
 ## Next
 
-**M5 NOT STARTED — await independent M4 audit and explicit authorization.**
+**M5 NOT STARTED — authorized by M4QA PASS (docs/milestones/M4QA.json); begin only
+with a fresh entry-gate check of git ancestry and manifests.**
 
 ## Active risks / quirks
 

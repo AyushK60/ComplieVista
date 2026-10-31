@@ -36,6 +36,9 @@ BUILD_TIMEOUT_S = 90
 STDOUT_CAP = 1024 * 1024
 STDERR_CAP = 1024 * 1024
 EVENTS_CAP = 5000
+# Defensive read cap for container-written files: the shim/harness cap their own
+# output in-band, but the orchestrator never trusts a file's size (M4QA-02/03).
+TRACE_FILE_CAP = 8 * 1024 * 1024
 MAX_CONCURRENT = 1
 
 _BASE_FLAGS = [
@@ -69,17 +72,10 @@ def runtime_image_id() -> str:
 
 
 def _rmtree_or_privileged(job_dir: Path) -> None:
-    """Remove a job dir; if the container chowned files to root (Docker Desktop
-    bind-mount behavior), fall back to a one-off privileged container bounded to
-    the jobs root (trusted orchestration only)."""
-    shutil.rmtree(job_dir, ignore_errors=True)
-    if job_dir.exists():
-        jobs_parent = job_dir.parent.parent  # .../compilevista
-        subprocess.run(
-            ["docker", "run", "--rm", "--user", "0",
-             "-v", f"{jobs_parent}:/jobs",
-             RUNTIME_IMAGE, "rm", "-rf", f"/jobs/{job_dir.parent.name}/{job_dir.name}"],
-            capture_output=True, timeout=120)
+    """Remove a job dir; shared robust helper in staging (M4QA: retry + visible
+    fallback failure)."""
+    from app.services.staging import remove_disposable_dir
+    remove_disposable_dir(job_dir, RUNTIME_IMAGE)
 
 
 
@@ -183,6 +179,18 @@ class _ExecRunner:
                 " finished_utc=? WHERE id=?", (now_utc(), r["id"]))
         for r in self.store.query("SELECT id FROM executions WHERE status='QUEUED'"):
             self.q.put(r["id"])
+        # M4QA-09: mop up orphaned execution job dirs (e.g. a previous process was
+        # killed mid-job, so its `finally` cleanup never ran). Safe locally: this
+        # runner is the single execution worker, and terminal jobs never touch
+        # their job dir again.
+        active = {r["id"][:12] for r in self.store.query(
+            "SELECT id FROM executions WHERE status IN ('QUEUED','RUNNING')")}
+        try:
+            for d in jobs_root().glob("execution-*"):
+                if d.name.removeprefix("execution-") not in active:
+                    shutil.rmtree(d, ignore_errors=True)
+        except OSError:
+            pass
 
     def enqueue(self, execution_id: str) -> None:
         self.q.put(execution_id)
@@ -233,6 +241,13 @@ class _ExecRunner:
                 dest.write_bytes(store.get_artifact(f["content_sha256"]))
 
             t0 = time.monotonic()
+            # M4QA-06: a cancel that arrives while the job is starting must not
+            # launch a container afterwards (previously the container ran its full
+            # wall-clock before cancel_requested was observed).
+            if store.query_one("SELECT cancel_requested FROM executions WHERE id=?",
+                               (eid,))["cancel_requested"]:
+                self._finish(store, eid, "CANCELLED", None)
+                return
             if job["language"] == "c":
                 self._run_c(store, eid, job, src, build_out, run_out, cname)
             else:
@@ -278,6 +293,9 @@ class _ExecRunner:
                       "--file", job["primary_file"], "--out", "/out"]
         b = run_capped(build_argv, BUILD_TIMEOUT_S)
         if b["killed"]:
+            # Killing the docker CLI does not stop the build container (M4QA-01).
+            subprocess.run(["docker", "rm", "-f", f"cv-build-{eid[:12]}"],
+                           capture_output=True, timeout=60)
             self._finish(store, eid, "TIMEOUT", "build timeout")
             return
         manifest_p = build_out / "manifest.json"
@@ -325,38 +343,62 @@ class _ExecRunner:
                             run_out: Path, cname: str,
                             symbol_map: list | None = None,
                             stdout_from_file: bool = False) -> None:
-        r = run_capped(argv, RUN_TIMEOUT_S)
         if store.query_one("SELECT cancel_requested FROM executions WHERE id=?",
                            (eid,))["cancel_requested"]:
             self._finish(store, eid, "CANCELLED", None)
             return
+        r = run_capped(argv, RUN_TIMEOUT_S)
+        if store.query_one("SELECT cancel_requested FROM executions WHERE id=?",
+                           (eid,))["cancel_requested"]:
+            subprocess.run(["docker", "rm", "-f", cname], capture_output=True, timeout=60)
+            self._finish(store, eid, "CANCELLED", None)
+            return
         if r["killed"]:
+            # Killing the docker CLI does NOT stop the container (M4QA-01: a timed-out
+            # `while True` container stayed Up and kept burning CPU). Force-remove it.
+            subprocess.run(["docker", "rm", "-f", cname], capture_output=True, timeout=60)
             self._finish(store, eid, "TIMEOUT", "run timeout")
             return
         trace_p = run_out / "trace.jsonl"
-        lines = trace_p.read_bytes().splitlines() if trace_p.is_file() else []
+        trace_bytes, trace_file_truncated = _read_capped(trace_p, TRACE_FILE_CAP)
+        lines = trace_bytes.splitlines()
+        meta_payloads: list[dict] = []
         if symbol_map:
             lines = [_resolve_c_addr(ln, symbol_map) for ln in lines]
+        for ln in lines:
+            try:
+                rec = json.loads(ln)
+            except json.JSONDecodeError:
+                continue
+            if rec.get("kind") == "meta":
+                meta_payloads.append(rec)
         n_events = self._record_events(store, eid, lines)
-        trace_ref = store.put_artifact(trace_p.read_bytes()) if trace_p.is_file() else None
+        trace_ref = store.put_artifact(trace_bytes) if trace_p.is_file() else None
         # Python harness redirects fd 1 to a file: read the file for stdout.
         # C binary writes to the docker pipe: use run_capped's captured bytes.
-        stdout_bytes = ((run_out / "stdout.txt").read_bytes()
-                        if stdout_from_file and (run_out / "stdout.txt").is_file()
-                        else r["stdout"])
-        stderr_bytes = ((run_out / "stderr.txt").read_bytes()
-                        if stdout_from_file and (run_out / "stderr.txt").is_file()
-                        else r["stderr"])
+        stdout_file_trunc = stderr_file_trunc = False
+        if stdout_from_file:
+            stdout_bytes, stdout_file_trunc = _read_capped(run_out / "stdout.txt",
+                                                           STDOUT_CAP)
+            stderr_bytes, stderr_file_trunc = _read_capped(run_out / "stderr.txt",
+                                                           STDERR_CAP)
+            stderr_bytes = (stderr_bytes if (run_out / "stderr.txt").is_file()
+                            else r["stderr"])
+        else:
+            stdout_bytes, stderr_bytes = r["stdout"], r["stderr"]
         stdout_art = store.put_artifact(stdout_bytes) if stdout_bytes else None
         stderr_art = store.put_artifact(stderr_bytes) if stderr_bytes else None
+        meta = _meta_flags(meta_payloads)
         store.execute(
             "UPDATE executions SET status='COMPLETED', exit_code=?, stdout_sha256=?,"
             " stderr_sha256=?, trace_sha256=?, events_count=?, events_truncated=?,"
             " stdout_truncated=?, stderr_truncated=?, finished_utc=? WHERE id=?",
             (r["exit_code"], stdout_art, stderr_art, trace_ref, n_events,
              int(n_events >= EVENTS_CAP or r["stdout_truncated"] or r["stderr_truncated"]
-                 or _trace_truncated(trace_p)),
-             int(r["stdout_truncated"]), int(r["stderr_truncated"]), now_utc(), eid))
+                 or trace_file_truncated or meta["trace"]),
+             int(r["stdout_truncated"] or stdout_file_trunc or meta["stdout"]),
+             int(r["stderr_truncated"] or stderr_file_trunc or meta["stderr"]),
+             now_utc(), eid))
 
     def cancel(self, execution_id: str) -> str:
         job = self.store.query_one("SELECT status FROM executions WHERE id=?",
@@ -370,20 +412,46 @@ class _ExecRunner:
                 "UPDATE executions SET status='CANCELLED', finished_utc=? WHERE id=?",
                 (now_utc(), execution_id))
             return "CANCELLED"
-        subprocess.run(["docker", "rm", "-f", f"cv-exec-{execution_id[:12]}"],
-                       capture_output=True, timeout=60)
+        # RUNNING: stop BOTH the run container and any in-flight build container
+        # (M4QA-06: a cancel during the C build phase used to leave cv-build running).
+        # The flag is committed BEFORE the kill so the worker's post-run check can
+        # never miss a cancel that already destroyed the container (the runner used
+        # to record COMPLETED for a killed run in that gap). The rm -f is retried
+        # briefly: the worker may be milliseconds from starting the container when
+        # the first removal lands as a no-op.
         self.store.execute("UPDATE executions SET cancel_requested=1 WHERE id=?",
                            (execution_id,))
+        for _ in range(4):
+            subprocess.run(["docker", "rm", "-f", f"cv-exec-{execution_id[:12]}"],
+                           capture_output=True, timeout=60)
+            subprocess.run(["docker", "rm", "-f", f"cv-build-{execution_id[:12]}"],
+                           capture_output=True, timeout=60)
+            if self.store.query_one(
+                    "SELECT status FROM executions WHERE id=?",
+                    (execution_id,))["status"] != "RUNNING":
+                break  # worker already recorded a terminal state
+            time.sleep(0.25)
         return "CANCEL_REQUESTED"
 
 
-def _trace_truncated(trace_p: Path) -> bool:
-    if not trace_p.is_file():
-        return False
-    for line in trace_p.read_text("utf-8", "replace").splitlines():
-        if '"truncated": true' in line:
-            return True
-    return False
+def _meta_flags(meta_payloads: list[dict]) -> dict:
+    """In-band truncation markers written by the shim/harness (trusted: they are
+    emitted by the pinned container code, not by user source)."""
+    return {
+        "trace": any(p.get("truncated") is True for p in meta_payloads),
+        "stdout": any(p.get("stdout_truncated") is True for p in meta_payloads),
+        "stderr": any(p.get("stderr_truncated") is True for p in meta_payloads),
+    }
+
+
+def _read_capped(path: Path, cap: int) -> tuple[bytes, bool]:
+    """Read at most `cap` bytes from a container-written file. Container output is
+    untrusted: the orchestrator never trusts a file's size (M4QA-02/03)."""
+    if not path.is_file():
+        return b"", False
+    with path.open("rb") as f:
+        data = f.read(cap + 1)
+    return data[:cap], len(data) > cap
 
 
 _RUNNERS: dict[int, _ExecRunner] = {}

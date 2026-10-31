@@ -21,7 +21,12 @@ Status: Accepted (M4)
    caps: 5000 events / 64 frames / 200 locals / 120 bytes.
 5. **stdout capture**: Python uses fd-level `os.dup2` inside the harness (reliable for
    C-level and Python-level writes). C uses the docker pipe with pump threads (1 MB
-   cap, discards flood).
+   cap, discards flood). **M4QA amendment**: the Python stdout file on the bind mount
+   is capped at the source — fd 1 is redirected through a draining pump that persists
+   at most 1 MB and discards the rest, recording an in-band `stdout_truncated` marker;
+   the C shim stops at 5000 trace events with an in-band truncated marker. The
+   orchestrator additionally reads all container-written files through defensive
+   host-side caps and never trusts a file's size.
 6. **Output ownership**: Docker Desktop chowns bind-mounted dirs after container
    writes; the orchestrator only READS container-written dirs (never writes into
    them). Job-dir cleanup uses a one-off privileged container for root-owned remnants
@@ -30,6 +35,13 @@ Status: Accepted (M4)
    regardless of classification.
 8. **Schema `m4.v1`**: `executions` + `execution_events` tables with checksummed,
    paginated events; additive migration from any earlier m*.v1.
+9. **M4QA amendment — lifecycle containment**: external timeouts force-remove the
+   run/build containers (killing the `docker run` CLI alone leaves the container
+   running — reproduced live). Cancel commits `cancel_requested` before killing
+   containers (run AND build), is honoured before container launch, and a cancelled
+   run can never be recorded COMPLETED. Disposable job-dir cleanup is shared,
+   retried against mount-teardown races, and reports fallback failures loudly;
+   startup reconciliation removes orphaned job dirs.
 
 ## Consequences
 

@@ -3,7 +3,7 @@
 Authoritative threat model: README §10. This document records the M0-relevant subset and
 residual risks. Nothing here weakens the README.
 
-## Execution modes (M4)
+## Execution modes (M4, audited by M4QA)
 
 - Static analysis: never executes source (M0–M3 unchanged).
 - Curated/pasted execution: restricted containers only; explicit user action required;
@@ -13,6 +13,14 @@ residual risks. Nothing here weakens the README.
   GDB/ptrace UNSUPPORTED by policy (ADR-0007).
 - Python tracing via `sys.settrace` with bounded safe_locals (no user `__repr__`).
 - All previous constraints unchanged; Docker socket never enters containers.
+- **M4QA hardening (2026-11-01)**: timeouts force-remove containers (no ghosts);
+  container-written output files are size-capped in-container (stdout 1 MB, trace
+  5000 events) AND read through defensive host-side caps; cancel commits its flag
+  before killing containers and is honoured before container launch; both job
+  orchestrators share a robust, loud-on-failure disposable-dir cleanup; POST
+  /executions and /analyses enforce the same streaming body caps as the other
+  endpoints. See docs/TEST_EVIDENCE/M4QA.md for reproductions (1.75 GB stdout and
+  442 MB C trace in 10 s pre-repair).
 
 ## Trust assumptions
 

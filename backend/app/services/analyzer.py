@@ -210,7 +210,11 @@ class _JobRunner:
                 (status, now_utc(), duration_ms,
                  None if status == "COMPLETED" else stderr_tail[:200], analysis_id))
         finally:
-            shutil.rmtree(job_dir, ignore_errors=True)  # disposable job space, always cleaned
+            # Robust disposable-dir cleanup (M4QA: retry + privileged fallback for
+            # Docker-Desktop root-owned remnants + visible failure), shared with
+            # the execution orchestrator.
+            from app.services.staging import remove_disposable_dir
+            remove_disposable_dir(job_dir, ANALYZER_IMAGE)
 
     def cancel(self, analysis_id: str) -> str:
         job = self.store.query_one("SELECT status, cancel_requested FROM analyses WHERE id=?",

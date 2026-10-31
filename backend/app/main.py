@@ -28,7 +28,9 @@ from app.store.db import Store, StoreError
 MODES = {
     "read_only_analysis": "AVAILABLE",
     "curated_execution": "PARTIAL",
-    "pasted_execution": "BLOCKED",   # M4 security gate governs; M1 adds NO execution
+    "pasted_execution": "PARTIAL",   # M4 gate passed (restricted containers, admission
+                                     # checked); M4QA audit confirms containment. GitHub-
+                                     # imported and public-hosted execution stay BLOCKED.
 }
 
 
@@ -117,9 +119,11 @@ def create_app(store: Store | None = None) -> FastAPI:
     def capabilities() -> dict:
         return {"tools": probe_tools(), "modes": MODES,
                 "notes": ["Observed inside WSL Ubuntu 24.04 via direct tool probes at startup.",
-                          "curated_execution=PARTIAL: restrictive Docker baseline proven in M0, "
-                          "adversarial validation deferred to M4.",
-                          "pasted_execution=BLOCKED until the M4 security gate passes."]}
+                          "curated_execution=PARTIAL: single-file C/Python in restricted "
+                          "containers (M4), audited by M4QA.",
+                          "pasted_execution=PARTIAL: same restricted containers, eligible "
+                          "paste/upload targets only; GitHub-imported and public-hosted "
+                          "execution remain BLOCKED (M9 review)."]}
 
     @app.get("/api/v1/analyses")
     def analyses() -> list[dict]:
@@ -127,6 +131,7 @@ def create_app(store: Store | None = None) -> FastAPI:
 
     @app.post("/api/v1/analyses")
     async def create_job(request: Request) -> dict:
+        request._receive = _capped_receive_call(request, 1024 * 1024)  # noqa: SLF001 (M4QA-04)
         try:
             body = json.loads((await request.body()).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -214,6 +219,7 @@ def create_app(store: Store | None = None) -> FastAPI:
     @app.post("/api/v1/executions")
     async def create_execution(request: Request) -> dict:
         from app.services.execution import ExecutionError, create_execution, get_execution_runner
+        request._receive = _capped_receive_call(request, 1024 * 1024)  # noqa: SLF001 (M4QA-04)
         try:
             body = json.loads((await request.body()).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -412,20 +418,26 @@ def create_app(store: Store | None = None) -> FastAPI:
     @app.get("/api/v1/projects/{project_id}/targets")
     def list_targets(project_id: str) -> list[dict]:
         rows = store.query(
-            "SELECT t.* FROM compilation_targets t JOIN source_snapshots s"
-            " ON t.snapshot_id = s.id WHERE s.project_id=?"
+            "SELECT t.*, s.origin AS snap_origin FROM compilation_targets t"
+            " JOIN source_snapshots s ON t.snapshot_id = s.id WHERE s.project_id=?"
             " ORDER BY t.primary_file LIMIT ?", (project_id, LIMITS["api_max_response_items"]))
         out = []
         for r in rows:
             reasons = json.loads(r["reasons_json"])
+            # M4QA-08: report admission honestly — a target is execution-ready exactly
+            # when the M4 admission path would accept it (eligible class, non-GitHub
+            # origin). Docker availability is checked again at submission time.
+            ready = (r["status"] in ("EXECUTABLE_CANDIDATE", "COMPILATION_CANDIDATE")
+                     and r["snap_origin"] != "github")
             out.append({"target_id": r["id"], "snapshot_id": r["snapshot_id"],
                         "kind": r["kind"], "primary_file": r["primary_file"],
                         "status": r["status"],
-                        "ready_for_controlled_execution": False,
+                        "ready_for_controlled_execution": ready,
                         "reasons": reasons,
                         "note": "statuses are detected candidates; verification requires "
-                                "real toolchain checks (M2+) and execution requires the "
-                                "M4 security gate"})
+                                "real toolchain checks (M2+); execution runs once in a "
+                                "restricted container (M4) and is refused for "
+                                "GitHub-imported origins"})
         return out
 
     @app.get("/api/v1/projects/{project_id}/snapshots/{snapshot_id}")

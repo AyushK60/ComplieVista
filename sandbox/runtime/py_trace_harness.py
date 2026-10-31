@@ -4,14 +4,17 @@
 Executes the target ONCE under sys.settrace, capturing genuine call/line/return/
 exception events with bounded, safe variable snapshots. Never calls user __repr__;
 non-primitive values are summarized by type/identity. Caps: 5000 events, 64 frames
-deep, 200 locals/frame, 120 bytes/string. Writes /out/trace.jsonl, stdout.txt, exit.json.
+deep, 200 locals/frame, 120 bytes/string, 1 MB stdout (M4QA-02: the stdout file on
+the bind mount is size-capped at the source; excess is drained and discarded, so a
+flood cannot grow the host-side file without bound).
+Writes /out/trace.jsonl, stdout.txt (capped), exit status via process code.
 """
 from __future__ import annotations
 
-import io
 import json
 import os
 import sys
+import threading
 import time
 import traceback
 
@@ -19,11 +22,13 @@ MAX_EVENTS = 5000
 MAX_DEPTH = 64
 MAX_LOCALS = 200
 MAX_STR = 120
+STDOUT_CAP = 1024 * 1024
 
 out_dir = sys.argv[sys.argv.index("--out") + 1]
 target = os.path.join("/work", sys.argv[sys.argv.index("--file") + 1])
 events = 0
 truncated = False
+stdout_truncated = False
 
 
 def safe_value(v):
@@ -104,10 +109,36 @@ code = compile(open(target, "rb").read(), os.path.basename(target), "exec",
 g = {"__name__": "__main__", "__file__": target}
 exit_code = 0
 stdout_path = os.path.join(out_dir, "stdout.txt")
-# fd-level redirect: captures C-level and Python-level stdout reliably
+# fd-level redirect (captures C-level and Python-level stdout) through a draining
+# pump thread that stops persisting after STDOUT_CAP bytes but keeps consuming, so
+# the writer never blocks and the bind-mount file stays bounded (M4QA-02).
 saved_fd = os.dup(1)
+pipe_r, pipe_w = os.pipe()
 out_f = open(stdout_path, "wb")
-os.dup2(out_f.fileno(), 1)
+
+
+def _pump() -> None:
+    global stdout_truncated
+    kept = 0
+    while True:
+        try:
+            chunk = os.read(pipe_r, 65536)
+        except OSError:
+            break
+        if not chunk:
+            break
+        if kept < STDOUT_CAP:
+            keep = chunk[: STDOUT_CAP - kept]
+            out_f.write(keep)
+            kept += len(keep)
+        else:
+            stdout_truncated = True
+
+
+pump = threading.Thread(target=_pump, daemon=True)
+pump.start()
+os.dup2(pipe_w, 1)
+os.close(pipe_w)
 try:
     sys.settrace(tracer)
     exec(code, g)  # M4-D: genuine in-container execution, bounded by harness
@@ -119,14 +150,18 @@ except BaseException as e:
 finally:
     sys.settrace(None)
     sys.stdout.flush()
+    sys.stderr.flush()
     os.dup2(saved_fd, 1)
     os.close(saved_fd)
+    os.close(pipe_r)  # writer is gone; pump drains whatever remains and exits
+    pump.join(timeout=5)
     out_f.close()
 
 emit({"kind": "exit", "exit_code": exit_code,
       "duration_ms": int((time.monotonic() - t0) * 1000)})
 trace_f.write(json.dumps({"kind": "meta", "python": sys.version.split()[0],
                           "events": events, "truncated": truncated,
+                          "stdout_truncated": stdout_truncated,
                           "max_events": MAX_EVENTS}) + "\n")
 trace_f.close()
 sys.exit(exit_code)

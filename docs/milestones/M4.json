@@ -6,8 +6,8 @@
   "project_root_verified": "E:\ComplieVista",
   "prior_checkpoints": {"M0": "5718e07", "M1": "347d768", "M2": "78976fe", "M2.5": "abd88e8", "M3": "0c51ddd", "M3.5": "a8b2c44", "M4G0": "8383d40"},
   "git_commit": "1325186 (M4 milestone commit; hash recorded in this follow-up docs commit)",
-  "analyzer_image_id": "sha256:8f1234168b12 (includes c_build_worker + trace shim)",
-  "runtime_image_id": "sha256:6905b3c3 (ubuntu24.04 + python3.12 + trace harness, NO compiler)",
+  "analyzer_image_id": "sha256:fa9621bbd9193d8a7a6dd91a0943d1128e1994f9ac4aa0dd51243fcfa4fe557c (M4QA correction: the originally recorded sha256:8f1234168b12 never matched the image that existed at the M4 commit — real pre-M4QA analyzer was sha256:061d3d8b958e…; rebuilt with the M4QA-capped shim)",
+  "runtime_image_id": "sha256:3d13eada56865a538d3c01faf652066b1cb36b0dbe624af6c65915e211b12eb5 (M4QA correction: originally 6905b3c3…; rebuilt with the M4QA-capped stdout harness)",
   "policy_version": "m2.analyzer.v1 + m4.execution.v1",
   "gates": [
     {"id": "G0", "result": "PASS", "evidence": ["checkpoint 8383d40 ancestor", "134 tests pre-M4 green", "chunked/missing CL multipart+github+paste re-verified"]},
@@ -44,5 +44,5 @@
     "arbitrary GitHub-imported execution", "public/semi-public hosted execution",
     "GDB/ptrace frame stepping"
   ],
-  "next_milestone": "M5 NOT STARTED — await independent M4 audit and explicit authorization"
+  "next_milestone": "M5 NOT STARTED. M4QA (2026-11-01, docs/milestones/M4QA.json) re-audited M4: 1 blocker (timeout ghost containers), 2 high (unbounded python stdout / C trace files), 3 medium, 3 low findings — all fixed with regression tests; M4QA PASS authorizes M5"
 }
