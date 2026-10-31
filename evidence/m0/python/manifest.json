@@ -18,7 +18,7 @@
  "tools": {
   "cpython": "3.12.3",
   "implementation": "CPython",
-  "git_commit_at_collection": "2e97212"
+  "git_commit_at_collection": "e732c5a"
  },
  "stages": [
   {
@@ -34,7 +34,7 @@
     "tool": "cpython",
     "version": "3.12.3",
     "exit_code": 0,
-    "duration_ms": 16
+    "duration_ms": 17
    },
    "artifacts": [
     {
@@ -54,7 +54,7 @@
    "limitations": [
     "Token positions are tool-reported (EXACT); token stream is CPython-3.12-specific."
    ],
-   "duration_ms": 16
+   "duration_ms": 17
   },
   {
    "stage": "ast",
@@ -69,7 +69,7 @@
     "tool": "cpython",
     "version": "3.12.3",
     "exit_code": 0,
-    "duration_ms": 17
+    "duration_ms": 21
    },
    "artifacts": [
     {
@@ -90,7 +90,7 @@
    "limitations": [
     "ast.dump is a debug serialization; it is genuine CPython AST data, not a public parse-tree contract (README P2). Position attributes are tool-reported (EXACT)."
    ],
-   "duration_ms": 17
+   "duration_ms": 21
   },
   {
    "stage": "code_object",
@@ -135,12 +135,12 @@
     "tool": "cpython",
     "version": "3.12.3",
     "exit_code": 0,
-    "duration_ms": 35
+    "duration_ms": 25
    },
    "artifacts": [
     {
      "path": "evidence/m0/python/bytecode/dis.txt",
-     "sha256": "a90b1c0b3c5c28226cbe68de6416ff5d9fc3e9869443a8fc5d95a3bfcf3119b4",
+     "sha256": "3dcaa1a7f50bf381a44da4e3019c242be9d29474680e5e63a940f464e271fe94",
      "bytes": 3836
     },
     {
@@ -156,7 +156,7 @@
    "limitations": [
     "dis output and instruction positions are CPython-3.12-specific; trace events are not assumed one-to-one with bytecode instructions (README P4/P5)."
    ],
-   "duration_ms": 35
+   "duration_ms": 25
   },
   {
    "stage": "diagnostics",

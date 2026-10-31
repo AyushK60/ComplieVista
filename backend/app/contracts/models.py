@@ -111,3 +111,57 @@ class ErrorBody(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: ErrorBody
+
+
+# ------------------------- M1 additions (m1.v1) -------------------------
+
+class ClassificationReason(BaseModel):
+    code: str
+    detail: str
+    verified: bool
+
+
+class ProjectModel(BaseModel):
+    id: str
+    name: str
+    created_utc: str
+
+
+class SourceSnapshotModel(BaseModel):
+    id: str
+    project_id: Optional[str] = None
+    origin: str
+    combined_sha256: str
+    created_utc: str
+
+
+class SourceFileModel(BaseModel):
+    id: str
+    rel_path: str
+    content_sha256: str
+    size: int
+    encoding: str
+    language: str
+
+
+class CompilationTargetModel(BaseModel):
+    target_id: str
+    snapshot_id: str
+    kind: str
+    primary_file: str
+    status: str
+    ready_for_controlled_execution: bool
+    reasons: list[ClassificationReason]
+
+
+class ImportManifestModel(BaseModel):
+    import_id: str
+    project_id: str
+    snapshot_id: str
+    canonical_owner: str
+    canonical_repo: str
+    commit_sha: str
+    archive_sha256: str
+    file_count: int
+    rejected_count: int
+    policy_version: str

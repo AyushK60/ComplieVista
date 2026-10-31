@@ -29,7 +29,7 @@
      "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
     ],
     "exit_code": 0,
-    "duration_ms": 42,
+    "duration_ms": 28,
     "stdout_bytes": 21939,
     "stderr_bytes": 0
    },
@@ -63,7 +63,7 @@
      "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
     ],
     "exit_code": 0,
-    "duration_ms": 42,
+    "duration_ms": 38,
     "stdout_bytes": 0,
     "stderr_bytes": 254494
    },
@@ -103,17 +103,17 @@
      "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
     ],
     "exit_code": 0,
-    "duration_ms": 41,
+    "duration_ms": 32,
     "stdout_bytes": 753257,
     "stderr_bytes": 0
    },
-   "invocation_stdout_sha256": "0ce5e49a76b6ab5aedf120dddf0be1fd579731a6ad25abb3a2cd4dd2da075df6",
+   "invocation_stdout_sha256": "e682694efacd309e3ea0cdf20e15b4c2baf7fa28ed6d2efdf98cb173887cf4cc",
    "invocation_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "stderr_excerpt": "",
    "artifacts": [
     {
      "path": "evidence/m0/c/ast/ast.json",
-     "sha256": "0ce5e49a76b6ab5aedf120dddf0be1fd579731a6ad25abb3a2cd4dd2da075df6",
+     "sha256": "e682694efacd309e3ea0cdf20e15b4c2baf7fa28ed6d2efdf98cb173887cf4cc",
      "bytes": 753257
     },
     {
@@ -146,7 +146,7 @@
      "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
     ],
     "exit_code": 0,
-    "duration_ms": 139,
+    "duration_ms": 36,
     "stdout_bytes": 0,
     "stderr_bytes": 0
    },
@@ -187,7 +187,7 @@
      "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
     ],
     "exit_code": 0,
-    "duration_ms": 93,
+    "duration_ms": 36,
     "stdout_bytes": 0,
     "stderr_bytes": 0
    },
@@ -229,7 +229,7 @@
      "/mnt/e/ComplieVista/demos/m0/c_fixture.c"
     ],
     "exit_code": 0,
-    "duration_ms": 61,
+    "duration_ms": 37,
     "stdout_bytes": 0,
     "stderr_bytes": 0
    },
@@ -273,7 +273,7 @@
      "/mnt/e/ComplieVista/demos/m0/c_syntax_error.c"
     ],
     "exit_code": 1,
-    "duration_ms": 51,
+    "duration_ms": 19,
     "stdout_bytes": 0,
     "stderr_bytes": 196
    },
@@ -307,7 +307,7 @@
      "/mnt/e/ComplieVista/demos/m0/c_semantic_error.c"
     ],
     "exit_code": 1,
-    "duration_ms": 32,
+    "duration_ms": 24,
     "stdout_bytes": 0,
     "stderr_bytes": 190
    },

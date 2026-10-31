@@ -1,18 +1,20 @@
 """API contract tests for the M0 surface (docs/API_CONTRACTS.md)."""
 import json
+import tempfile
 
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+from app.store.db import Store
 
-client = TestClient(create_app())
+client = TestClient(create_app(store=Store(tempfile.mkdtemp(prefix="cv-m0-api-"))))
 
 
 def test_health():
     r = client.get("/api/v1/health")
     assert r.status_code == 200
     body = r.json()
-    assert body["status"] == "ok" and body["schema_version"] == "m0.v1"
+    assert body["status"] == "ok" and body["schema_version"] == "m1.v1"  # additive schema bump (ADR-0002), M0 behavior otherwise unchanged
     assert body["python_version"].startswith("3.12")
 
 

@@ -4,7 +4,7 @@
  "docker_server_version": "29.9.2",
  "host": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
  "staged_job": {
-  "job_id": "m0-feas-5d16fd65",
+  "job_id": "m0-feas-873db4e3",
   "combined_sha256": "b3a91c23b0d10755b535e69bcf9dd1d1ed43bf4c283e22596eb15e6bd080844a",
   "file_count": 2
  },
@@ -22,7 +22,7 @@
  "probes": [
   {
    "probe": "python_curated_deterministic",
-   "container_name": "m0-python_curated_deterministic-3a6d3f46",
+   "container_name": "m0-python_curated_deterministic-7b5c2419",
    "argv_tail": [
     "python3",
     "/work/py_curated.py"
@@ -55,7 +55,7 @@
    "stdout": "total=28\n",
    "stdout_sha256": "d317167b06a8fa6614df771efcdbfe54ce4828f0fe0229d9776032388e1eecb1",
    "stderr_excerpt": "",
-   "duration_ms": 249,
+   "duration_ms": 244,
    "killed_by_external_timeout": false,
    "orchestrator_forced_cleanup": false,
    "containers_before": 1,
@@ -67,7 +67,7 @@
   },
   {
    "probe": "c_curated_deterministic",
-   "container_name": "m0-c_curated_deterministic-e7ef91b1",
+   "container_name": "m0-c_curated_deterministic-ced68553",
    "argv_tail": [
     "/work/c_curated"
    ],
@@ -111,7 +111,7 @@
   },
   {
    "probe": "python_infinite_loop_timeout",
-   "container_name": "m0-python_infinite_loop_timeout-97466951",
+   "container_name": "m0-python_infinite_loop_timeout-aebb3703",
    "argv_tail": [
     "python3",
     "/work/py_spin.py"
@@ -144,7 +144,7 @@
    "stdout": "",
    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "stderr_excerpt": "",
-   "duration_ms": 20095,
+   "duration_ms": 20146,
    "killed_by_external_timeout": true,
    "orchestrator_forced_cleanup": true,
    "containers_before": 1,
