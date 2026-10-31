@@ -5,7 +5,7 @@
   "date": "2026-11-01",
   "project_root_verified": "E:\ComplieVista",
   "prior_checkpoints": {"M0": "5718e07", "M1": "347d768", "M2": "78976fe", "M2.5": "abd88e8", "M3": "0c51ddd", "M3.5": "a8b2c44", "M4G0": "8383d40"},
-  "git_commit": "recorded in repository log immediately after this file",
+  "git_commit": "1325186 (M4 milestone commit; hash recorded in this follow-up docs commit)",
   "analyzer_image_id": "sha256:8f1234168b12 (includes c_build_worker + trace shim)",
   "runtime_image_id": "sha256:6905b3c3 (ubuntu24.04 + python3.12 + trace harness, NO compiler)",
   "policy_version": "m2.analyzer.v1 + m4.execution.v1",
