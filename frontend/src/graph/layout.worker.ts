@@ -79,17 +79,27 @@ self.onmessage = (e: MessageEvent) => {
     let maxL = 0;
     for (const l of clayer.values()) maxL = Math.max(maxL, l);
     for (let i = 0; i < comps; i++) if (!clayer.has(i)) clayer.set(i, ++maxL);
-    // Position: SCC members stacked inside their layer slot
+    // Position: per-layer vertical space allocated PROPORTIONALLY to each
+    // component's member count (M3.5 audit F02: fixed 320px slots overlapped
+    // large SCCs and neighbours).
     const positions: Record<string, { x: number; y: number }> = {};
     const W = 230; const H = 56;
-    const perLayerCol = new Map<number, number>();
+    const layerComponents = new Map<number, number[]>();
     for (let ci = 0; ci < comps; ci++) {
       const l = clayer.get(ci) ?? 0;
-      const col = perLayerCol.get(l) ?? 0;
-      perLayerCol.set(l, col + 1);
-      (compMembers.get(ci) ?? []).forEach((nid, idx) => {
-        positions[nid] = { x: l * W, y: col * 320 + idx * H };
-      });
+      if (!layerComponents.has(l)) layerComponents.set(l, []);
+      layerComponents.get(l)!.push(ci);
+    }
+    for (const [l, compsInLayer] of [...layerComponents.entries()].sort((a, b) => a[0] - b[0])) {
+      let yCursor = 0;
+      for (const ci of compsInLayer) {
+        const members = compMembers.get(ci) ?? [];
+        const slot = members.length * H;
+        members.forEach((nid, idx) => {
+          positions[nid] = { x: l * W, y: yCursor + idx * H };
+        });
+        yCursor += slot + 24; // gap between components in the same layer
+      }
     }
     (self as any).postMessage({
       id, positions, layoutMs: Math.round(performance.now() - t0),

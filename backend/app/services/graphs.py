@@ -37,13 +37,19 @@ def _capped(nodes: list, edges: list) -> tuple[list, list, dict]:
     kept_ids = {n["id"] for n in nodes[:MAX_NODES]}
     kept_nodes = nodes[:MAX_NODES]
     edges_before = len(edges)
-    kept_edges = [e for e in edges
-                  if e["source"] in kept_ids and e["target"] in kept_ids][:MAX_EDGES]
-    edges_trunc = edges_before > MAX_EDGES
+    endpoint_kept = [e for e in edges
+                     if e["source"] in kept_ids and e["target"] in kept_ids]
+    endpoint_dropped = edges_before - len(endpoint_kept)
+    kept_edges = endpoint_kept[:MAX_EDGES]
+    cap_dropped = len(endpoint_kept) - len(kept_edges)
+    # F03: ANY omission (endpoint filter or edge cap) sets the edges flag —
+    # consumers must never assume the edge set is complete when it is not.
+    edges_trunc = endpoint_dropped > 0 or cap_dropped > 0
     omitted = {
         "nodes_omitted": len(nodes) - len(kept_nodes),
-        "edges_omitted_total": edges_before - len(kept_edges),
-        "edges_omitted_by_cap": edges_before - len(kept_edges),
+        "edges_omitted_total": endpoint_dropped + cap_dropped,
+        "edges_omitted_endpoint_filter": endpoint_dropped,
+        "edges_omitted_by_cap": cap_dropped,
     }
     return kept_nodes, kept_edges, {
         "nodes": nodes_trunc, "edges": edges_trunc, "stage_items": False, **omitted,

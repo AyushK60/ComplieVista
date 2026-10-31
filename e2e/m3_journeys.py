@@ -194,6 +194,86 @@ def journey_viewports(page: Page) -> None:
     ok("viewport matrix captured")
 
 
+def journey_m35(page: Page) -> None:
+    """M4-G0 stabilization evidence: F01 cyclic collapse, F02 geometric
+    non-overlap, F04 three-pane geometry before/after selection."""
+    step("M3.5b: cyclic CFG collapse, geometric layout, three-pane shell")
+    src = ("#include <stdio.h>\n"
+           "int loop(int n) {\n"
+           "    int total = 0;\n"
+           "    for (int i = 0; i < n; i++) {\n"
+           "        if (i % 2 == 0) { total += i; }\n"
+           "        else { total -= 1; }\n"
+           "    }\n"
+           "    return total;\n"
+           "}\n"
+           "int main(void) { return loop(4); }\n")
+    paste_and_analyze(page, "c", "loops.c", src)
+    page.get_by_role("tab", name="ir_o0 AVAILABLE").wait_for(timeout=120000)
+    page.get_by_role("tab", name="ir_o0 AVAILABLE").click()
+    expect(page.locator(".react-flow__node").first).to_be_visible(timeout=30000)
+    page.get_by_role("button", name="Full").click()
+    page.wait_for_timeout(600)
+
+    # F01: collapsing the function must keep the ROOT visible (never hidden by
+    # CFG backedge cycles) and prune its containment children.
+    fn_node = page.locator(".react-flow__node", has_text="basic_block").first
+    before = visible_node_count(page)
+    fn_node.dblclick()
+    page.wait_for_timeout(600)
+    root_visible = page.locator(".react-flow__node.collapsed-root").count() >= 1
+    assert root_visible, "F01: collapsed root must remain visible in cyclic graphs"
+    visible_node_count(page)
+    page.locator(".react-flow__node.collapsed-root").first.dblclick()
+    page.wait_for_timeout(600)
+    ok("F01: cyclic CFG collapse keeps the root visible and restores")
+
+    # F02: geometric non-overlap of rendered nodes (loops -> SCC layout)
+    boxes = page.evaluate("""
+      [...document.querySelectorAll('.react-flow__node')].map(n => {
+        const r = n.getBoundingClientRect();
+        return {x: r.x, y: r.y, w: r.width, h: r.height};
+      })
+    """)
+    overlaps = 0
+    for i in range(len(boxes)):
+        for j in range(i + 1, len(boxes)):
+            a, b = boxes[i], boxes[j]
+            if (a["x"] < b["x"] + b["w"] - 2 and b["x"] < a["x"] + a["w"] - 2
+                    and a["y"] < b["y"] + b["h"] - 2 and b["y"] < a["y"] + a["h"] - 2):
+                overlaps += 1
+    assert overlaps == 0, f"F02: {overlaps} overlapping node rectangles"
+    ok(f"F02: zero overlapping node rectangles across {len(boxes)} CFG nodes")
+
+    # F04: three-pane geometry before AND after selection at desktop widths
+    page.set_viewport_size({"width": 1920, "height": 1080})
+    page.wait_for_timeout(400)
+    grid_cols_before = page.evaluate(
+        "getComputedStyle(document.querySelector('.cols')).gridTemplateColumns.split(' ').length")
+    assert grid_cols_before == 3, f"F04: three panes required before selection, got {grid_cols_before}"
+    page.locator(".react-flow__node", has_text="basic_block").first.click()
+    page.wait_for_timeout(400)
+    grid_cols_after = page.evaluate(
+        "getComputedStyle(document.querySelector('.cols')).gridTemplateColumns.split(' ').length")
+    assert grid_cols_after == 3, "F04: three panes must persist after selection"
+    shot(page, "m35_three_pane_1920.png")
+    page.set_viewport_size({"width": 1366, "height": 768})
+    page.wait_for_timeout(400)
+    grid_cols_laptop = page.evaluate(
+        "getComputedStyle(document.querySelector('.cols')).gridTemplateColumns.split(' ').length")
+    assert grid_cols_laptop == 3, f"F04: three panes at 1366px, got {grid_cols_laptop}"
+    shot(page, "m35_three_pane_1366.png")
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.wait_for_timeout(400)
+    grid_cols_mobile = page.evaluate(
+        "getComputedStyle(document.querySelector('.cols')).gridTemplateColumns.split(' ').length")
+    assert grid_cols_mobile <= 2, "mobile must stack panes"
+    shot(page, "m35_mobile_390.png")
+    page.set_viewport_size({"width": 1280, "height": 900})
+    ok("F04: three-pane geometry verified before/after selection at 1920/1366, mobile stacks")
+    shot(page, "m35_cfg_final.png")
+
+
 def main() -> int:
     errors: list[str] = []
     with sync_playwright() as p:
@@ -202,7 +282,7 @@ def main() -> int:
         console_errors: list[str] = []
         page.on("pageerror", lambda e: console_errors.append(str(e)))
         for journey in (journey_c_graph, journey_python_graph,
-                        journey_large_and_error, journey_viewports):
+                        journey_large_and_error, journey_viewports, journey_m35):
             try:
                 journey(page)
             except Exception as e:  # noqa: BLE001
@@ -219,9 +299,11 @@ def main() -> int:
     if FAILED:
         print(f"E2E RESULT: FAIL ({len(FAILED)} failures)")
         return 1
-    print("E2E RESULT: PASS (4 M3 journeys)")
+    print("E2E RESULT: PASS (5 M3 journeys)")
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
+
+

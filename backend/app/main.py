@@ -40,6 +40,26 @@ class AppError(Exception):
         self.status = status
 
 
+
+def _capped_receive_call(request: Request, cap: int):
+    """F05: returns an async receive() bounded by `cap` total body bytes.
+    Handles missing/misleading Content-Length and chunked uploads: the cap is
+    enforced on the raw ASGI stream BEFORE any parsing, for every body type."""
+    total = {"n": 0}
+    original_receive = request._receive  # capture BEFORE any reassignment
+
+    async def receive():
+        msg = await original_receive()
+        if msg.get("type") == "http.request":
+            total["n"] += len(msg.get("body", b""))
+            if total["n"] > cap:
+                raise AppError("PAYLOAD_TOO_LARGE",
+                               f"request exceeds {cap} bytes", 413)
+        return msg
+
+    return receive
+
+
 def create_app(store: Store | None = None) -> FastAPI:
     app = FastAPI(title="CompileVista API", version=__version__, docs_url="/api/docs")
     store = store or Store()
@@ -237,6 +257,8 @@ def create_app(store: Store | None = None) -> FastAPI:
                            f"request exceeds {LIMITS['request_max_bytes']} bytes", 413)
         ctype = request.headers.get("content-type", "")
         if "multipart/form-data" in ctype:
+            request._receive = _capped_receive_call(  # noqa: SLF001
+                request, LIMITS["request_max_bytes"])
             form = await request.form()
             uploads: list[tuple[str, bytes]] = []
             for key, value in form.items():
@@ -257,13 +279,13 @@ def create_app(store: Store | None = None) -> FastAPI:
         if content_length > LIMITS["paste_max_bytes"] + 4096:
             raise AppError("PAYLOAD_TOO_LARGE",
                            f"paste exceeds {LIMITS['paste_max_bytes']} bytes", 413)
-        # Streaming cap: chunked/missing Content-Length must not bypass the limit.
+        # F05: streaming cap on the raw ASGI stream (chunked/missing
+        # Content-Length cannot bypass it).
+        request._receive = _capped_receive_call(  # noqa: SLF001
+            request, LIMITS["paste_max_bytes"] + 4096)
         body = bytearray()
         async for chunk in request.stream():
             body.extend(chunk)
-            if len(body) > LIMITS["paste_max_bytes"] + 4096:
-                raise AppError("PAYLOAD_TOO_LARGE",
-                               f"paste exceeds {LIMITS['paste_max_bytes']} bytes", 413)
         try:
             body_json = json.loads(bytes(body).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -280,6 +302,9 @@ def create_app(store: Store | None = None) -> FastAPI:
 
     @app.post("/api/v1/imports/github")
     async def post_import_github(request: Request) -> dict:
+        # F05: the GitHub body is tiny JSON — bound it explicitly (chunked safe).
+        request._receive = _capped_receive_call(  # noqa: SLF001
+            request, 1024 * 1024)
         try:
             body = json.loads((await request.body()).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):

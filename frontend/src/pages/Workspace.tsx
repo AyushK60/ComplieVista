@@ -234,7 +234,7 @@ export default function Workspace() {
             <code>{snapshot.origin}</code> · {snapshot.files.length} file(s)
             {snapshot.diagnostics.length > 0 && <> · {snapshot.diagnostics.length} recorded intake diagnostics</>}
           </p>
-          <div className={`cols ${selection ? "has-inspector" : ""}`}>
+          <div className={`cols ${analysisId ? "has-inspector" : ""}`}>
             <div className="filelist" role="list">
               {orderedFiles.map((f) => {
                 const tg = fileTargets(f.rel_path);

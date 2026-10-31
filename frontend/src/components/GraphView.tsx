@@ -341,9 +341,13 @@ export default function GraphView({
   );
 }
 
+// F01: subtree collapse follows CONTAINMENT edges only. CFG branch/fallthrough
+// edges (which form cycles) must never pull the collapsed root or unrelated
+// control flow into the hidden set.
 function g_descendants(edges: Array<Record<string, unknown>>, roots: Set<string>): Set<string> {
   const adj = new Map<string, string[]>();
   for (const e of edges) {
+    if (e.kind !== "containment") continue;
     const s = e.source as string;
     if (!adj.has(s)) adj.set(s, []);
     adj.get(s)!.push(e.target as string);
@@ -356,7 +360,7 @@ function g_descendants(edges: Array<Record<string, unknown>>, roots: Set<string>
       if (!out.has(t)) { out.add(t); stack.push(t); }
     }
   }
-  return out; // strictly descendants; the collapsed root itself stays visible
+  return out; // strictly containment descendants; roots always stay visible
 }
 
 
