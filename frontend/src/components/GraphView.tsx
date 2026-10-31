@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background, Controls, MiniMap, ReactFlow, ReactFlowProvider,
-  useEdgesState, useNodesState, type Edge, type Node,
+  useEdgesState, useNodesState, useStore, type Edge, type Node,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
@@ -22,15 +23,60 @@ export type GraphPayload = {
   counts: Record<string, unknown>;
   nodes: Array<Record<string, unknown>>;
   edges: Array<Record<string, unknown>>;
-  truncated: { nodes: boolean; edges: boolean; stage_items: boolean };
+  truncated: { nodes: boolean; edges: boolean; stage_items: boolean;
+    nodes_omitted?: number; edges_omitted_total?: number; edges_omitted_by_cap?: number };
   provenance: Record<string, unknown>;
 };
+
+function ZoomReporter({ onZoom }: { onZoom: (z: number) => void }) {
+  const zoom = useStore((st) => st.transform[2]);
+  useEffect(() => { onZoom(zoom); }, [zoom, onZoom]);
+  return null;
+}
 
 export type GraphSelection = {
   node: Record<string, unknown>;
   incoming: Array<Record<string, unknown>>;
   outgoing: Array<Record<string, unknown>>;
 } | null;
+
+
+// ---- structural semantic zoom (M3.5 CV-05): depth-limited, artifact-backed ----
+function node_depths(nodes: Array<Record<string, unknown>>,
+                      edges: Array<Record<string, unknown>>): Map<string, number> {
+  const incoming = new Map<string, number>();
+  for (const n of nodes) incoming.set(n.id as string, 0);
+  for (const e of edges) {
+    if (e.kind === "containment") incoming.set(e.target as string, (incoming.get(e.target as string) ?? 0) + 1);
+  }
+  const depth = new Map<string, number>();
+  const queue: Array<[string, number]> = [];
+  for (const [id, d] of incoming) {
+    if (d === 0) { depth.set(id, 0); queue.push([id, 0]); }
+  }
+  const adj = new Map<string, string[]>();
+  for (const e of edges) {
+    if (e.kind !== "containment") continue;
+    if (!adj.has(e.source as string)) adj.set(e.source as string, []);
+    adj.get(e.source as string)!.push(e.target as string);
+  }
+  while (queue.length) {
+    const [id, d] = queue.shift()!;
+    for (const t of adj.get(id) ?? []) {
+      if (!depth.has(t) || depth.get(t)! < d + 1) {
+        depth.set(t, d + 1);
+        queue.push([t, d + 1]);
+      }
+    }
+  }
+  return depth;
+}
+
+function depth_limit(level: 0 | 1 | 2 | 3, language: string, stage: string): number {
+  if (stage.startsWith("ir_")) return level === 0 ? 0 : 1;      // functions -> blocks
+  if (stage === "bytecode") return level === 0 ? 0 : 1;          // code objects -> instructions
+  return [0, 1, 3, 999][level];                                   // AST: fn -> branches -> stmts -> all
+}
 
 const NODE_W = 170;
 const NODE_H = 44;
@@ -69,11 +115,41 @@ export default function GraphView({
   const [error, setError] = useState<string | null>(null);
   const [layoutMs, setLayoutMs] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
+  const labelLevel = detailLevel(zoom); // zoom drives label density only (M3.5)
   const [search, setSearch] = useState("");
   const [searchHits, setSearchHits] = useState<string[]>([]);
   const [hiddenSubtrees, setHiddenSubtrees] = useState<Set<string>>(new Set());
+  const [firstRenderMs, setFirstRenderMs] = useState<number | null>(null);
+  const [structuralLevel, setStructuralLevel] = useState(3);
+  const level = detailLevel(zoom);
   const seqRef = useRef(0);
   const fetchAbortRef = useRef(0);
+  const renderStartRef = useRef(0);
+  const postedRef = useRef<{ nodes: Array<Record<string, unknown>>; edges: Array<Record<string, unknown>> }>({ nodes: [], edges: [] });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const flowRef = useRef<ReactFlowInstance<any> | null>(null);
+
+  // Structural semantic zoom: depth-limited subgraph by zoom level (CV-05) —
+  // far shows functions/roots, close shows statements/instructions. Honest:
+  // nodes are hidden, never aggregated into invented parents.
+  const visible = useMemo(() => {
+    if (!payload) return { nodes: [], edges: [] };
+    const hidden = g_descendants(payload.edges, hiddenSubtrees);
+    const keepNodes = payload.nodes.filter((n) => !hidden.has(n.id as string));
+    const keepEdges = payload.edges.filter((e) => !hidden.has(e.source as string)
+      && !hidden.has(e.target as string));
+    const limit = depth_limit(structuralLevel as 0 | 1 | 2 | 3, payload.language, payload.stage);
+    if (limit >= 999) return { nodes: keepNodes, edges: keepEdges };
+    const depth = node_depths(keepNodes, keepEdges);
+    const inLimit = new Set(payload.nodes
+      .filter((n) => (depth.get(n.id as string) ?? 0) <= limit)
+      .map((n) => n.id as string));
+    return {
+      nodes: keepNodes.filter((n) => inLimit.has(n.id as string)),
+      edges: keepEdges.filter((e) => inLimit.has(e.source as string)
+        && inLimit.has(e.target as string)),
+    };
+  }, [payload, hiddenSubtrees, structuralLevel]);
 
   // ---- data fetch with stale-result guard (M3-C race requirement) ----
   useEffect(() => {
@@ -110,20 +186,22 @@ export default function GraphView({
     const worker = workerRef.current;
     if (!worker) return;
     const reqId = ++fetchAbortRef.current;
-    const t0 = performance.now();
     worker.onmessage = (e: MessageEvent) => {
       if (e.data.id !== reqId) return; // stale layout result (race guard)
       setLayoutMs(e.data.layoutMs);
       if (e.data.error) { setError(`layout: ${e.data.error}`); return; }
       const pos = e.data.positions as Record<string, { x: number; y: number }>;
-      const g = payload;
-      const rfNodes: Node[] = g.nodes.map((n) => ({
+      // CV-01: render EXACTLY the visible subgraph that was laid out —
+      // never the original full node list.
+      const visibleNodes = postedRef.current.nodes;
+      const visibleEdges = postedRef.current.edges;
+      const rfNodes: Node[] = visibleNodes.map((n: Record<string, unknown>) => ({
         id: n.id as string,
         position: pos[n.id as string] ?? { x: 0, y: 0 },
         data: { raw: n },
         type: "cv",
       }));
-      const rfEdges: Edge[] = g.edges.map((e, i) => ({
+      const rfEdges: Edge[] = visibleEdges.map((e: Record<string, unknown>, i: number) => ({
         id: `e${i}`, source: e.source as string, target: e.target as string,
         animated: (e.kind as string) !== "containment",
         style: {
@@ -131,21 +209,21 @@ export default function GraphView({
             : e.kind === "cfg_branch" ? "#7fb3ff" : "#ffd479",
           strokeWidth: 1.4,
         },
-        label: e.kind === "containment" ? "" : String(e.kind),
-        labelShow: undefined,
       })) as Edge[];
       setNodes(rfNodes);
       setEdges(rfEdges);
+      requestAnimationFrame(() => {
+        setFirstRenderMs(Math.round(performance.now() - renderStartRef.current));
+        // Re-fit after structural changes so the visible subgraph is on screen
+        // (discrete levels: no oscillation risk with zoom-driven filtering).
+        flowRef.current?.fitView({ padding: 0.12, duration: 200 });
+      });
     };
-    const visibleNodes = g_visible_nodes(payload, hiddenSubtrees);
-    const visibleEdges = g_visible_edges(payload, hiddenSubtrees);
-    worker.postMessage({ id: reqId, nodes: visibleNodes, edges: visibleEdges,
+    renderStartRef.current = performance.now();
+    postedRef.current = { nodes: visible.nodes, edges: visible.edges };
+    worker.postMessage({ id: reqId, nodes: visible.nodes, edges: visible.edges,
                          options: { nodeWidth: NODE_W, nodeHeight: NODE_H } });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payload, hiddenSubtrees]);
-
-  // ---- semantic zoom ----
-  const level = detailLevel(zoom);
+  }, [payload, hiddenSubtrees, structuralLevel]);
 
   // ---- collapse: mark root; its descendants (excluding the root) are hidden ----
   const toggleCollapse = useCallback((nodeId: string) => {
@@ -160,7 +238,7 @@ export default function GraphView({
   const nodeTypes = useMemo(() => ({
     cv: function CvNode({ data }: { data: { raw: Record<string, unknown> } }) {
       const raw = data.raw;
-      const label = semanticLabel(raw, level);
+      const label = semanticLabel(raw, labelLevel);
       const isSel = false;
       return (
         <div className={`cvnode group-${raw.group} conf-${String(raw.confidence ?? "").toLowerCase()}`}
@@ -170,7 +248,7 @@ export default function GraphView({
         </div>
       );
     },
-  }), [level]);
+  }), [labelLevel]);
 
   // ---- search ----
   const runSearch = () => {
@@ -212,15 +290,26 @@ export default function GraphView({
                onKeyDown={(e) => { if (e.key === "Enter") runSearch(); }}
                aria-label="search graph nodes" />
         <button onClick={runSearch}>Search</button>
+        <span className="detaillevels" role="group" aria-label="structural detail level">
+          {["Roots", "Level 1", "Level 2", "Full"].map((label, lv) => (
+            <button key={label} role="button"
+                    aria-pressed={structuralLevel === lv}
+                    className={structuralLevel === lv ? "tab active" : "tab"}
+                    onClick={() => setStructuralLevel(lv)}>{label}</button>
+          ))}
+        </span>
         <span className="muted">
           {searchHits.length > 0 && `${searchHits.length} hit(s) · `}
-          zoom level {level} ({zoom.toFixed(2)}x) · layout {layoutMs}ms ·{" "}
-          {payload.nodes.length} nodes / {payload.edges.length} edges
+          {visible.nodes.length}/{payload.nodes.length} nodes · layout {layoutMs}ms
+          {firstRenderMs != null && ` · first render ${firstRenderMs}ms`}
           {(payload.truncated.nodes || payload.truncated.edges) && " · TRUNCATED"}
+          {(payload.truncated.nodes_omitted ?? 0) > 0 &&
+            ` · ${payload.truncated.nodes_omitted} nodes omitted by cap`}
         </span>
       </div>
       <ReactFlowProvider>
         <ReactFlow
+          onInit={(instance) => { flowRef.current = instance; }}
           nodes={nodes.map((n) => ({
             ...n,
             className: [
@@ -235,7 +324,6 @@ export default function GraphView({
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           onNodeDoubleClick={(_e, node) => toggleCollapse(node.id)}
-          onMove={(_e, vp) => setZoom(vp.zoom)}
           fitView
           minZoom={0.05}
           maxZoom={4}
@@ -243,6 +331,7 @@ export default function GraphView({
           proOptions={{ hideAttribution: true }}
           nodesDraggable
         >
+          <ZoomReporter onZoom={setZoom} />
           <Background gap={18} color="#151b23" />
           <Controls showInteractive={false} />
           <MiniMap pannable zoomable nodeColor={() => "#2f5d8a"} />
@@ -270,15 +359,4 @@ function g_descendants(edges: Array<Record<string, unknown>>, roots: Set<string>
   return out; // strictly descendants; the collapsed root itself stays visible
 }
 
-function g_visible_nodes(payload: GraphPayload, hidden: Set<string>) {
-  if (!hidden.size) return payload.nodes;
-  const gone = g_descendants(payload.edges, hidden);
-  return payload.nodes.filter((n) => !gone.has(n.id as string));
-}
 
-function g_visible_edges(payload: GraphPayload, hidden: Set<string>) {
-  if (!hidden.size) return payload.edges;
-  const gone = g_descendants(payload.edges, hidden);
-  return payload.edges.filter((e) => !gone.has(e.source as string)
-    && !gone.has(e.target as string));
-}

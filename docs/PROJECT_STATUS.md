@@ -2,13 +2,13 @@
 
 Updated: 31 October 2026 (M2 execution)
 
-## Current milestone: **M3 — premium visual compiler observatory / graph engine**
+## Current milestone: **M3.5 — post-M3-audit corrections (M3-CV-01..09 closed)**
 
-Status: **M3 PASS on all 9 gates (G0–G8)** (`docs/TEST_EVIDENCE/M3.md`,
-`docs/milestones/M3.json`, handoff `docs/HANDOFF_AFTER_M3.md`). M2.5 closed all audit
-findings (CV-01..CV-11). 126 backend tests passed / 0 failed; E2E M3 4/4, M2 3/3,
-M1 5/5. Graph canvas (@xyflow/react + worker layout), semantic zoom, inspector with
-three explanation levels, source-linked navigation — all backed by real tool artifacts.
+Status: **M3.5 PASS** — all 9 M3-audit findings fixed with quantitative regressions
+(`docs/TEST_EVIDENCE/M3.5.md`, `docs/milestones/M3.5.json`). M3 passed 9/9 gates
+(`docs/TEST_EVIDENCE/M3.md`); M2.5 closed the M2 audit findings. 127 backend tests
+passed / 0 failed; E2E M3 4/4, M2 3/3, M1 5/5. Structural semantic zoom, SCC-aware
+layout, race-guarded stage loads, wide multi-pane observatory shell.
 
 ## What exists now (cumulative)
 
@@ -32,7 +32,7 @@ three explanation levels, source-linked navigation — all backed by real tool a
 
 ## Next
 
-**M4 NOT STARTED — await independent M3 audit and explicit authorization.**
+**M4 NOT STARTED — await independent M3.5 re-verification and explicit authorization.**
 
 ## Active risks / quirks
 

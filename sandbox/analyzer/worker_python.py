@@ -162,12 +162,26 @@ def main() -> None:
                           "consts_noncode": [repr(c) for c in co.co_consts
                                              if not isinstance(c, type(co))],
                           "depth": depth})
-        for ins in dis.get_instructions(co, show_caches=False):
+        # Version-pinned branch semantics (M3.5 CV-03): targets come from
+        # dis.hasjabs/hasjrel of the RUNNING interpreter (3.12), never substring
+        # matching. Conditional branches, FOR_ITER and SEND also fall through.
+        ins_list = list(dis.get_instructions(co, show_caches=False))
+        next_offset = {ins_list[k].offset: (ins_list[k + 1].offset if k + 1 < len(ins_list)
+                                            else None)
+                       for k in range(len(ins_list))}
+        for ins in ins_list:
+            branch_targets, fallthrough = [], None
+            if ins.opcode in dis.hasjabs or ins.opcode in dis.hasjrel:
+                branch_targets.append(ins.argval)
+                if not ins.opname.startswith("JUMP_"):
+                    fallthrough = next_offset.get(ins.offset)
             instrs.append({"code_object_id": cid,
                            "code_object": co.co_name, "offset": ins.offset,
                            "opname": ins.opname, "arg": ins.arg,
                            "argval": str(ins.argval) if not isinstance(ins.argval, type(co))
                            else f"<code {ins.argval.co_name}>",
+                           "branch_targets": branch_targets,
+                           "fallthrough": fallthrough,
                            "starts_line": ins.starts_line,
                            "positions": list(ins.positions) if ins.positions else None,
                            "mapping_confidence": "EXACT" if ins.positions else "UNAVAILABLE"})

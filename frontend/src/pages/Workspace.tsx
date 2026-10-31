@@ -45,6 +45,7 @@ export default function Workspace() {
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [selection, setSelection] = useState<GraphSelection>(null);
   const [stageData, setStageData] = useState<StageData | null>(null);
+  useEffect(() => { setSelection(null); }, [stageData]);
 
   useEffect(() => {
     api.capabilities().then((c) => setTools(c.tools)).catch(() => setTools({}));
@@ -121,7 +122,7 @@ export default function Workspace() {
   }
 
   return (
-    <main>
+    <main className={project ? "observatory-main" : ""}>
       <nav className="topnav">
         <strong>CompileVista</strong>
         <Link to="/">Home</Link>
@@ -233,7 +234,7 @@ export default function Workspace() {
             <code>{snapshot.origin}</code> · {snapshot.files.length} file(s)
             {snapshot.diagnostics.length > 0 && <> · {snapshot.diagnostics.length} recorded intake diagnostics</>}
           </p>
-          <div className="cols">
+          <div className={`cols ${selection ? "has-inspector" : ""}`}>
             <div className="filelist" role="list">
               {orderedFiles.map((f) => {
                 const tg = fileTargets(f.rel_path);
@@ -300,15 +301,17 @@ export default function Workspace() {
                                                 onSelectLine={(l) => setHighlightLine(l)}
                                                 onSelectNode={setSelection}
                                                 onSelectStageData={setStageData} />}
-                  {analysisId && selection && (
-                    <Inspector selection={selection} stageData={stageData}
-                               onClose={() => setSelection(null)} />
-                  )}
                 </>
               ) : (
                 <p className="muted">Select a file.</p>
               )}
             </div>
+            {analysisId && (
+              <div className="inspcol">
+                <Inspector selection={selection} stageData={stageData}
+                           onClose={() => setSelection(null)} />
+              </div>
+            )}
           </div>
         </section>
       )}

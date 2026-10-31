@@ -29,9 +29,25 @@ class GraphError(Exception):
         self.status = status
 
 
-def _capped(nodes: list, edges: list) -> tuple[list, list, bool, bool]:
-    return (nodes[:MAX_NODES], edges[:MAX_EDGES],
-            len(nodes) > MAX_NODES, len(edges) > MAX_EDGES)
+def _capped(nodes: list, edges: list) -> tuple[list, list, dict]:
+    """Cap nodes, then keep only edges whose endpoints survived (CV-02: the cap
+    must preserve the edge-endpoint invariant). Truncation info is honest about
+    what was omitted."""
+    nodes_trunc = len(nodes) > MAX_NODES
+    kept_ids = {n["id"] for n in nodes[:MAX_NODES]}
+    kept_nodes = nodes[:MAX_NODES]
+    edges_before = len(edges)
+    kept_edges = [e for e in edges
+                  if e["source"] in kept_ids and e["target"] in kept_ids][:MAX_EDGES]
+    edges_trunc = edges_before > MAX_EDGES
+    omitted = {
+        "nodes_omitted": len(nodes) - len(kept_nodes),
+        "edges_omitted_total": edges_before - len(kept_edges),
+        "edges_omitted_by_cap": edges_before - len(kept_edges),
+    }
+    return kept_nodes, kept_edges, {
+        "nodes": nodes_trunc, "edges": edges_trunc, "stage_items": False, **omitted,
+    }
 
 
 def _ast_graph(items: list[dict], analysis_id: str, stage: str) -> tuple[list, list]:
@@ -123,20 +139,28 @@ def _bytecode_graph(items: list[dict], analysis_id: str, stage: str) -> tuple[li
         edges.append({"source": f"{analysis_id}:{stage}:co:{cid}", "target": nid,
                       "kind": "containment", "confidence": "EXACT"})
     for ins in items:
-        opname = ins.get("opname", "")
-        if "JUMP" not in opname:
-            continue
-        target_off = ins.get("argval")
-        if isinstance(target_off, str) and target_off.isdigit():
-            target_off = int(target_off)
-        if not isinstance(target_off, int):
-            continue
         cid = ins.get("code_object_id") or ins.get("code_object")
-        src = f"{analysis_id}:{stage}:ins:{cid}:{ins.get('offset')}"
-        dst = offsets.get((cid, target_off))
-        if dst:
-            edges.append({"source": src, "target": dst, "kind": "bytecode_branch",
-                          "confidence": "DERIVED"})
+        nid = f"{analysis_id}:{stage}:ins:{cid}:{ins.get('offset')}"
+        # CV-03: real branch semantics from dis.hasjabs/hasjrel (worker-recorded).
+        for tgt in ins.get("branch_targets") or []:
+            dst = offsets.get((cid, tgt))
+            if dst:
+                edges.append({"source": nid, "target": dst, "kind": "bytecode_branch",
+                              "confidence": "DERIVED"})
+        ft = ins.get("fallthrough")
+        if ft is not None:
+            dst = offsets.get((cid, ft))
+            if dst:
+                edges.append({"source": nid, "target": dst, "kind": "bytecode_fallthrough",
+                              "confidence": "DERIVED"})
+        # Legacy manifests without branch fields: JUMP-family substring fallback.
+        if not ins.get("branch_targets") and "JUMP" in str(ins.get("opname", "")):
+            target_off = ins.get("argval")
+            if isinstance(target_off, str) and target_off.isdigit():
+                dst = offsets.get((cid, int(target_off)))
+                if dst:
+                    edges.append({"source": nid, "target": dst, "kind": "bytecode_branch",
+                                  "confidence": "DERIVED"})
     return nodes, edges
 
 
@@ -164,7 +188,7 @@ def build_graph(store: Store, analysis_id: str, stage: str) -> dict:
     else:
         nodes, edges = _bytecode_graph(items, analysis_id, stage)
 
-    nodes, edges, nodes_trunc, edges_trunc = _capped(nodes, edges)
+    nodes, edges, truncated = _capped(nodes, edges)
     return {
         "schema_version": SCHEMA_VERSION,
         "analysis_id": analysis_id,
@@ -175,8 +199,7 @@ def build_graph(store: Store, analysis_id: str, stage: str) -> dict:
                    "graph_nodes": len(nodes), "graph_edges": len(edges)},
         "nodes": nodes,
         "edges": edges,
-        "truncated": {"nodes": nodes_trunc, "edges": edges_trunc,
-                      "stage_items": bool(rec["truncated"])},
+        "truncated": {**truncated, "stage_items": bool(rec["truncated"])},
         "provenance": {
             "raw_artifact_sha256": rec["raw_artifact"],
             "stderr_artifact_sha256": rec["stderr_artifact"],

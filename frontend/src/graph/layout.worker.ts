@@ -1,59 +1,99 @@
 /// <reference lib="webworker" />
-// M3-C layout worker — deterministic layered layout (longest-path layering by
-// edge direction, ordered within layers). Runs off the main thread.
-// ADR-0006: elkjs bundled spawns a nested Worker inside a module worker
-// ("_Worker is not a constructor"); this dependency-free layering replaces it.
+// M3.5 CV-06: SCC-aware layered layout. Strongly connected components (loops,
+// reconvergence) are condensed, layered as a DAG, and their members stacked at
+// the component position — backedges no longer stretch the layout arbitrarily.
 self.onmessage = (e: MessageEvent) => {
   const { id, nodes, edges } = e.data;
   const t0 = performance.now();
   try {
-    const ids = new Set(nodes.map((n: any) => n.id));
+    const ids = nodes.map((n: any) => n.id);
+    const idset = new Set(ids);
     const adj = new Map<string, string[]>();
-    const indeg = new Map<string, number>();
-    for (const n of nodes) { indeg.set(n.id, 0); }
+    const radj = new Map<string, string[]>();
+    for (const n of nodes) { adj.set(n.id, []); radj.set(n.id, []); }
     for (const edge of edges) {
-      if (!ids.has(edge.source) || !ids.has(edge.target)) continue;
-      if (!adj.has(edge.source)) adj.set(edge.source, []);
+      if (!idset.has(edge.source) || !idset.has(edge.target)) continue;
+      if (edge.source === edge.target) continue;
       adj.get(edge.source)!.push(edge.target);
-      indeg.set(edge.target, (indeg.get(edge.target) ?? 0) + 1);
+      radj.get(edge.target)!.push(edge.source);
     }
-    // longest-path layering via Kahn layers
-    const layer = new Map<string, number>();
-    const queue: string[] = [];
-    for (const [id, d] of indeg) {
-      if (d === 0) { queue.push(id); layer.set(id, 0); }
-    }
-    while (queue.length) {
-      const cur = queue.shift()!;
-      for (const t of adj.get(cur) ?? []) {
-        layer.set(t, Math.max(layer.get(t) ?? 0, (layer.get(cur) ?? 0) + 1));
-        const d = (indeg.get(t) ?? 0) - 1;
-        indeg.set(t, d);
-        if (d === 0) queue.push(t);
+    // Iterative Kosaraju SCC
+    const visited = new Set<string>();
+    const order: string[] = [];
+    for (const start of ids) {
+      if (visited.has(start)) continue;
+      const stack: Array<[string, number]> = [[start, 0]];
+      visited.add(start);
+      while (stack.length) {
+        const top = stack[stack.length - 1];
+        const neighbors = adj.get(top[0]) ?? [];
+        if (top[1] < neighbors.length) {
+          const next = neighbors[top[1]];
+          stack[stack.length - 1] = [top[0], top[1] + 1];
+          if (!visited.has(next)) { visited.add(next); stack.push([next, 0]); }
+        } else {
+          order.push(top[0]);
+          stack.pop();
+        }
       }
     }
-    // any node unreachable (cycles) gets its own layer after max
-    let maxLayer = 0;
-    for (const l of layer.values()) maxLayer = Math.max(maxLayer, l);
-    for (const n of nodes) {
-      if (!layer.has(n.id)) layer.set(n.id, ++maxLayer);
+    const comp = new Map<string, number>();
+    let comps = 0;
+    const compMembers = new Map<number, string[]>();
+    for (const start of [...order].reverse()) {
+      if (comp.has(start)) continue;
+      const stack = [start];
+      comp.set(start, comps);
+      const members: string[] = [start];
+      while (stack.length) {
+        const cur = stack.pop()!;
+        for (const prev of radj.get(cur) ?? []) {
+          if (!comp.has(prev)) { comp.set(prev, comps); stack.push(prev); members.push(prev); }
+        }
+      }
+      compMembers.set(comps, members);
+      comps += 1;
     }
-    const byLayer = new Map<number, string[]>();
-    for (const n of nodes) {
-      const l = layer.get(n.id) ?? 0;
-      if (!byLayer.has(l)) byLayer.set(l, []);
-      byLayer.get(l)!.push(n.id);
+    // Condensation DAG layering (Kahn)
+    const cadj = new Map<number, number[]>();
+    const cindeg = new Map<number, number>();
+    for (let i = 0; i < comps; i++) { cadj.set(i, []); cindeg.set(i, 0); }
+    for (const [s, targets] of adj) {
+      for (const t of targets) {
+        const cs = comp.get(s)!; const ct = comp.get(t)!;
+        if (cs !== ct) { cadj.get(cs)!.push(ct); cindeg.set(ct, cindeg.get(ct)! + 1); }
+      }
     }
+    const clayer = new Map<number, number>();
+    const q: number[] = [];
+    for (const [c, d] of cindeg) { if (d === 0) { q.push(c); clayer.set(c, 0); } }
+    while (q.length) {
+      const cur = q.shift()!;
+      for (const t of cadj.get(cur) ?? []) {
+        clayer.set(t, Math.max(clayer.get(t) ?? 0, (clayer.get(cur) ?? 0) + 1));
+        const d = cindeg.get(t)! - 1;
+        cindeg.set(t, d);
+        if (d === 0) q.push(t);
+      }
+    }
+    let maxL = 0;
+    for (const l of clayer.values()) maxL = Math.max(maxL, l);
+    for (let i = 0; i < comps; i++) if (!clayer.has(i)) clayer.set(i, ++maxL);
+    // Position: SCC members stacked inside their layer slot
     const positions: Record<string, { x: number; y: number }> = {};
-    const W = 210;
-    const H = 64;
-    for (const [l, ids] of [...byLayer.entries()].sort((a, b) => a[0] - b[0])) {
-      ids.forEach((nid, idx) => {
-        positions[nid] = { x: l * W, y: idx * H };
+    const W = 230; const H = 56;
+    const perLayerCol = new Map<number, number>();
+    for (let ci = 0; ci < comps; ci++) {
+      const l = clayer.get(ci) ?? 0;
+      const col = perLayerCol.get(l) ?? 0;
+      perLayerCol.set(l, col + 1);
+      (compMembers.get(ci) ?? []).forEach((nid, idx) => {
+        positions[nid] = { x: l * W, y: col * 320 + idx * H };
       });
     }
     (self as any).postMessage({
-      id, positions, layoutMs: Math.round(performance.now() - t0), error: null,
+      id, positions, layoutMs: Math.round(performance.now() - t0),
+      sccCount: comps, error: null,
     });
   } catch (err: any) {
     (self as any).postMessage({ id, positions: {}, layoutMs: 0, error: String(err) });

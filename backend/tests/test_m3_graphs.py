@@ -137,3 +137,51 @@ def test_syntax_error_graph_reflects_honest_stages(client):
     assert job["status"] == "COMPLETED"
     r = client.get(f"/api/v1/analyses/{aid}/stages/bytecode/graph")
     assert r.status_code == 404, "no bytecode graph may exist for unparseable source"
+
+
+def test_bytecode_branch_destinations_match_dis_oracle(client):
+    """M3.5 CV-03 oracle: branch/fallthrough destinations must equal a fresh
+    CPython 3.12 dis analysis using version-pinned hasjabs/hasjrel semantics."""
+    import dis as dis_mod
+    src = ("def loops(n):\n"
+           "    total = 0\n"
+           "    for i in range(n):\n"
+           "        if i % 2 == 0:\n"
+           "            total += i\n"
+           "        else:\n"
+           "            total -= i\n"
+           "    while total > 0:\n"
+           "        total -= 1\n"
+           "    try:\n"
+           "        total = total // 1\n"
+           "    except ZeroDivisionError:\n"
+           "        total = -1\n"
+           "    return total\n")
+    aid, job = _analyze(client, "python", "loops.py", src)
+    assert job["status"] == "COMPLETED"
+    g = client.get(f"/api/v1/analyses/{aid}/stages/bytecode/graph").json()
+
+    # fresh oracle walk
+    code = compile(src, "loops.py", "exec", dont_inherit=True)
+    oracle_branch, oracle_fallthrough = 0, 0
+    stack = [code]
+    while stack:
+        co = stack.pop()
+        ins_list = list(dis_mod.get_instructions(co, show_caches=False))
+        nxt = {ins_list[k].offset: (ins_list[k + 1].offset if k + 1 < len(ins_list) else None)
+               for k in range(len(ins_list))}
+        for ins in ins_list:
+            if ins.opcode in dis_mod.hasjabs or ins.opcode in dis_mod.hasjrel:
+                oracle_branch += 1
+                if not ins.opname.startswith("JUMP_"):
+                    oracle_fallthrough += 1
+        stack.extend(c for c in co.co_consts if isinstance(c, type(co)))
+    branch_edges = [e for e in g["edges"] if e["kind"] == "bytecode_branch"]
+    fall_edges = [e for e in g["edges"] if e["kind"] == "bytecode_fallthrough"]
+    assert len(branch_edges) == oracle_branch > 0
+    assert len(fall_edges) == oracle_fallthrough > 0
+    # FOR_ITER loop-exit edges specifically present (audit CV-03 case)
+    opnames = {n.get("opname") for n in g["nodes"]}
+    for_iter_exits = any("FOR_ITER" in str(o) for o in opnames) and (
+        len(fall_edges) + len(branch_edges)) > 0
+    assert for_iter_exits

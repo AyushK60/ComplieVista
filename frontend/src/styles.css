@@ -130,3 +130,12 @@ button.cancel { background: none; color: #ff8f8f; border: 1px solid #6b3434; bor
   .workspace .cols { grid-template-columns: 1fr; }
   .graphwrap { height: 46vh; }
 }
+
+/* ---- M3.5 wide multi-pane observatory shell (CV-09) ---- */
+.observatory-main { max-width: none; }
+.cols.has-inspector { grid-template-columns: 250px minmax(0, 1fr) 320px; }
+.inspcol { min-width: 0; }
+@media (max-width: 1100px) {
+  .cols.has-inspector { grid-template-columns: 220px minmax(0, 1fr); }
+  .inspcol { grid-column: 1 / -1; }
+}

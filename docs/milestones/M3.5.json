@@ -1,0 +1,25 @@
+{
+  "milestone": "M3.5",
+  "title": "Post-M3-audit corrections (M3-CV-01..09)",
+  "verdict": "PASS",
+  "date": "2026-10-31",
+  "in_response_to": "Independent M3 audit: CONDITIONAL M3 PASS — HOLD M4 pending M3.5",
+  "git_commit": "recorded in repository log immediately after this file",
+  "analyzer_image_id": "sha256:00f5bbb9b44ee01347c70f7a5cab113534cac43133ce2f9f92a05aff4baaa1f8",
+  "findings_closed": {
+    "M3-CV-01": {"fix": "layout and render share the identical visible subgraph (postedRef); collapse prunes descendants, root retained", "regression": "E2E collapse counts 69->n<69->69 exact restore"},
+    "M3-CV-02": {"fix": "_capped filters edges to surviving endpoints; honest omission counts", "regression": "cap invariant asserted in graph tests (no visible edge lacks an endpoint)"},
+    "M3-CV-03": {"fix": "dis.hasjabs/hasjrel branch semantics in worker (branch_targets + fallthrough incl. FOR_ITER/SEND)", "regression": "test_bytecode_branch_destinations_match_dis_oracle"},
+    "M3-CV-04": {"fix": "stage sequence token + immediate stale clear + Inspector reset on stage change", "regression": "A->B->A race journey with guards active"},
+    "M3-CV-05": {"fix": "structural semantic zoom: deterministic depth levels (Roots/Level 1/Level 2/Full) with visible/total counts", "regression": "E2E Roots=2 -> Full=69 on C AST; Full=500 on large fixture"},
+    "M3-CV-06": {"fix": "iterative Kosaraju SCC condensation layered as DAG; members stacked per component", "regression": "loop/branch fixture layouts; layoutMs measured"},
+    "M3-CV-07": {"fix": "confidence-specific inspector explanations (EXACT/DERIVED/APPROXIMATE/UNAVAILABLE)", "regression": "E2E asserts EXACT wording"},
+    "M3-CV-08": {"fix": "quantitative toolbar-counted E2E assertions (collapse, zoom, 500-node on-canvas screenshot)", "regression": "m3_journeys.py 4/4"},
+    "M3-CV-09": {"fix": "wide multi-pane observatory shell (3-column grid, responsive)", "regression": "build + viewport matrix re-run"}
+  },
+  "tests": {"backend": {"passed": 127, "failed": 0, "skipped": 0},
+            "e2e": {"m3": "4/4", "m2": "3/3", "m1": "5/5"},
+            "ts": "clean", "vite_build": "OK"},
+  "deferred_to_m8": ["Monaco editor (Vite worker incompatibility, ADR-0006)", "ELK orthogonal layout (nested-worker failure, ADR-0006)", "final brand polish", "interaction-FPS benchmarking beyond layoutMs/firstRenderMs"],
+  "next_milestone": "M4 NOT STARTED — await independent M3.5 re-verification and explicit authorization"
+}

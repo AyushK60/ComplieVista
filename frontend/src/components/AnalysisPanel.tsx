@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, AnalysisJob, api, Reason, StageData } from "../api";
 import GraphView, { GraphSelection } from "./GraphView";
 /**
@@ -69,6 +69,7 @@ export default function AnalysisPanel({
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("graph");
   const [rawText, setRawText] = useState<string | null>(null);
+  const stageSeqRef = useRef(0);
 
   useEffect(() => {
     let alive = true;
@@ -94,19 +95,27 @@ export default function AnalysisPanel({
 
   useEffect(() => {
     if (!stageName || !job || ["QUEUED", "RUNNING"].includes(job.status)) return;
+    // CV-04: sequence token + immediate stale-data clear — a slow response for a
+    // previous stage can never replace the current one.
+    const seq = ++stageSeqRef.current;
+    setStageData(null);
     setRaw(null);
     setRawText(null);
+    setError(null);
     setViewMode(GRAPHABLE.has(stageName) ? "graph" : "items");
     api.stage(analysisId, stageName).then((sd) => {
+      if (seq !== stageSeqRef.current) return;
       setStageData(sd);
       onSelectStageData?.(sd);
     }).catch((e) => {
+      if (seq !== stageSeqRef.current) return;
       setStageData(null);
       onSelectStageData?.(null);
       setError(e instanceof ApiError ? e.message : String(e));
     });
     if (GRAPHABLE.has(stageName)) {
       api.stageRaw(analysisId, stageName).then((r) => {
+        if (seq !== stageSeqRef.current) return;
         if (r.excerpt != null) setRawText(r.excerpt);
       }).catch(() => { /* raw stays null */ });
     }

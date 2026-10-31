@@ -7,6 +7,7 @@ switch race, viewport matrix, and console cleanliness.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -44,6 +45,12 @@ int main(void) {
 """
 
 
+
+def visible_node_count(page: Page) -> int:
+    txt = page.locator(".graphtoolbar .muted").first.inner_text()
+    m = re.search(r"(\d+)/(\d+) nodes", txt)
+    return int(m.group(1)) if m else -1
+
 def shot(page: Page, name: str) -> None:
     SHOTS.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(SHOTS / name), full_page=True)
@@ -75,8 +82,15 @@ def journey_c_graph(page: Page) -> None:
     page.get_by_role("tab", name="ast AVAILABLE").wait_for(timeout=120000)
     page.get_by_role("tab", name="ast AVAILABLE").click()
     expect(page.locator(".react-flow__node").first).to_be_visible(timeout=30000)
-    n_nodes = page.locator(".react-flow__node").count()
-    ok(f"AST graph rendered with {n_nodes} real nodes")
+    # CV-05 structural zoom: explicit depth levels, counts change with level
+    page.get_by_role("button", name="Roots").click()
+    page.wait_for_timeout(500)
+    roots = visible_node_count(page)
+    page.get_by_role("button", name="Full").click()
+    page.wait_for_timeout(700)
+    full = visible_node_count(page)
+    assert roots == 2 and full > roots * 10,         f"structural levels must change the visible hierarchy (CV-05): {roots} -> {full}"
+    ok(f"structural zoom: Roots={roots} nodes -> Full={full} nodes")
     # semantic zoom: information density must change with zoom level (G3)
     page.locator(".react-flow").hover()
     label_far = page.locator(".cvnode-label").first.inner_text()
@@ -104,7 +118,7 @@ def journey_c_graph(page: Page) -> None:
     ok("graph node click highlights source line")
     # inspector levels
     page.get_by_role("tab", name="detailed").click()
-    expect(page.locator(".explanation")).to_contain_text("tool's own output")
+    expect(page.locator(".explanation")).to_contain_text("reported directly by the tool (EXACT)")
     page.get_by_role("tab", name="technical").click()
     expect(page.locator(".explanation")).to_contain_text('"confidence"')
     ok("inspector simple/detailed/technical levels work")
@@ -120,6 +134,8 @@ def journey_python_graph(page: Page) -> None:
     page.get_by_role("tab", name="bytecode AVAILABLE").wait_for(timeout=120000)
     page.get_by_role("tab", name="bytecode AVAILABLE").click()
     expect(page.locator(".react-flow__node").first).to_be_visible(timeout=30000)
+    page.get_by_role("button", name="Full").click()
+    page.wait_for_timeout(500)
     ok("bytecode graph rendered (virtualized; opcodes verified in Table view)")
     page.get_by_role("tab", name="Table").click()
     expect(page.locator("table.grid").get_by_text("BINARY_OP", exact=False).first)         .to_be_visible()
@@ -146,13 +162,14 @@ def journey_large_and_error(page: Page) -> None:
     page.get_by_role("tab", name="ast AVAILABLE").wait_for(timeout=120000)
     page.get_by_role("tab", name="ast AVAILABLE").click()
     expect(page.locator(".react-flow__node").first).to_be_visible(timeout=60000)
-    n = page.locator(".react-flow__node").count()
-    assert n >= 300, f"expected 300+ real AST nodes, got {n}"
-    ok(f"large graph rendered: {n} nodes (honest fixture)")
-    # truncated/aggregation flags visible if applicable
+    page.get_by_role("button", name="Full").click()
+    page.wait_for_timeout(800)
+    n = visible_node_count(page)
+    assert n >= 300, f"expected 300+ real AST nodes at Full level, got {n}"
+    ok(f"large graph rendered: {n} nodes (honest fixture, toolbar-counted)")
+    shot(page, "m3_large_graph_1080.png")  # ON-CANVAS proof, before any view switch
     page.get_by_role("tab", name="Table").click()
     expect(page.locator("table.grid, .muted").first).to_be_visible()
-    shot(page, "m3_large_graph_1080.png")
     # syntax error + blocked state
     paste_and_analyze(page, "python", "bad.py", "def broken(:\n    pass\n")
     page.get_by_role("tab", name="diagnostics AVAILABLE").wait_for(timeout=120000)

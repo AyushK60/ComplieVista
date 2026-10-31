@@ -13,17 +13,24 @@ function explanations(sel: NonNullable<GraphSelection>, stage: string, language:
   const kind = String(n.kind ?? "?");
   const name = n.name ? String(n.name) : "";
   const line = n.line as number | null;
+  const conf = String(n.confidence ?? "UNAVAILABLE");
+  // CV-07: confidence-specific language — never overstate what the tool reported.
+  const confidenceText: Record<string, string> = {
+    EXACT: "reported directly by the tool (EXACT).",
+    DERIVED: "derived by CompileVista from tool-reported data (DERIVED) — computed from exact offsets, not directly printed as a line by the tool.",
+    APPROXIMATE: "an approximation over tool data (APPROXIMATE).",
+    UNAVAILABLE: "not reliably mappable (UNAVAILABLE) — no direct source link is claimed.",
+  };
   const simple = name
     ? `${kind} ${name}${line ? ` (source line ${line})` : ""} — a real ${language} representation captured from the toolchain.`
     : `${kind}${line ? ` at source line ${line}` : ""} — a real ${language} representation captured from the toolchain.`;
   const detailed =
     `${kind} is part of the ${stage} stage for this ${language} snapshot. ` +
-    `Its position (line ${line ?? "?"}, column ${n.col ?? "?"}) is ${String(n.confidence ?? "UNAVAILABLE")} — ` +
-    `it comes from the tool's own output, not an inference. ` +
+    `Its position (line ${line ?? "unavailable"}, column ${n.col ?? "unavailable"}) is ${confidenceText[conf] ?? conf} ` +
     `${sel.incoming.length} incoming and ${sel.outgoing.length} outgoing recorded relations.`;
   const technical = JSON.stringify({
     id: n.id, kind, name, line, col: n.col, offset: n.offset,
-    confidence: n.confidence, incoming: sel.incoming.length, outgoing: sel.outgoing.length,
+    confidence: conf, incoming: sel.incoming.length, outgoing: sel.outgoing.length,
     opname: n.opname, argval: n.argval, group: n.group,
   });
   return { simple, detailed, technical };
