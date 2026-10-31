@@ -16,7 +16,8 @@ from starlette.datastructures import UploadFile
 
 from app import __version__
 from app.adapters import evidence
-from app.core.config import LIMITS, SCHEMA_VERSION
+from app.core.config import ANALYZER_IMAGE, LIMITS, SCHEMA_VERSION
+from app.services.analyzer import AnalysisError, create_analysis, get_runner
 from app.services.archive import ArchiveError
 from app.services.github_import import ImportError_ as GHImportError
 from app.services.github_import import import_github
@@ -77,6 +78,11 @@ def create_app(store: Store | None = None) -> FastAPI:
         return JSONResponse(status_code=status,
                             content={"error": {"code": exc.code, "message": exc.message}})
 
+    @app.exception_handler(AnalysisError)
+    async def analysis_error(_req, exc: AnalysisError) -> JSONResponse:
+        return JSONResponse(status_code=exc.status,
+                            content={"error": {"code": exc.code, "message": exc.message}})
+
     # ---------------- M0 endpoints (unchanged behavior) ----------------
     @app.get("/api/v1/health")
     def health() -> dict:
@@ -98,21 +104,85 @@ def create_app(store: Store | None = None) -> FastAPI:
     def analyses() -> list[dict]:
         return evidence.list_analyses()
 
+    @app.post("/api/v1/analyses")
+    async def create_job(request: Request) -> dict:
+        try:
+            body = json.loads((await request.body()).decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            raise AppError("INVALID_BODY", "body must be JSON")
+        if not isinstance(body, dict) or not body.get("snapshot_id") or not body.get("target_id"):
+            raise AppError("INVALID_BODY", "body requires snapshot_id and target_id")
+        return create_analysis(store, body["snapshot_id"], body["target_id"])
+
     @app.get("/api/v1/analyses/{analysis_id}")
     def analysis(analysis_id: str) -> dict:
-        m = evidence.get_manifest(analysis_id)
-        return {"id": m.analysis_id, "language": m.language.value,
-                "schema_version": m.schema_version,
-                "source_snapshot": m.source_snapshot.model_dump(),
-                "tools": m.tools,
-                "stages": [{"stage": s.stage, "availability": s.availability.value,
-                            "observation_class": s.observation_class.value,
-                            "counts": s.counts, "limitations": s.limitations}
-                           for s in m.stages]}
+        if analysis_id in ("m0-c", "m0-python"):
+            m = evidence.get_manifest(analysis_id)
+            return {"id": m.analysis_id, "language": m.language.value,
+                    "schema_version": m.schema_version,
+                    "source_snapshot": m.source_snapshot.model_dump(),
+                    "tools": m.tools,
+                    "stages": [{"stage": s.stage, "availability": s.availability.value,
+                                "observation_class": s.observation_class.value,
+                                "counts": s.counts, "limitations": s.limitations}
+                               for s in m.stages]}
+        job = store.query_one("SELECT * FROM analyses WHERE id=?", (analysis_id,))
+        if not job:
+            raise AppError("NOT_FOUND", "unknown analysis id", 404)
+        stages = store.query(
+            "SELECT stage, availability, observation_class, exit_code, counts_json,"
+            " duration_ms, truncated FROM analysis_stages WHERE analysis_id=?"
+            " ORDER BY rowid", (analysis_id,))
+        return {"id": job["id"], "status": job["status"], "language": job["language"],
+                "primary_file": job["primary_file"],
+                "source_combined_sha256": job["source_combined_sha256"],
+                "policy_version": "m2.analyzer.v1",
+                "tool_fingerprint": job["tool_fingerprint"],
+                "image_id": job["image_id"],
+                "error_code": job["error_code"],
+                "created_utc": job["created_utc"], "finished_utc": job["finished_utc"],
+                "duration_ms": job["duration_ms"],
+                "ready_for_controlled_execution": False,
+                "note": "static analysis only; no runtime execution occurs (M4 gate)",
+                "stages": [{"stage": s["stage"], "availability": s["availability"],
+                            "observation_class": s["observation_class"],
+                            "exit_code": s["exit_code"],
+                            "counts": json.loads(s["counts_json"] or "{}"),
+                            "truncated": bool(s["truncated"]),
+                            "duration_ms": s["duration_ms"]} for s in stages]}
 
     @app.get("/api/v1/analyses/{analysis_id}/stages/{stage}")
     def stage(analysis_id: str, stage: str) -> dict:
-        return evidence.get_stage_view(analysis_id, stage)
+        if analysis_id in ("m0-c", "m0-python"):
+            return evidence.get_stage_view(analysis_id, stage)
+        job = store.query_one("SELECT * FROM analyses WHERE id=?", (analysis_id,))
+        if not job:
+            raise AppError("NOT_FOUND", "unknown analysis id", 404)
+        rec = store.query_one("SELECT * FROM analysis_stages WHERE analysis_id=? AND stage=?",
+                              (analysis_id, stage))
+        if not rec:
+            raise AppError("NOT_FOUND",
+                           f"stage {stage!r} not present for this analysis "
+                           f"(status={job['status']})", 404)
+        return {"analysis_id": analysis_id, "stage": rec["stage"],
+                "status": job["status"], "language": job["language"],
+                "availability": rec["availability"],
+                "observation_class": rec["observation_class"],
+                "exit_code": rec["exit_code"],
+                "counts": json.loads(rec["counts_json"] or "{}"),
+                "items": json.loads(rec["items_json"] or "[]"),
+                "limitations": json.loads(rec["limitations_json"] or "[]"),
+                "raw_artifact_sha256": rec["raw_artifact"],
+                "stderr_artifact_sha256": rec["stderr_artifact"],
+                "truncated": bool(rec["truncated"]),
+                "duration_ms": rec["duration_ms"],
+                "invocation": {"argv_tail": ["<fixed allowlisted worker invocation>"],
+                               "note": "runs inside pinned restricted container; "
+                                       "no user-supplied flags"}}
+
+    @app.post("/api/v1/analyses/{analysis_id}/cancel")
+    def cancel_analysis(analysis_id: str) -> dict:
+        return {"analysis_id": analysis_id, "result": get_runner(store).cancel(analysis_id)}
 
     # ---------------- M1: limits ----------------
     @app.get("/api/v1/limits")

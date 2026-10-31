@@ -15,12 +15,12 @@
              18 LOAD_CONST               4 ('return')
              20 LOAD_NAME                2 (int)
              22 BUILD_TUPLE              6
-             24 LOAD_CONST               5 (<code object scale_and_adjust at 0x7367febfc5d0, file "py_fixture.py", line 10>)
+             24 LOAD_CONST               5 (<code object scale_and_adjust at 0x7208d29085d0, file "py_fixture.py", line 10>)
              26 MAKE_FUNCTION            4 (annotations)
              28 STORE_NAME               3 (scale_and_adjust)
 
  17          30 LOAD_CONST               9 (('return', None))
-             32 LOAD_CONST               7 (<code object main at 0x7367feb5b750, file "py_fixture.py", line 17>)
+             32 LOAD_CONST               7 (<code object main at 0x7208d3043750, file "py_fixture.py", line 17>)
              34 MAKE_FUNCTION            4 (annotations)
              36 STORE_NAME               4 (main)
 

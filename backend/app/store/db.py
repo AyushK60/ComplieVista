@@ -66,6 +66,20 @@ _SCHEMA = [
     """CREATE TABLE IF NOT EXISTS snapshot_diagnostics (
         id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL, file_path TEXT NOT NULL,
         severity TEXT NOT NULL, code TEXT NOT NULL, detail TEXT NOT NULL)""",
+    # --- m2.v1: analysis jobs ---
+    """CREATE TABLE IF NOT EXISTS analyses (
+        id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL, target_id TEXT NOT NULL,
+        language TEXT NOT NULL, primary_file TEXT NOT NULL, status TEXT NOT NULL,
+        fingerprint TEXT NOT NULL, source_combined_sha256 TEXT NOT NULL,
+        tool_fingerprint TEXT, image_id TEXT, error_code TEXT, cancel_requested INTEGER DEFAULT 0,
+        created_utc TEXT NOT NULL, started_utc TEXT, finished_utc TEXT,
+        duration_ms INTEGER)""",
+    """CREATE TABLE IF NOT EXISTS analysis_stages (
+        id TEXT PRIMARY KEY, analysis_id TEXT NOT NULL, stage TEXT NOT NULL,
+        availability TEXT NOT NULL, observation_class TEXT NOT NULL, exit_code INTEGER,
+        counts_json TEXT, items_json TEXT, limitations_json TEXT,
+        raw_artifact TEXT, stderr_artifact TEXT, truncated INTEGER DEFAULT 0,
+        duration_ms INTEGER, UNIQUE (analysis_id, stage))""",
 ]
 
 
@@ -88,8 +102,11 @@ class Store:
             row = self._conn.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()
             if row is None:
                 self._conn.execute("INSERT INTO meta VALUES ('schema_version', ?)", (SCHEMA_VERSION,))
+            elif row["value"] == "m1.v1" and SCHEMA_VERSION == "m2.v1":
+                # Guarded additive upgrade: m2 only adds analyses tables (all IF NOT EXISTS).
+                self._conn.execute("UPDATE meta SET value=? WHERE key='schema_version'",
+                                   (SCHEMA_VERSION,))
             elif row["value"] != SCHEMA_VERSION:
-                # Single-version store: later milestones add guarded upgrade steps here.
                 raise StoreError("SCHEMA_MISMATCH",
                                  f"db schema {row['value']} != application schema {SCHEMA_VERSION}")
             self._conn.commit()
