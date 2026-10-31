@@ -5,7 +5,7 @@
   "date": "2026-10-31",
   "project_root_verified": "E:\\ComplieVista",
   "prior_checkpoints": {"M0": "5718e07", "M1": "347d768", "M2": "78976fe", "M2.5": "abd88e8"},
-  "git_commit": "recorded in repository log immediately after this file",
+  "git_commit": "0c51ddd (M3 milestone commit; hash recorded in this follow-up docs commit); M3-A dd40a1e",
   "gates": [
     {"id": "G0", "result": "PASS", "evidence": ["docs/TEST_EVIDENCE/M3.md#G0", "120/120 pre-M3 suite", "scripts/dev/g0_preflight.py independent reproductions", "streaming body cap added"]},
     {"id": "G1", "result": "PASS", "evidence": ["backend/tests/test_m3_graphs.py: graph nodes/edges reconcile with fresh clang IR oracle + real CPython dis", "m3.graph.v1 schema, provenance digests, honest confidence"]},
