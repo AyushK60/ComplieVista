@@ -184,6 +184,15 @@ def create_app(store: Store | None = None) -> FastAPI:
     def cancel_analysis(analysis_id: str) -> dict:
         return {"analysis_id": analysis_id, "result": get_runner(store).cancel(analysis_id)}
 
+    @app.get("/api/v1/analyses/{analysis_id}/stages/{stage}/graph")
+    def stage_graph(analysis_id: str, stage: str) -> dict:
+        """M3-A typed graph view (schema m3.graph.v1) derived from stored stage items."""
+        from app.services.graphs import GraphError, build_graph
+        try:
+            return build_graph(store, analysis_id, stage)
+        except GraphError as e:
+            raise AppError(e.code, e.message, e.status)
+
     @app.get("/api/v1/analyses/{analysis_id}/stages/{stage}/raw")
     def stage_raw(analysis_id: str, stage: str) -> dict:
         """Bounded raw tool output for the raw/normalized toggle (≤ 24 KB excerpt)."""

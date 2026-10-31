@@ -82,8 +82,9 @@ def _clang_ast_nodes(ast_json: dict, primary_basename: str | None = None,
             "children": [],
             "mapping_confidence": confidence,
         })
+        parent_index = len(nodes) - 1  # capture BEFORE walking children (M3 tree fix)
         for child in node.get("inner", []) or []:
-            nodes[-1]["children"].append(walk(child, nid))
+            nodes[parent_index]["children"].append(walk(child, nid))
         return nid
 
     def basename_str(f: str | None) -> str | None:
