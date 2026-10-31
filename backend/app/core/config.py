@@ -13,6 +13,7 @@ LIMITS: dict[str, int] = {
     "zip_max_compressed_bytes": 25 * 1024 * 1024,
     "zip_max_expanded_bytes": 64 * 1024 * 1024,
     "zip_max_ratio": 100,                        # expanded/compressed; 0 disables
+    "request_max_bytes": 32 * 1024 * 1024,       # HTTP body cap before any parsing (CV-10)
     "github_archive_max_compressed_bytes": 25 * 1024 * 1024,
     "github_api_timeout_s": 20,
     "github_download_timeout_s": 90,

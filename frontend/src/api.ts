@@ -103,7 +103,14 @@ export interface StageData {
   stderr_artifact_sha256: string | null;
   truncated: boolean;
   duration_ms: number | null;
-  invocation: { argv_tail: string[]; note: string };
+  invocation: {
+    tool?: string | null;
+    argv_tail?: string[] | null;
+    worker?: string | null;
+    tool_versions?: Record<string, string>;
+    image_id?: string | null;
+    policy_version?: string;
+  };
 }
 export interface StageRaw {
   excerpt: string | null;

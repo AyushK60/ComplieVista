@@ -136,7 +136,9 @@ def test_c_analysis_full_pipeline_and_oracle(client, tmp_path):
     # provenance fields present
     for s in (stage, ast_stage, ir_stage):
         assert s["raw_artifact_sha256"] and s["stderr_artifact_sha256"]
-        assert s["invocation"]["note"]
+        assert s["invocation"]["tool_versions"], "real tool versions must be recorded"
+        assert s["invocation"]["worker"] == "worker_c.py"
+        assert s["invocation"]["image_id"], "digest-pinned image id must be recorded"
 
 
 def test_python_analysis_pipeline_and_oracle(client, tmp_path):

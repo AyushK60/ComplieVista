@@ -177,9 +177,8 @@ def create_app(store: Store | None = None) -> FastAPI:
                 "stderr_artifact_sha256": rec["stderr_artifact"],
                 "truncated": bool(rec["truncated"]),
                 "duration_ms": rec["duration_ms"],
-                "invocation": {"argv_tail": ["<fixed allowlisted worker invocation>"],
-                               "note": "runs inside pinned restricted container; "
-                                       "no user-supplied flags"}}
+                "invocation": json.loads(rec["invocation_json"]) if rec["invocation_json"]
+                else {"argv_tail": ["<unavailable>"], "note": "legacy stage record"}}
 
     @app.post("/api/v1/analyses/{analysis_id}/cancel")
     def cancel_analysis(analysis_id: str) -> dict:
@@ -212,17 +211,36 @@ def create_app(store: Store | None = None) -> FastAPI:
     # ---------------- M1: ingestion ----------------
     @app.post("/api/v1/sources")
     async def post_sources(request: Request) -> dict:
+        # CV-10: reject oversized requests BEFORE reading the body into memory.
+        try:
+            content_length = int(request.headers.get("content-length", "0") or "0")
+        except ValueError:
+            content_length = 0
+        if content_length > LIMITS["request_max_bytes"]:
+            raise AppError("PAYLOAD_TOO_LARGE",
+                           f"request exceeds {LIMITS['request_max_bytes']} bytes", 413)
         ctype = request.headers.get("content-type", "")
         if "multipart/form-data" in ctype:
             form = await request.form()
             uploads: list[tuple[str, bytes]] = []
             for key, value in form.items():
                 if isinstance(value, UploadFile):
-                    data = await value.read()
-                    uploads.append((value.filename or "unnamed", data))
+                    name = value.filename or "unnamed"
+                    # Stream-bounded read: never read more than the per-part cap + 1.
+                    is_zip = name.lower().endswith(".zip")
+                    part_cap = (LIMITS["zip_max_compressed_bytes"] if is_zip
+                                else LIMITS["file_max_bytes"])
+                    data = await value.read(part_cap + 1)
+                    if len(data) > part_cap:
+                        raise AppError("PAYLOAD_TOO_LARGE",
+                                       f"{name} exceeds {part_cap} bytes", 413)
+                    uploads.append((name, data))
             if not uploads:
                 raise AppError("EMPTY_UPLOAD", "multipart request contained no files")
             return ingest_files(store, uploads)
+        if content_length > LIMITS["paste_max_bytes"] + 4096:
+            raise AppError("PAYLOAD_TOO_LARGE",
+                           f"paste exceeds {LIMITS['paste_max_bytes']} bytes", 413)
         try:
             body = json.loads((await request.body()).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):

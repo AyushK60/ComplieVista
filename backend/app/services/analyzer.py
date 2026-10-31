@@ -48,33 +48,48 @@ class AnalysisError(Exception):
 
 
 def image_id() -> str:
-    """Immutable identity of the pinned analyzer image."""
-    out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", ANALYZER_IMAGE],
-                         capture_output=True, timeout=30)
-    line = out.stdout.decode().strip()
-    return line or "unavailable"
+    """Immutable identity of the pinned analyzer image. Never raises (CV-03)."""
+    try:
+        out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", ANALYZER_IMAGE],
+                             capture_output=True, timeout=30)
+        line = out.stdout.decode().strip()
+        return line or "unavailable"
+    except (OSError, subprocess.TimeoutExpired):
+        return "unavailable"
 
 
 def tool_fingerprint() -> str:
     return hashlib.sha256(f"{ANALYZER_IMAGE}:{image_id()}:{ANALYSIS_POLICY_VERSION}".encode()).hexdigest()[:32]
 
 
-def docker_available() -> bool:
+def docker_status() -> tuple[bool, str | None]:
+    """Distinguish missing CLI vs stopped daemon vs missing analyzer image (CV-03)."""
     if shutil.which("docker") is None:
-        return False
+        return False, "DOCKER_CLI_MISSING"
     try:
-        return subprocess.run(["docker", "info", "--format", "ok"], capture_output=True,
-                              timeout=20).stdout.strip() == b"ok"
+        if subprocess.run(["docker", "info", "--format", "ok"], capture_output=True,
+                          timeout=20).stdout.strip() != b"ok":
+            return False, "DOCKER_DAEMON_UNAVAILABLE"
     except (OSError, subprocess.TimeoutExpired):
-        return False
+        return False, "DOCKER_DAEMON_UNAVAILABLE"
+    if image_id() == "unavailable":
+        return False, "ANALYZER_IMAGE_MISSING"
+    return True, None
 
 
-def build_run_argv(cname: str, src: Path, out: Path, worker: str, rel: str) -> list[str]:
-    """The ONLY container invocation builder. Argv array, fixed flags, validated paths."""
+def docker_available() -> bool:
+    return docker_status()[0]
+
+
+def build_run_argv(cname: str, src: Path, out: Path, worker: str, rel: str,
+                   image_ref: str | None = None) -> list[str]:
+    """The ONLY container invocation builder. Argv array, fixed flags, validated paths.
+    Runs the IMMUTABLE image id (digest-pinned) when known, not the mutable tag."""
+    ref = image_ref or ANALYZER_IMAGE
     return [
         "docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
         "-v", f"{src}:/work:ro", "-v", f"{out}:/out",
-        ANALYZER_IMAGE, "python3", f"/opt/analyzer/{worker}", "--file", rel, "--out", "/out",
+        ref, "python3", f"/opt/analyzer/{worker}", "--file", rel, "--out", "/out",
     ]
 
 
@@ -85,10 +100,21 @@ class _JobRunner:
         self.store = store
         self.q: queue.Queue[str] = queue.Queue()
         self._threads: list[threading.Thread] = []
+        self._reconcile_interrupted()
         for i in range(ANALYSIS_MAX_CONCURRENT):
             t = threading.Thread(target=self._loop, daemon=True, name=f"analysis-{i}")
             t.start()
             self._threads.append(t)
+
+    def _reconcile_interrupted(self) -> None:
+        """Restart recovery (CV-11): RUNNING jobs died with the previous process —
+        record that honestly; QUEUED jobs are re-enqueued."""
+        for r in self.store.query("SELECT id FROM analyses WHERE status='RUNNING'"):
+            self.store.execute(
+                "UPDATE analyses SET status='FAILED', error_code='INTERRUPTED_BY_RESTART',"
+                " finished_utc=? WHERE id=?", (now_utc(), r["id"]))
+        for r in self.store.query("SELECT id FROM analyses WHERE status='QUEUED'"):
+            self.q.put(r["id"])
 
     def enqueue(self, analysis_id: str) -> None:
         self.q.put(analysis_id)
@@ -117,8 +143,9 @@ class _JobRunner:
                 "UPDATE analyses SET status='BLOCKED', error_code='DOCKER_UNAVAILABLE',"
                 " finished_utc=? WHERE id=?", (now_utc(), analysis_id))
             return
+        ref = image_id()
         store.execute("UPDATE analyses SET status='RUNNING', started_utc=?, tool_fingerprint=?,"
-                      " image_id=? WHERE id=?", (now_utc(), tool_fingerprint(), image_id(),
+                      " image_id=? WHERE id=?", (now_utc(), tool_fingerprint(), ref,
                                                  analysis_id))
 
         # Materialize the immutable snapshot into disposable native job space.
@@ -141,7 +168,7 @@ class _JobRunner:
 
             worker = "worker_python.py" if job["language"] == "python" else "worker_c.py"
             cname = f"cv-analysis-{analysis_id[:12]}"
-            argv = build_run_argv(cname, src, out, worker, job["primary_file"])
+            argv = build_run_argv(cname, src, out, worker, job["primary_file"], image_ref=ref)
             timeout = ANALYSIS_TIMEOUT_S
             t0 = time.perf_counter()
             killed = False
@@ -166,11 +193,14 @@ class _JobRunner:
 
             from app.services.normalize import ingest_stage_records
             stage_count = ingest_stage_records(store, analysis_id, out, job["language"],
-                                               job["primary_file"])
-            if killed:
-                status = "CANCELLED" if store.query_one(
-                    "SELECT cancel_requested FROM analyses WHERE id=?",
-                    (analysis_id,))["cancel_requested"] else "TIMEOUT"
+                                               job["primary_file"], image_id())
+            # Cancellation takes precedence over any outcome, including success
+            # (CV-11: cancelling a running analysis discards its result).
+            if store.query_one("SELECT cancel_requested FROM analyses WHERE id=?",
+                               (analysis_id,))["cancel_requested"]:
+                status = "CANCELLED"
+            elif killed:
+                status = "TIMEOUT"
             elif stage_count == 0:
                 status = "FAILED"
             else:
@@ -193,6 +223,10 @@ class _JobRunner:
             self.store.execute("UPDATE analyses SET status='CANCELLED', finished_utc=? WHERE id=?",
                                (now_utc(), analysis_id))
             return "CANCELLED"
+        # RUNNING: actively stop the container (CV-11). The runner observes the kill
+        # and records CANCELLED; partial artifacts are discarded with the job dir.
+        subprocess.run(["docker", "rm", "-f", f"cv-analysis-{analysis_id[:12]}"],
+                       capture_output=True, timeout=60)
         self.store.execute("UPDATE analyses SET cancel_requested=1 WHERE id=?", (analysis_id,))
         return "CANCEL_REQUESTED"
 
@@ -221,6 +255,19 @@ def create_analysis(store: Store, snapshot_id: str, target_id: str) -> dict:
         raise AnalysisError("TARGET_BLOCKED",
                             "target is classified BLOCKED; analysis not offered")
     language = "python" if target["kind"].startswith("python") else "c"
+    # Docker problems are recorded as an honest BLOCKED job at submission time,
+    # never an unhandled exception (CV-03). tool_fingerprint()/image_id() are
+    # exception-safe, but we check availability BEFORE touching them anyway.
+    available, reason = docker_status()
+    if not available:
+        aid = new_id()
+        store.execute(
+            "INSERT INTO analyses (id, snapshot_id, target_id, language, primary_file, status,"
+            " fingerprint, source_combined_sha256, error_code, created_utc)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (aid, snapshot_id, target_id, language, target["primary_file"], "BLOCKED",
+             "unavailable", snap["combined_sha256"], reason, now_utc()))
+        return {"analysis_id": aid, "status": "BLOCKED", "error": reason, "existed": False}
     fp = f"{snap['combined_sha256']}:{target_id}:{tool_fingerprint()}"
     existing = store.query_one(
         "SELECT id, status FROM analyses WHERE fingerprint=? AND status IN ('COMPLETED','RUNNING','QUEUED')"

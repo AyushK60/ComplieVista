@@ -99,6 +99,14 @@ def journey_c(page: Page) -> None:
     page.get_by_role("tab", name="object AVAILABLE").click()
     expect(page.get_by_text("object sha256").first).to_be_visible()
     ok(page, "object artifact with recorded sha256")
+    # CV-04: raw toggle must not leak text across stages
+    page.get_by_role("tab", name="preprocess AVAILABLE").click()
+    page.get_by_role("button", name="Show raw tool output").click()
+    expect(page.locator(".excerpt").first).to_contain_text("demo.c", timeout=15000)
+    page.get_by_role("tab", name="tokens AVAILABLE").click()
+    expect(page.get_by_role("button", name="Show raw tool output")).to_be_visible()
+    assert page.locator(".excerpt").count() == 0, "stale raw text across stages (CV-04)"
+    ok(page, "raw output never shown under another stage's name")
     # source highlighting via AST node click (expand root FunctionDecl via its toggle)
     page.get_by_role("tab", name="ast AVAILABLE").click()
     page.locator(".astnode", has_text="FunctionDecl").first.locator(".tw").click()
@@ -115,6 +123,18 @@ def journey_python(page: Page) -> None:
     step("Python: paste → Analyze → genuine tokens/AST/bytecode")
     paste_and_analyze(page, "python", "fib.py", PY_SRC)
     expect(page.get_by_role("tab", name="bytecode AVAILABLE")).to_be_visible(timeout=120000)
+    # CV-05: python tokens carry line info and highlight source on click
+    page.get_by_role("tab", name="tokens AVAILABLE").click()
+    tok = page.locator(".token.clickable", has_text="fib").first
+    tok.click()
+    expect(page.locator(".codeline.hl")).to_have_count(1)
+    ok(page, "python token click highlights its source line")
+    # CV-06: real code-object metadata explorer
+    page.get_by_role("tab", name="code_object AVAILABLE").click()
+    expect(page.locator("table.grid").get_by_text("qualname", exact=True)).to_be_visible()
+    expect(page.locator("table.grid").get_by_text("fib", exact=True).first).to_be_visible()
+    expect(page.locator("table.grid").get_by_text("argcount", exact=True)).to_be_visible()
+    ok(page, "code-object inspector shows real fields (id/qualname/argcount)")
     page.get_by_role("tab", name="bytecode AVAILABLE").click()
     expect(page.locator("table.grid").first).to_be_visible()
     expect(page.locator("table.grid").get_by_text("BINARY_OP", exact=False).first).to_be_visible()

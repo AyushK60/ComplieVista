@@ -2,12 +2,13 @@
 
 Updated: 31 October 2026 (M2 execution)
 
-## Current milestone: **M2 — Real C/CPython compiler observatory & first working analysis UI**
+## Current milestone: **M2.5 — post-audit correctness repair (CV-01..CV-11 closed)**
 
-Status: **implemented and verified; verdict PASS on all 8 M2 gates**
-(evidence: `docs/TEST_EVIDENCE/M2.md`, machine-readable `docs/milestones/M2.json`,
-handoff: `docs/HANDOFF_AFTER_M2.md`). Prior checkpoints: M0 `5718e07`, M1 `347d768`,
-M2 backend `305446a`.
+Status: **M2.5 PASS** — all 11 audit findings + the security note fixed with permanent
+regression tests (`docs/TEST_EVIDENCE/M2.5.md`, `docs/milestones/M2.5.json`). M2 itself
+passed 8/8 gates (`docs/TEST_EVIDENCE/M2.md`); the independent audit's CONDITIONAL PASS
+defects are now closed. 116 backend tests passed / 4 honest rate-limit skips; E2E M2 3/3,
+M1 4/5 (429 skip). Analyzer image `sha256:db5812b6…`.
 
 ## What exists now (cumulative)
 

@@ -36,7 +36,7 @@ function AsTree({ nodes, onSelect }: { nodes: Item[]; onSelect: (n: Item) => voi
     const line = n.line as number | null;
     return (
       <div key={id} style={{ marginLeft: depth * 14 }}>
-        <span className="astnode" onClick={(e) => { console.log("astnode click", n.kind, n.line); onSelect(n); }}>
+        <span className="astnode" onClick={() => onSelect(n)}>
           <button className="tw" onClick={(e) => { e.stopPropagation(); toggle(id); }}>
             {kids.length ? (open ? "▾" : "▸") : "·"}
           </button>
@@ -110,7 +110,6 @@ export default function AnalysisPanel({
   }
 
   const selectLine = (line: unknown) => {
-    console.log("selectLine called with", line);
     onSelectLine(typeof line === "number" ? line : null);
   };
 
@@ -164,6 +163,28 @@ export default function AnalysisPanel({
     }
     if (s.stage === "object") {
       return <p className="muted">object sha256 <code>{String(s.counts.object_sha256)}</code> · {String(s.counts.bytes)} bytes</p>;
+    }
+    if (s.stage === "code_object") {
+      // CV-06: real code-object metadata explorer (version-pinned CPython 3.12).
+      return (
+        <table className="grid">
+          <thead>
+            <tr><th>id</th><th>name</th><th>qualname</th><th>argcount</th><th>varnames</th><th>consts</th></tr>
+          </thead>
+          <tbody>
+            {items.map((it, i) => (
+              <tr key={i}>
+                <td><code>{String(it.id)}</code></td>
+                <td>{String(it.name)}</td>
+                <td>{String(it.qualname)}</td>
+                <td>{String(it.argcount)}</td>
+                <td>{(it.varnames as string[] | undefined)?.join(", ") || "—"}</td>
+                <td>{(it.consts_noncode as string[] | undefined)?.length ?? 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      );
     }
     if (s.stage === "symbols" || s.stage === "disassembly" || s.stage === "bytecode") {
       return (
@@ -227,15 +248,20 @@ export default function AnalysisPanel({
             observation_class={stageData.observation_class} · exit={stageData.exit_code} ·{" "}
             {stageData.duration_ms}ms · raw <code>{stageData.raw_artifact_sha256?.slice(0, 16)}…</code> ·{" "}
             stderr <code>{stageData.stderr_artifact_sha256?.slice(0, 16)}…</code>
-            {stageData.truncated && <span className="chip partial"> truncated</span>} ·{" "}
-            {stageData.invocation.note}
+            {stageData.truncated && <span className="chip partial"> truncated</span>}
+            {stageData.invocation?.tool_versions?.clang && (
+              <> · clang <code>{String(stageData.invocation.tool_versions.clang).split(" ").slice(-1)[0]}</code></>)}
+            {stageData.invocation?.tool_versions?.cpython && (
+              <> · CPython <code>{String(stageData.invocation.tool_versions.cpython)}</code></>)}
+            {" · worker: "}{String(stageData.invocation?.worker ?? "?")}
           </p>
           {stageData.limitations.length > 0 && (
             <ul className="limits">{stageData.limitations.map((l, i) => <li key={i}>{l}</li>)}</ul>
           )}
           {renderItems()}
           {stageData.raw_artifact_sha256 && (
-            <RawToggle analysisId={analysisId} stage={stageData.stage} />
+            <RawToggle key={`${analysisId}:${stageData.stage}`}
+                       analysisId={analysisId} stage={stageData.stage} />
           )}
         </>
       )}
@@ -248,14 +274,24 @@ export default function AnalysisPanel({
 function RawToggle({ analysisId, stage }: { analysisId: string; stage: string }) {
   const [raw, setRaw] = useState<string | null>(null);
   const [show, setShow] = useState(false);
-  const load = async () => {
-    if (!raw) setRaw((await api.stageRaw(analysisId, stage)).excerpt);
-    setShow(!show);
-  };
+  // Remounted per (analysis, stage) via key; refetches on mount so raw text can
+  // never be shown under another stage's name (CV-04).
+  useEffect(() => {
+    let alive = true;
+    setRaw(null);
+    setShow(false);
+    api.stageRaw(analysisId, stage).then((r) => {
+      if (alive) setRaw(r.excerpt);
+    }).catch(() => { /* excerpt stays null */ });
+    return () => { alive = false; };
+  }, [analysisId, stage]);
+  if (!show) {
+    return <button className="primary" onClick={() => setShow(true)}>Show raw tool output</button>;
+  }
   return (
     <div>
-      <button className="primary" onClick={load}>{show ? "Hide raw" : "Show raw tool output"}</button>
-      {show && raw !== null && <pre className="excerpt">{raw}</pre>}
+      <button className="primary" onClick={() => setShow(false)}>Hide raw</button>
+      <pre className="excerpt">{raw ?? "loading…"}</pre>
     </div>
   );
 }

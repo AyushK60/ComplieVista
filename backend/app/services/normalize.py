@@ -43,7 +43,12 @@ def _clang_ast_nodes(ast_json: dict, primary_basename: str | None = None,
                      line_of_offset=None) -> list[dict]:
     """Walk the clang JSON AST. Node ids are session-local. When primary_basename is
     given, top-level declarations from that file become the tree roots (header
-    declarations stay counted but don't drown the user's code)."""
+    declarations stay counted but don't drown the user's code).
+
+    Clang emits `loc.file` only when the file CHANGES in declaration order; nodes
+    without it belong to the current implicit file context (CV-01). Context is
+    therefore propagated sequentially across top-level declarations.
+    """
     total = {"n": 0}
     nodes: list[dict] = []
 
@@ -81,13 +86,17 @@ def _clang_ast_nodes(ast_json: dict, primary_basename: str | None = None,
             nodes[-1]["children"].append(walk(child, nid))
         return nid
 
-    def basename(loc: dict) -> str | None:
-        f = loc.get("file")
+    def basename_str(f: str | None) -> str | None:
         return f.rsplit("/", 1)[-1] if isinstance(f, str) else None
 
     roots = ast_json.get("inner", []) or []
+    cur_file: str | None = None
     for decl in roots:
-        if primary_basename and basename(decl.get("loc", {})) != primary_basename:
+        marker = decl.get("loc", {}).get("file")
+        if isinstance(marker, str):
+            cur_file = marker
+        effective = marker or cur_file
+        if primary_basename and basename_str(effective) != primary_basename:
             # Count header subtrees without emitting them into the tree:
             def count_all(d: dict) -> None:
                 total["n"] += 1
@@ -101,31 +110,56 @@ def _clang_ast_nodes(ast_json: dict, primary_basename: str | None = None,
 
 def _ir_summary(ir_text: str) -> dict:
     """Functions, blocks and REAL terminator-derived edges (DERIVED confidence).
-    The entry block has no label line in LLVM IR — represented as '<entry>'."""
+    The entry block has no label line in LLVM IR — represented as '<entry>'.
+    Terminators are accumulated across physical lines: LLVM prints switch case
+    labels on continuation lines (CV-02)."""
     functions = []
     cur: dict | None = None
     block: dict | None = None
-    for line in ir_text.splitlines():
+    lines = ir_text.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
         m = re.match(r"^define\s+.*@([\w.$-]+)", line)
         if m:
             cur = {"name": m.group(1), "blocks": [], "mapping_confidence": "DERIVED"}
             block = {"label": "<entry>", "terminators": [], "successors": []}
             cur["blocks"].append(block)
             functions.append(cur)
+            i += 1
             continue
         if cur is None:
+            i += 1
             continue
         bm = re.match(r"^([\w.$-]+):\s*(?:;.*)?$", line)
         if bm:
-            block = {"label": bm.group(1), "terminators": [], "successors": []}
-            cur["blocks"].append(block)
+            # LLVM's entry block is either unlabeled (implicit <entry>) or carries
+            # the first label — merge, don't duplicate.
+            if (block is not None and block["label"] == "<entry>"
+                    and not block["terminators"] and not block["successors"]
+                    and len(cur["blocks"]) == 1):
+                block["label"] = bm.group(1)
+            else:
+                block = {"label": bm.group(1), "terminators": [], "successors": []}
+                cur["blocks"].append(block)
+            i += 1
             continue
         tm = re.match(r"^\s*(br|switch|ret|unreachable|invoke|callbr)\b", line)
         if tm and block is not None:
-            op = tm.group(1)
-            block["terminators"].append(op)
-            for lbl in re.findall(r"label\s+%([\w.$-]+)", line):
+            # Accumulate the full terminator statement: switch prints its case
+            # labels inside [ ] across continuation lines without trailing commas.
+            acc = line.strip()
+            depth = acc.count("[") - acc.count("]")
+            while (depth > 0 or acc.endswith(",")) and i + 1 < len(lines):
+                i += 1
+                acc += " " + lines[i].strip()
+                depth = acc.count("[") - acc.count("]")
+            block["terminators"].append(tm.group(1))
+            for lbl in re.findall(r"\blabel\s+%([\w.$-]+)", acc):
                 block["successors"].append(lbl)
+            i += 1
+            continue
+        i += 1
     edges = sum(len(b["successors"]) for f in functions for b in f["blocks"])
     return {"functions": functions,
             "counts": {"functions": len(functions),
@@ -200,7 +234,7 @@ _STAGE_LIMITS = {
 
 
 def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language: str,
-                         primary_file: str = "") -> int:
+                         primary_file: str = "", image_id: str = "") -> int:
     try:
         manifest = json.loads((out_dir / "manifest.json").read_text())
     except json.JSONDecodeError:
@@ -308,28 +342,52 @@ def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language
                 if stage == "diagnostics" or "error_type" in payload:
                     items, truncated = [payload], False
                     counts = {"syntax_errors": 1}
+                elif stage == "tokens":
+                    # Unified token schema across languages: C dumps give line/col
+                    # directly; CPython gives start=[line,col] pairs (CV-05).
+                    toks = [{"kind": t.get("type"), "text": t.get("text"),
+                             "line": (t.get("start") or [None])[0],
+                             "col": (t.get("start") or [None, None])[1],
+                             "mapping_confidence": "EXACT"}
+                            for t in payload.get("tokens", [])]
+                    items, truncated = _capped(toks)
+                    counts = {"tokens": len(toks),
+                              "tokenize_error": payload.get("tokenize_error")}
                 else:
-                    items, truncated = _capped(payload.get("tokens", payload.get("nodes",
+                    items, truncated = _capped(payload.get("nodes",
                                                payload.get("instructions",
                                                payload.get("code_objects",
-                                               payload.get("scopes", []))))))
+                                               payload.get("scopes", [])))))
                     counts = payload.get("counts", counts)
                 summary = {k: v for k, v in payload.items()
                            if k in ("node_kind_counts", "tokenize_error")}
             if "py_bytecode_raw.txt" in artifacts:
                 raw_ref = store.put_artifact(artifacts["py_bytecode_raw.txt"])
+            elif key:
+                # Every Python stage's own JSON worker output is part of the raw
+                # audit trail (CV-09) — persist it, not only the bytecode listing.
+                raw_ref = store.put_artifact(artifacts[key])
         if rec.get("stderr") is not None:
             stderr_ref = store.put_artifact(stderr_text.encode())  # empty stderr is provenance too
+
+        invocation = {
+            "tool": rec.get("tool"),
+            "argv_tail": rec.get("argv_tail"),
+            "worker": manifest.get("worker"),
+            "tool_versions": manifest.get("tool_versions", {}),
+            "image_id": image_id,
+            "policy_version": "m2.analyzer.v1",
+        }
 
         store.execute(
             "INSERT OR REPLACE INTO analysis_stages (id, analysis_id, stage, availability,"
             " observation_class, exit_code, counts_json, items_json, limitations_json,"
-            " raw_artifact, stderr_artifact, truncated, duration_ms)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            " raw_artifact, stderr_artifact, truncated, duration_ms, invocation_json)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (new_id(), analysis_id, stage, availability, "TOOL_OUTPUT", exit_code,
              json.dumps(counts), json.dumps(items),
              json.dumps(_STAGE_LIMITS.get(f"{language}:{stage}", [])), raw_ref, stderr_ref,
              int(truncated or any(a.get("truncated") for a in rec.get("artifacts", []))),
-             rec.get("duration_ms", 0)))
+             rec.get("duration_ms", 0), json.dumps(invocation)))
         count += 1
     return count

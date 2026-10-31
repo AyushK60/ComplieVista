@@ -20,7 +20,7 @@ CLANG = "clang-18"
 READELF = "llvm-readelf-18"
 OBJDUMP = "llvm-objdump-18"
 
-manifest: dict = {"worker": "c", "stages": [], "tool_versions": {}}
+manifest: dict = {"worker": "worker_c.py", "stages": [], "tool_versions": {}}
 
 
 def sha(data: bytes) -> str:

@@ -1,0 +1,31 @@
+{
+  "milestone": "M2.5",
+  "title": "Post-audit correctness and provenance repair (CV-01..CV-11 + security note)",
+  "verdict": "PASS",
+  "date": "2026-10-31",
+  "in_response_to": "Independent M0-M2 source audit: CONDITIONAL M2 PASS — HOLD M3 pending targeted M2.5 corrections",
+  "project_root_verified": "E:\\ComplieVista",
+  "git_commit": "recorded in repository log immediately after this file",
+  "analyzer_image_id": "sha256:db5812b655f55fcc144effb87b423b46ea107aa83900f94ab1bd5f19773e3e95",
+  "findings_closed": {
+    "CV-01": {"fix": "clang loc.file implicit-context propagation", "regression": "test_clang_json_second_function_visible + test_c_analysis_multi_function_tree_contains_both"},
+    "CV-02": {"fix": "multiline terminator accumulation (bracket depth) + entry-label merge", "regression": "test_ir_multiline_switch_edges_preserved"},
+    "CV-03": {"fix": "docker_status() tri-state + BLOCKED job at submission + exception-safe image_id", "regression": "test_missing_docker_cli_yields_blocked_job + test_stopped_daemon_yields_blocked_job"},
+    "CV-04": {"fix": "RawToggle keyed per analysis+stage with refetch", "regression": "E2E journey_c raw-leak assertion"},
+    "CV-05": {"fix": "unified token schema (python start[] -> line/col)", "regression": "E2E journey_python token click highlight"},
+    "CV-06": {"fix": "code-object inspector table", "regression": "E2E journey_python code_object assertions"},
+    "CV-07": {"fix": "PEP 263 detect_encoding in python worker", "regression": "test_python_latin1_source_consistent (true latin-1 bytes via upload)"},
+    "CV-08": {"fix": "unique code-object ids (co<idx>:<qualname>) in records + counts", "regression": "test_code_object_identity_unique"},
+    "CV-09": {"fix": "per-stage raw artifacts for all python stages + real invocation_json column + API", "regression": "test_every_python_stage_has_raw_artifact_and_invocation"},
+    "CV-10": {"fix": "Content-Length gate + streaming per-part caps", "regression": "test_oversized_part_rejected_at_stream_cap + test_paste_content_length_cap_rejects_early"},
+    "CV-11": {"fix": "active RUNNING cancellation (docker rm -f, cancel precedence) + restart reconciliation", "regression": "test_cancel_running_marks_request_and_attempts_container_removal + test_restart_reconciles_running_and_queued"},
+    "CV-12": {"fix": "not a defect; skips documented", "regression": "n/a"},
+    "SECURITY-NOTE": {"fix": "runtime runs the immutable image id, not the mutable tag", "regression": "test_run_uses_immutable_image_id"}
+  },
+  "tests": {"backend_total": 120, "passed": 116, "skipped": 4, "skips_reason": "GitHub unauthenticated rate limit; deterministic mocked/cached coverage included", "e2e_m2": "3/3 PASS (now includes CV-04/05/06 journeys)", "e2e_m1": "4/5 (429 skip)"},
+  "audit_extra_bugs_found_during_repair": [
+    "normalizer token key mismatch (worker 'text' vs 'string') — exposed by CV-05 testing",
+    "IR entry-label merge behavior — pinned by CV-02 test"
+  ],
+  "next_milestone": "M3 authorization requested; per audit, only after this M2.5 evidence is accepted"
+}

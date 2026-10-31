@@ -109,6 +109,11 @@ class Store:
             elif row["value"] != SCHEMA_VERSION:
                 raise StoreError("SCHEMA_MISMATCH",
                                  f"db schema {row['value']} != application schema {SCHEMA_VERSION}")
+            # Additive column upgrades (guarded; safe on fresh and upgraded stores).
+            cols = {r["name"] for r in self._conn.execute(
+                "PRAGMA table_info(analysis_stages)").fetchall()}
+            if "invocation_json" not in cols:
+                self._conn.execute("ALTER TABLE analysis_stages ADD COLUMN invocation_json TEXT")
             self._conn.commit()
 
     # --- content-addressed artifacts -------------------------------------

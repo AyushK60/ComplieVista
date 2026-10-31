@@ -19,7 +19,7 @@ import time
 import tokenize
 import io
 
-manifest: dict = {"worker": "python", "stages": [], "tool_versions": {
+manifest: dict = {"worker": "worker_python.py", "stages": [], "tool_versions": {
     "cpython": platform.python_version()}}
 
 
@@ -50,7 +50,19 @@ def main() -> None:
     src_path = os.path.join("/work", args.file)
     with open(src_path, "rb") as f:
         src = f.read()
-    text = src.decode("utf-8", "replace")
+    # PEP 263: honor the declared source encoding so AST/tokens agree with what
+    # compile() sees for non-UTF-8 sources (CV-07). Falls back to utf-8/replace
+    # for undecodable content; invalid encoding cookies land in diagnostics.
+    try:
+        encoding, _ = tokenize.detect_encoding(io.BytesIO(src).readline)
+    except SyntaxError as e:
+        stage(args.out, "diagnostics",
+              {"error_type": "SyntaxError", "msg": str(e), "lineno": 1, "offset": None,
+               "text": None, "mapping_confidence": "UNAVAILABLE",
+               "counts": {"encoding_errors": 1}})
+        return
+    text = src.decode(encoding, "replace")
+    manifest["source_encoding"] = encoding
 
     # P1 tokens (tokenize itself can raise on broken source — record it, never crash)
     t0 = time.perf_counter()
@@ -137,16 +149,22 @@ def main() -> None:
     t0 = time.perf_counter()
     code = compile(src, os.path.basename(args.file), "exec", dont_inherit=True)
     code_recs, instrs, raw = [], [], io.StringIO()
+    code_ids: dict[int, str] = {}
 
     def walk_code(co, depth=0):
-        code_recs.append({"name": co.co_name, "qualname": co.co_qualname,
+        # Unique identity per code object: co_name alone collapses distinct nested
+        # scopes with the same name (CV-08). qualname + path index is stable here.
+        cid = f"co{len(code_recs)}:{co.co_qualname}"
+        code_ids[id(co)] = cid
+        code_recs.append({"id": cid, "name": co.co_name, "qualname": co.co_qualname,
                           "argcount": co.co_argcount, "varnames": list(co.co_varnames),
                           "names": list(co.co_names),
                           "consts_noncode": [repr(c) for c in co.co_consts
                                              if not isinstance(c, type(co))],
                           "depth": depth})
         for ins in dis.get_instructions(co, show_caches=False):
-            instrs.append({"code_object": co.co_name, "offset": ins.offset,
+            instrs.append({"code_object_id": cid,
+                           "code_object": co.co_name, "offset": ins.offset,
                            "opname": ins.opname, "arg": ins.arg,
                            "argval": str(ins.argval) if not isinstance(ins.argval, type(co))
                            else f"<code {ins.argval.co_name}>",
@@ -165,7 +183,7 @@ def main() -> None:
     stage(args.out, "bytecode",
           {"instructions": instrs,
            "counts": {"instructions": len(instrs),
-                      "code_objects": len({i["code_object"] for i in instrs})},
+                      "code_objects": len({i["code_object_id"] for i in instrs})},
            "duration_ms": int((time.perf_counter() - t0) * 1000)},
           raw=raw.getvalue())
     with open(os.path.join(args.out, "manifest.json"), "w") as f:
