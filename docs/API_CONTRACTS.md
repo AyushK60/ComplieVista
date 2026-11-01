@@ -203,6 +203,9 @@ hash — browse never re-executes); analyze via the M2 static pipeline; optimize
 creates an OptimizationLab experiment (C targets only, else 400
 NOT_APPLICABLE). C-05 uses the content-hash-gated `demo-link` profile
 (multi-TU compile+link; 403 DEMO_LINK_BLOCKED for anything else).
+M8 addition (non-breaking field): the analyze response also carries
+`snapshot_id` and `target_id` (already computed internally) so the observatory
+can deep-link to demo source without executing anything.
 
 ## GET /api/v1/demos/{id}/report
 Sanitized session report (`m7.demo.report.v1`): file digests, snapshot hash,

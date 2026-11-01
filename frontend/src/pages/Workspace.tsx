@@ -189,6 +189,12 @@ export default function Workspace() {
       const ref = await executions.create(snapshot.id, runnableTarget.target_id, profile);
       setExecutionId(ref.execution_id);
       if (profile !== "debug") setOptPair({ snapshotId: snapshot.id, targetId: runnableTarget.target_id });
+      const next = new URLSearchParams(params);
+      next.set("execution", ref.execution_id);
+      next.set("snapshot", snapshot.id);
+      next.set("target", runnableTarget.target_id);
+      if (!next.get("project")) next.set("project", project?.id ?? "");
+      setParams(next, { replace: true });
     } catch (e) { setRunError(e instanceof ApiError ? e.message : String(e)); }
   }
 

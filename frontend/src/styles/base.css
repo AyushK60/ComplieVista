@@ -213,3 +213,9 @@ pre.excerpt {
 .modeswitch button[aria-pressed="true"] {
   color: var(--bg); background: var(--cyan);
 }
+
+@media (max-width: 720px) {
+  .topnav { overflow-x: auto; gap: 12px; padding: 10px 14px; scrollbar-width: none; }
+  .topnav::-webkit-scrollbar { display: none; }
+  .topnav a.navlink { white-space: nowrap; }
+}

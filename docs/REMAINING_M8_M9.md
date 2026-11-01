@@ -5,22 +5,27 @@ started.** M8-G0 (technical integrity repairs + one-click launcher,
 ADR-0010..0012) is COMPLETE — see `docs/TEST_EVIDENCE/M8G0.md`; the repairs
 below marked ~~struck~~ are done.
 
-## M8 — Premium product polish (NOT STARTED — visual only)
+## M8 — Premium product polish
 
-1. Monaco editor (line-numbered, syntax-highlighted) — the workspace currently
-   uses a plain text code view.
-2. ELK/worker-based layout for very large graphs (2000-node stress) and
-   scroll-driven semantic zoom refinements — current layouts are worker-based
-   but not stress-tuned.
-3. Cohesive landing-page redesign and consistent panel polish across Home /
-   Workspace / Demo Library / Compare.
-4. Accessibility pass (full keyboard navigation audit, reduced-motion honoring
-   beyond defaults, ARIA refinements beyond the existing roles/labels).
-5. Export/history session browser UI (the sanitized JSON report endpoint
-   exists; a history UI does not).
-6. Performance profiling of the frontend bundle (403 kB) and lazy loading.
-7. Optional Prediction Lab — explicitly deferred until after the mandatory 20
-   E2E journeys (which are complete); still not built.
+**M8 visual recovery (Project Phoenix) IMPLEMENTED 1 Nov 2026** — see
+`docs/TEST_EVIDENCE/M8.md` and `docs/M8_DESIGN_SYSTEM.md`. Landing page fully
+replaced; observatory shell (Source Dock / Journey Navigator / per-stage visual
+canvas / Inspector / Execution dock) with Explore+Technical modes; Trace
+Theater, MemoryScope/ProcessScope and Optimization Explorer rebuilt; Demo
+Library is a grouped learning gallery; both mandatory journeys browser-verified.
+
+Still open (deviations, not hidden):
+1. Monaco editor — not used; the Source Dock is a bounded read-only view of
+   immutable snapshots (Monaco was deferred in M3 for a Vite worker issue).
+2. ELK/worker layout for very large graphs (2000-node stress) — the M3 worker
+   layout is retained but not stress-tuned for 2000-node inputs.
+3. ~~Cohesive landing-page redesign and consistent panel polish~~ DONE.
+4. Accessibility pass — reduced-motion honored, focus-visible rings, ARIA
+   roles/labels carried over; a full keyboard-navigation audit is NOT done.
+5. Export/history session browser UI — still absent (report endpoint exists).
+6. Performance profiling / code-splitting — not done; bundle ~460 kB
+   (146 kB gzip).
+7. Optional Prediction Lab — still not built.
 
 ## M9 — Independent audit & release (NOT STARTED)
 

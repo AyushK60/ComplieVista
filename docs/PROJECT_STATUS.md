@@ -1,8 +1,46 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M8-G0)
+Updated: 1 November 2026 (M8 visual recovery — Project Phoenix, Phase A+B)
 
-## Current milestone: **M8-G0 — technical integrity repairs + one-click local launcher**
+## Current milestone: **M8 — frontend recovery ("Computational Atlas")**
+
+Status: **M8 visual recovery IMPLEMENTED and browser-verified — see
+`docs/TEST_EVIDENCE/M8.md` for per-journey evidence and
+`docs/M8_DESIGN_SYSTEM.md` for the design language.** M9 independent audit
+NOT started.
+
+What M8 changed (frontend only, except one documented field addition):
+- **Landing page**: complete replacement — choreographed source→tokens→AST→
+  bytecode→execution hero (labeled conceptual animation), five scroll chapters,
+  system status demoted to the footer. Health/capabilities no longer homepage
+  content.
+- **Observatory workspace**: Source Dock | Journey Navigator (real stages only,
+  guided mode with narration) | Visual Canvas (per-stage visualizations) |
+  Contextual Inspector | Execution & Systems dock. Explore/Technical modes
+  (persisted); technical provenance (tool versions, digests, limitations,
+  raw excerpts) revealed only in Technical mode.
+- **Signature visualizations**: Token Formation (exact tool tokens on their
+  source lines with faithful whitespace), AST/IR graph explorer (M3 engine,
+  restyled, honest DERIVED/UNAVAILABLE labels), Bytecode lanes (real CPython
+  instructions, code-object navigation, branch arcs from dis data only),
+  Disassembly (addr/bytes/mnemonic/operands), Code Objects cards.
+- **Trace Theater**: recorded call tree (depth-limited, ×N sibling
+  aggregation) + stack tower with active-frame locals + playhead + timeline
+  scrubber + source sync; trust labels preserved (ADR-0011).
+- **MemoryScope/ProcessScope rebuilt**: C heap-lifetime ladder, Python frame
+  cards/alias groups/object graph/tracemalloc bars; sampled /proc lanes with
+  explicit SAMPLED labeling and policy-based unavailability states.
+- **Optimization Explorer**: real O0/O1/O2 builds, size bars, A/B asm/IR diff,
+  benchmark table with checksums/env caveats; Python honestly has no O-levels.
+- **Demo Library**: learning gallery over the exact 20-program inventory
+  (grouped Python/C/Pairs, concept+difficulty filters, three-level guided
+  stories, honest capability matrix) launching into the observatory; Error
+  Microscope fixtures kept outside the 20.
+- **Backend change (single, non-breaking)**: `POST /api/v1/demos/{id}/analyze`
+  now also returns `snapshot_id`/`target_id` for observatory deep-links;
+  regression test added (`test_m7_demos.py::test_demo_analyze_returns_snapshot_and_target_refs`).
+
+## Previous milestone: M8-G0 (technical integrity repairs + one-click launcher)
 
 Status: **M8-G0 COMPLETE — see `docs/TEST_EVIDENCE/M8G0.md` and
 `docs/milestones/M8G0.json` for per-gate verdicts and exact commands.**
@@ -47,11 +85,16 @@ Pinned image IDs after this milestone (rebuilt from updated sandbox code):
   posture). See `docs/FINAL_M0_M7_FUNCTIONAL_MATRIX.md`.
 - **M8-G0**: the repairs and launcher above; backend suite extended by
   `backend/tests/test_m8g0.py` (13 tests) and `e2e/m8g0_journeys.py`.
+- **M8 visual recovery**: the rebuilt frontend above, verified end-to-end in a
+  real browser for both mandatory journeys (evidence in `docs/TEST_EVIDENCE/M8.md`).
 
 ## Deliberately NOT done (no false claims)
 
-- No M8 visual polish (Monaco, ELK stress-tuning, landing redesign,
-  accessibility pass, export/history UI, Prediction Lab) — M8-G0 is NOT that.
+- No code-splitting/lazy loading yet (bundle ~460 kB / 146 kB gzip); no Monaco
+  editor (the read-only Source Dock is deliberately bounded to immutable
+  snapshots); no session history browser UI.
+- Trace theater draws up to 400 children per node and aggregates identical
+  sibling runs (×N); older records stay reachable via the timeline (labeled).
 - No M9 independent audit; no public/remote exposure; execution of
   GitHub-imported code remains BLOCKED.
 - Full observer/target trust-domain separation (beyond the framed channel) is
@@ -59,8 +102,10 @@ Pinned image IDs after this milestone (rebuilt from updated sandbox code):
 
 ## Next
 
-**M8 visual redesign NOT STARTED** — awaiting explicit user go-ahead after
-M8-G0 review. Then M9 independent audit.
+**M9 independent audit** (per `docs/REMAINING_M8_M9.md`): independent code +
+screenshot review, deployment threat-model review, 20-demo regression re-run by
+a party other than the developer agent, release report. Optional M8 extras
+(code-splitting, history UI, Prediction Lab) remain deferred.
 
 ## Active risks / quirks
 
