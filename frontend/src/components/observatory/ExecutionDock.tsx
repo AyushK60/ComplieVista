@@ -27,6 +27,21 @@ interface TreeNode {
   agg?: false;
 }
 
+/** Trace return values are typed records ({type,repr}|{type,identity}|{type,len}) —
+ * render the honest repr, never "[object Object]". */
+function retRepr(arg: unknown): string | null {
+  if (arg == null) return null;
+  if (typeof arg === "string") return arg;
+  if (typeof arg === "object") {
+    const a = arg as Record<string, unknown>;
+    if (typeof a.repr === "string") return a.repr;
+    if (typeof a.identity === "string") return a.identity;
+    if (a.len != null) return `${String(a.type ?? "object")} len=${String(a.len)}`;
+    if (a.type != null) return String(a.type);
+  }
+  return String(arg);
+}
+
 function buildTree(events: ExecutionEvent[]): TreeNode[] {
   const roots: TreeNode[] = [];
   const stack: TreeNode[] = [];
@@ -41,7 +56,7 @@ function buildTree(events: ExecutionEvent[]): TreeNode[] {
       stack.push(node);
     } else if (e.kind === "return") {
       const n = stack.pop();
-      if (n) { n.ret = e.payload.arg != null ? String(e.payload.arg) : null; n.retIdx = i; }
+      if (n) { n.ret = retRepr(e.payload.arg); n.retIdx = i; }
     } else if (e.kind === "exception") {
       const n = stack[stack.length - 1];
       if (n) n.ret = `✗ ${String(e.payload.exc ?? "exception")}`;
@@ -108,12 +123,19 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
         setJob(j);
         if (["QUEUED", "RUNNING"].includes(j.status)) setTimeout(poll, 800);
         else if (j.status === "COMPLETED") {
-          const [evs, out] = await Promise.all([
-            executions.events(executionId, 0, 5000),
-            executions.output(executionId),
-          ]);
+          // paginate the recorded event stream (500/page cap) up to 5000 events
+          const evs: ExecutionEvent[] = [];
+          let after = 0;
+          for (let page = 0; page < 10; page++) {
+            const p = await executions.events(executionId, after, 500);
+            evs.push(...p.events);
+            const next = (p as { next_after?: number | null }).next_after ?? null;
+            if (next == null || next <= after || evs.length >= 5000) break;
+            after = next;
+          }
+          const out = await executions.output(executionId);
           if (!alive) return;
-          setEvents(evs.events);
+          setEvents(evs);
           setOutput(out.stdout ?? "(no stdout)");
         }
       } catch (e) { if (alive) setError(String(e)); }
@@ -333,7 +355,7 @@ function TraceTheater({ events, job, onSelectLine, activeLine }: {
                   <span className="err"> {String(current.payload.exc)}: {String(current.payload.msg ?? "(user exception — message not captured)")}</span>
                 )}
                 {current.kind === "return" && current.payload.arg != null && (
-                  <span> → <code>{String(current.payload.arg)}</code></span>
+                  <span> → <code>{retRepr(current.payload.arg)}</code></span>
                 )}
               </p>
             </div>
@@ -399,7 +421,7 @@ function TreeLevel({ nodes, cursor, selIdx, onSelect, depthLimit, initial }: {
     const onActivePath = n.idx < cursor && (n.retIdx == null || n.retIdx >= cursor);
     const visited = n.idx < cursor;
     const done = n.retIdx != null && n.retIdx < cursor;
-    const open = expanded.has(n.idx) || (initial && depth < depthLimit);
+    const open = expanded.has(n.idx) || (initial && n.depth < depthLimit);
     const kids = n.children;
     const activeCls = onActivePath ? " on-path" : "";
     return (
@@ -426,7 +448,7 @@ function TreeLevel({ nodes, cursor, selIdx, onSelect, depthLimit, initial }: {
         {open && kids.length > 0 && (
           <div className="tnkids">
             <TreeLevel nodes={kids.slice(0, MAX_RENDER)} cursor={cursor} selIdx={selIdx}
-                       onSelect={onSelect} depthLimit={depthLimit} />
+                       onSelect={onSelect} depthLimit={depthLimit} initial={initial} />
             {kids.length > MAX_RENDER && (
               <p className="muted" style={{ paddingLeft: 20 }}>
                 …{kids.length - MAX_RENDER} more sub-calls recorded (raise the depth limit or search the timeline)

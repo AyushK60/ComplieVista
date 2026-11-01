@@ -71,11 +71,12 @@ export default function DemoLibrary() {
     try {
       if (mode === "analyze") {
         const r = await demos.analyze(d.id);
-        navigate(`/workspace?demo=${d.id}&analysis=${r.analysis_id}&file=${encodeURIComponent(d.primary_file)}`);
+        const snapPart = r.snapshot_id ? `&snapshot=${r.snapshot_id}&project=demo-library` : "";
+        navigate(`/workspace?demo=${d.id}&analysis=${r.analysis_id}${snapPart}&file=${encodeURIComponent(d.primary_file)}`);
       } else {
         const r: DemoRunResult = await demos.run(d.id);
         // run first; the student can click Analyze afterwards in the observatory
-        navigate(`/workspace?demo=${d.id}&execution=${r.execution_id}&snapshot=${r.snapshot_id}&target=${r.target_id}&file=${encodeURIComponent(d.primary_file)}`);
+        navigate(`/workspace?demo=${d.id}&execution=${r.execution_id}&snapshot=${r.snapshot_id}&project=demo-library&target=${r.target_id}&file=${encodeURIComponent(d.primary_file)}`);
       }
     } catch (e) {
       setCatalog((c) => ({ ...c, error: e instanceof Error ? e.message : String(e) }));

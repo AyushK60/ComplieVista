@@ -175,3 +175,19 @@ def test_demo_optimize_c_only(client):
     r2 = client.post("/api/v1/demos/PY-01/optimize")
     assert r2.status_code == 400
     assert r2.json()["error"]["code"] == "NOT_APPLICABLE"
+
+
+def test_demo_analyze_returns_snapshot_and_target_refs(client):
+    """M8: analyze response exposes the demo's snapshot/target so the observatory
+    can deep-link to the source (non-breaking field addition)."""
+    r = client.post("/api/v1/demos/PY-01/analyze")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["demo_id"] == "PY-01"
+    assert body["analysis_id"]
+    assert body["snapshot_id"] and body["target_id"]
+    # the snapshot really belongs to the curated demo library project
+    snap = client.get(
+        f"/api/v1/projects/demo-library/snapshots/{body['snapshot_id']}").json()
+    assert snap["id"] == body["snapshot_id"]
+    assert any(f["rel_path"].endswith("PY-01.py") for f in snap["files"])

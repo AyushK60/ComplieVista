@@ -120,7 +120,7 @@ export default function GraphView({
   const [searchHits, setSearchHits] = useState<string[]>([]);
   const [hiddenSubtrees, setHiddenSubtrees] = useState<Set<string>>(new Set());
   const [firstRenderMs, setFirstRenderMs] = useState<number | null>(null);
-  const [structuralLevel, setStructuralLevel] = useState(3);
+  const [structuralLevel, setStructuralLevel] = useState(2);
   const level = detailLevel(zoom);
   const seqRef = useRef(0);
   const fetchAbortRef = useRef(0);

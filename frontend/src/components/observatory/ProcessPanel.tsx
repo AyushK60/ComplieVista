@@ -17,9 +17,20 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
   useEffect(() => {
     let alive = true;
     setStream(null); setErr(null);
-    executions.process(executionId)
-      .then((s) => { if (alive) setStream(s); })
-      .catch((e) => { if (alive) setErr(String(e)); });
+    (async () => {
+      try {
+        let acc: ObservationStream | null = null;
+        let after = 0;
+        for (let page = 0; page < 8; page++) {
+          const s = await executions.process(executionId, after, 500);
+          acc = acc ? { ...s, chunks: [...acc.chunks, ...s.chunks] } : s;
+          const next = (s as { next_after?: number | null }).next_after ?? null;
+          if (next == null || next <= after) break;
+          after = next;
+        }
+        if (alive && acc) setStream(acc);
+      } catch (e) { if (alive) setErr(String(e)); }
+    })();
     return () => { alive = false; };
   }, [executionId]);
 

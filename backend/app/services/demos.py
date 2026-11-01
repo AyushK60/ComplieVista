@@ -159,7 +159,8 @@ def analyze_demo(store: Store, demo_id: str) -> dict:
         if rec and rec["status"] in EXEC_TERMINAL:
             break
         time.sleep(0.5)
-    return {"demo_id": demo_id, "analysis_id": aid, "status": rec["status"]}
+    return {"demo_id": demo_id, "analysis_id": aid, "status": rec["status"],
+            "snapshot_id": snap_id, "target_id": target_id}
 
 
 def optimize_demo(store: Store, demo_id: str) -> dict:

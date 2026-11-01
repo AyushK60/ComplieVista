@@ -322,7 +322,8 @@ export const demos = {
     fetch(`/api/v1/demos/${id}/run`, { method: "POST" }).then(unwrap<DemoRunResult>),
   analyze: (id: string) =>
     fetch(`/api/v1/demos/${id}/analyze`, { method: "POST" })
-      .then(unwrap<{ demo_id: string; analysis_id: string; status: string }>),
+      .then(unwrap<{ demo_id: string; analysis_id: string; status: string;
+        snapshot_id?: string; target_id?: string }>),
   optimize: (id: string) =>
     fetch(`/api/v1/demos/${id}/optimize`, { method: "POST" })
       .then(unwrap<{ experiment_id?: string; status: string }>),

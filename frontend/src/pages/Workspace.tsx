@@ -37,7 +37,7 @@ function StatusChip({ status }: { status: string }) {
 }
 
 export default function Workspace() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   // ——— ingest ———
   const [mode, setMode] = useState<Mode>("paste");
   const [busy, setBusy] = useState(false);
@@ -86,14 +86,18 @@ export default function Workspace() {
     if (sId) {
       (async () => {
         try {
-          const projects = await api.projects();
-          const hit = projects.find((p) => p.snapshot_id === sId);
-          if (!hit) return;
-          const proj = await api.project(hit.id);
-          const snap = await api.snapshot(hit.id, sId);
-          setProject(proj); setSnapshot(snap); setTargets(await api.targets(hit.id));
-          const primary = snap.files.find((f) => f.rel_path === (params.get("file") ?? "")) ?? snap.files[0];
-          if (primary) setSelected(await api.file(hit.id, sId, primary.id));
+          // demo snapshots live under the fixed 'demo-library' project id
+          // (backend demos.py); personal snapshots use their real project id.
+          const pid = params.get("project") ?? (await api.projects()
+            .then((ps) => ps.find((p) => p.snapshot_id === sId)?.id) ?? "demo-library");
+          const proj: Project = { id: pid, name: pid === "demo-library" ? "Demo Library" : pid,
+            created_utc: "", snapshots: [{ id: sId, origin: "demo", combined_sha256: "" }] };
+          const snap = await api.snapshot(pid, sId);
+          setProject(proj); setSnapshot(snap); setTargets(await api.targets(pid));
+          const want = params.get("file") ?? "";
+          const primary = snap.files.find((f) => f.rel_path === want)
+            ?? snap.files.find((f) => f.rel_path.endsWith(want)) ?? snap.files[0];
+          if (primary) setSelected(await api.file(pid, sId, primary.id));
           const demoId = params.get("demo");
           if (demoId) {
             const all = await demos.list();
@@ -195,6 +199,10 @@ export default function Workspace() {
       const ref = await api.createAnalysis(snapshot.id, analyzableTarget.target_id);
       setStageName(null);
       setAnalysisId(ref.analysis_id);
+      // persist so reload keeps the journey
+      const next = new URLSearchParams(params);
+      next.set("analysis", ref.analysis_id);
+      setParams(next, { replace: true });
     } catch (e) { setAnalyzeError(e instanceof ApiError ? e.message : String(e)); }
   }
 

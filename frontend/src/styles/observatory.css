@@ -75,19 +75,19 @@
 .journey-stages { display: flex; align-items: center; list-style: none; padding: 0; margin: 0; flex-wrap: wrap; }
 .jstage { display: inline-flex; align-items: center; }
 .journey-stages li { display: inline-flex; align-items: center; }
-.jstage button {
+button.jstage {
   display: inline-flex; align-items: center; gap: 7px;
   background: none; border: 1px solid transparent; border-radius: 999px;
   color: var(--ink-3); font-size: 12.5px; font-weight: 550; padding: 5px 12px; cursor: pointer;
   transition: all var(--t-fast) var(--ease);
 }
-.jstage button:hover { color: var(--ink); background: rgba(148, 163, 255, 0.07); }
-.jstage button.active { background: var(--violet-dim); border-color: rgba(167, 139, 250, 0.5); color: var(--ink); }
-.jstage button.off { opacity: 0.55; }
+button.jstage:hover { color: var(--ink); background: rgba(148, 163, 255, 0.07); }
+button.jstage.active { background: var(--violet-dim); border-color: rgba(167, 139, 250, 0.5); color: var(--ink); }
+button.jstage.off { opacity: 0.55; }
 .jstage-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); flex-shrink: 0; }
-.jstage button.ok .jstage-dot { background: var(--mint); box-shadow: 0 0 8px rgba(110, 231, 183, 0.5); }
-.jstage button.partial .jstage-dot { background: var(--amber); }
-.jstage button.active .jstage-dot { background: var(--violet); box-shadow: 0 0 8px rgba(167, 139, 250, 0.6); }
+button.jstage.ok .jstage-dot { background: var(--mint); box-shadow: 0 0 8px rgba(110, 231, 183, 0.5); }
+button.jstage.partial .jstage-dot { background: var(--amber); }
+button.jstage.active .jstage-dot { background: var(--violet); box-shadow: 0 0 8px rgba(167, 139, 250, 0.6); }
 .jstage-link { color: var(--ink-3); font-size: 11px; margin: 0 2px; }
 .jstage-link::after { content: "→"; }
 .journey-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
@@ -240,17 +240,17 @@
 .graphtoolbar .detaillevels { display: inline-flex; gap: 2px; }
 .graphtoolbar .muted { font-size: 11px; }
 .cvnode {
-  background: var(--bg-panel); border: 1px solid var(--line-strong); border-radius: 9px;
-  padding: 8px 10px; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-2);
+  background: #171e3d; border: 1px solid rgba(148, 163, 255, 0.4); border-radius: 9px;
+  padding: 8px 10px; font-family: var(--font-mono); font-size: 11px; color: var(--ink);
   box-shadow: var(--shadow-1); cursor: pointer;
   transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
 }
 .cvnode:hover { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.3); }
-.cvnode.group-structure { border-color: rgba(167, 139, 250, 0.55); background: rgba(167, 139, 250, 0.08); }
+.cvnode.group-structure { border-color: rgba(167, 139, 250, 0.6); background: #1d1a3d; }
 .cvnode.group-runtime { border-color: rgba(251, 113, 133, 0.45); }
 .cvnode.group-lexical { border-color: rgba(103, 232, 249, 0.45); }
 .cvnode.conf-unavailable { border-style: dashed; opacity: 0.75; }
-.cvnode-label { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.cvnode-label { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; font-size: 11px; }
 .react-flow__node.dimmed { opacity: 0.28; }
 .react-flow__node.hit .cvnode { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(103, 232, 249, 0.4); }
 .react-flow__edge-path { stroke-opacity: 0.8; }
@@ -506,3 +506,13 @@
 @media (max-width: 900px) {
   .dd-guided, .dd-meta, .cmp-grid { grid-template-columns: 1fr; }
 }
+
+/* ——— generic tab buttons (graph toolbar etc.) ——— */
+.tab {
+  background: none; border: 1px solid transparent; color: var(--ink-3);
+  font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px; cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--ink); background: var(--violet-dim); border-color: rgba(167, 139, 250, 0.4); }
+.cvnode { color: var(--ink); }
