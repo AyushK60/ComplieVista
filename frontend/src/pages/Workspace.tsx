@@ -118,12 +118,12 @@ export default function Workspace() {
   const analyzableTarget = selectedTargets.find(
     (t) => ANALYZABLE.has(t.status) && selected?.language !== "other");
 
-  async function startRun() {
+  async function startRun(profile?: string) {
     if (!snapshot || !runnableTarget) return;
     setRunError(null);
     setExecutionId(null);
     try {
-      const ref = await executions.create(snapshot.id, runnableTarget.target_id);
+      const ref = await executions.create(snapshot.id, runnableTarget.target_id, profile);
       setExecutionId(ref.execution_id);
     } catch (e) {
       setRunError(e instanceof ApiError ? e.message : String(e));
@@ -310,10 +310,16 @@ export default function Workspace() {
                         </button>
                       )}
                       {t === runnableTarget && (
-                        <button className="primary run" onClick={startRun} disabled={!snapshot}
+                        <>
+                        <button className="primary run" onClick={() => startRun()} disabled={!snapshot}
                                 title="Runs once in a restricted container; results are recorded for replay.">
                           Run in restricted container
+                        </button>{" "}
+                        <button className="run" onClick={() => startRun("debug")} disabled={!snapshot}
+                                title="MemoryScope debugger capture — curated allowlisted C fixtures only (ADR-0008); other code is refused with an explanation.">
+                          Debug run (curated only)
                         </button>
+                        </>
                       )}
                       {t !== analyzableTarget && (
                         <button className="analyze" disabled title=

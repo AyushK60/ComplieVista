@@ -105,6 +105,44 @@ Bounded stdout/stderr text (≤60 KB excerpt) with truncation flag.
 ## POST /api/v1/executions/{id}/cancel
 Active cancellation: QUEUED → CANCELLED; RUNNING → `docker rm -f` + CANCEL_REQUESTED.
 
+---
+
+# M5 memory/process endpoints (schema `m5.v1`, ADR-0008)
+
+`POST /api/v1/executions` accepts an optional `"profile"`: `"standard"` (default)
+or `"debug"` — the debug profile is refused with 403 `DEBUG_PROFILE_BLOCKED`
+unless the snapshot content hash is in the curated allowlist and the language is
+C (ADR-0008); unknown profiles → 400 `INVALID_PROFILE`.
+
+## GET /api/v1/executions/{id}/memory?after=0&limit=200
+Schema `m5.memory.v1`: `{"execution_id", "status", "schema", "language",
+"profile", "total", "artifact_sha256", "chunks": [{seq, payload, sha256}],
+"count", "kinds", "next_after", "limitations[]"}`.
+Chunk payloads are typed records with `kind` and an honest observation class:
+Python — `frame_snapshot` (call+return, id()-based `obj_id`), `alias`,
+`object_graph` (bounded, caps recorded), `tracemalloc`, `gc`; C — `alloc`,
+`free`, `realloc`, `mem_meta`, `unavailable` (frame locals, policy), `debug_stop`
+(curated gdb profile only; `tool: "gdb"`, ASLR caveat); plus `meta` truncated
+markers. Browsing never re-runs code.
+
+## GET /api/v1/executions/{id}/process?after=0&limit=200
+Schema `m5.process.v1`: same envelope plus `host_pid` (best-effort, may be null),
+`exit_code`, `duration_ms`. Payload kinds: `proc_meta` (container pid namespace,
+kernel, stated sample interval + metric definitions), `proc_sample`
+(RSS/VM/threads/fds at the stated interval — sampled, not event data),
+`proc_children` (observed child pids), `proc_exit` (exit code, thread ids),
+`meta` truncated markers. Syscall timelines are UNSUPPORTED by policy and never
+emitted.
+
+## GET /api/v1/executions/{id}
+Now also carries `profile`, `host_pid`, `memory_count`, `process_count` and the
+memory/process artifact digests.
+
+## Limits (M5 additions)
+Memory stream ≤3000 records, process stream ≤240 samples (in-container, with
+in-band truncated markers); host-side reads capped 4 MB and stored bounded
+(2000 rows/stream, checksummed, content-addressed artifacts).
+
 ## Limits
 Body ≤ 32 MB (streaming cap on raw ASGI receive); runtime 30 s; build 90 s;
 memory 256 MB; pids 64; cpus 0.5; stdout/stderr 1 MB each.

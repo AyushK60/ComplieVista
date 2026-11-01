@@ -25,7 +25,7 @@ DEFAULT_DATA_DIR = os.environ.get(
     os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data"),
 )
 
-SCHEMA_VERSION = "m2.v1"
+SCHEMA_VERSION = "m5.v1"
 IMPORT_POLICY_VERSION = "m1.github.v1"
 ANALYSIS_POLICY_VERSION = "m2.analyzer.v1"
 ANALYZER_IMAGE = os.environ.get("COMPILEVISTA_ANALYZER_IMAGE", "compilevista/analyzer:m2")

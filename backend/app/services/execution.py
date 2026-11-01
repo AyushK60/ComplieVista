@@ -31,6 +31,7 @@ from app.services.staging import jobs_root
 from app.store.db import Store, new_id, now_utc
 
 RUNTIME_IMAGE = "compilevista/runtime:m4"
+DEBUG_IMAGE = "compilevista/debug:m5"
 RUN_TIMEOUT_S = 30
 BUILD_TIMEOUT_S = 90
 STDOUT_CAP = 1024 * 1024
@@ -39,6 +40,11 @@ EVENTS_CAP = 5000
 # Defensive read cap for container-written files: the shim/harness cap their own
 # output in-band, but the orchestrator never trusts a file's size (M4QA-02/03).
 TRACE_FILE_CAP = 8 * 1024 * 1024
+# M5 observation caps: container files are capped in-harness; the orchestrator
+# additionally reads through defensive caps and stores bounded rows (M5-F).
+OBS_FILE_CAP = 4 * 1024 * 1024
+MEMORY_ROW_CAP = 2000
+PROCESS_ROW_CAP = 2000
 MAX_CONCURRENT = 1
 
 _BASE_FLAGS = [
@@ -92,6 +98,67 @@ def _parse_symbols(symbols_txt: Path) -> list[tuple[int, int, str]]:
             except (ValueError, IndexError):
                 continue
     return out
+
+
+def _store_observations(store: Store, eid: str, kind: str, path: Path,
+                        row_cap: int) -> tuple[int, str | None, bool]:
+    """Read a container-written observation file (defensively capped), store the
+    artifact and bounded, checksummed rows. Returns (rows, artifact_sha, truncated)."""
+    data, file_truncated = _read_capped(path, OBS_FILE_CAP)
+    if not data:
+        return 0, None, False
+    artifact = store.put_artifact(data)
+    lines = data.splitlines()
+    truncated = file_truncated or len(lines) > row_cap
+    seq = 0
+    for raw in lines[:row_cap]:
+        seq += 1
+        try:
+            payload = json.loads(raw)
+        except ValueError:  # JSONDecodeError and UnicodeDecodeError (M5: never
+            # let one malformed container line abort the whole execution)
+            payload = {"kind": "unparsed",
+                       "raw": raw[:300].decode("utf-8", "replace")}
+        store.execute(
+            "INSERT OR REPLACE INTO execution_observations"
+            " (execution_id, kind, seq, payload_json, sha256) VALUES (?,?,?,?,?)",
+            (eid, kind, seq, json.dumps(payload), hashlib.sha256(raw).hexdigest()))
+    return min(len(lines), row_cap), artifact, truncated
+
+
+def _store_memory_bytes(store: Store, eid: str,
+                        data: bytes) -> tuple[int, str | None, bool]:
+    """Store a merged in-memory memory-observation stream (bounded rows)."""
+    artifact = store.put_artifact(data)
+    lines = data.splitlines()
+    truncated = len(lines) > MEMORY_ROW_CAP
+    seq = 0
+    for raw in lines[:MEMORY_ROW_CAP]:
+        seq += 1
+        try:
+            payload = json.loads(raw)
+        except ValueError:
+            payload = {"kind": "unparsed",
+                       "raw": raw[:300].decode("utf-8", "replace")}
+        store.execute(
+            "INSERT OR REPLACE INTO execution_observations"
+            " (execution_id, kind, seq, payload_json, sha256) VALUES (?,?,?,?,?)",
+            (eid, "memory", seq, json.dumps(payload),
+             hashlib.sha256(raw).hexdigest()))
+    return min(len(lines), MEMORY_ROW_CAP), artifact, truncated
+
+
+def _host_pid_sampler(cname: str, stop: threading.Event) -> list[int]:
+    """Best-effort host-side PID of the container as long as it exists (M5-D:
+    distinguishes container PID namespace from host PID). Returns [pid] or []."""
+    while not stop.is_set():
+        r = subprocess.run(["docker", "inspect", "-f", "{{.State.Pid}}", cname],
+                           capture_output=True, timeout=20)
+        pid = r.stdout.decode().strip()
+        if pid.isdigit() and int(pid) > 0:
+            return [int(pid)]
+        stop.wait(0.3)
+    return []
 
 
 def _resolve_c_addr(raw: bytes, symbols: list[tuple[int, int, str]]) -> bytes:
@@ -222,8 +289,13 @@ class _ExecRunner:
                           " error_code='DOCKER_UNAVAILABLE', finished_utc=? WHERE id=?",
                           (now_utc(), eid))
             return
+        job_image = DEBUG_IMAGE if (job["profile"] or "standard") == "debug" \
+            else RUNTIME_IMAGE
+        out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", job_image],
+                             capture_output=True, timeout=30)
+        running_image = out.stdout.decode().strip() or "unavailable"
         store.execute("UPDATE executions SET status='RUNNING', started_utc=?, image_id=?"
-                      " WHERE id=?", (now_utc(), runtime_image_id(), eid))
+                      " WHERE id=?", (now_utc(), running_image, eid))
 
         job_dir = jobs_root() / f"execution-{eid[:12]}"
         src = job_dir / "src"
@@ -248,7 +320,10 @@ class _ExecRunner:
                                (eid,))["cancel_requested"]:
                 self._finish(store, eid, "CANCELLED", None)
                 return
-            if job["language"] == "c":
+            profile = job["profile"] or "standard"
+            if profile == "debug":
+                self._run_debug(store, eid, job, src, run_out, cname)
+            elif job["language"] == "c":
                 self._run_c(store, eid, job, src, build_out, run_out, cname)
             else:
                 self._run_python(store, eid, job, src, run_out, cname)
@@ -321,33 +396,58 @@ class _ExecRunner:
         store.execute("UPDATE executions SET binary_sha256=? WHERE id=?",
                       (app_sha, eid))
 
-        # Execute in the minimal runtime container.
+        # Execute in the minimal runtime container. M5: the shim additionally
+        # interposes the allocator (memory.jsonl) and samples /proc (process.jsonl).
         run_argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
                     "-e", "CV_TRACE_OUT=/out/trace.jsonl",
+                    "-e", "CV_MEM_OUT=/out/memory.jsonl",
+                    "-e", "CV_PROC_OUT=/out/process.jsonl",
                     "-v", f"{bin_dir}:/app:ro", "-v", f"{run_out}:/out",
                     RUNTIME_IMAGE, "/app/app"]
         symbol_map = _parse_symbols(build_out / "symbols.txt")
         self._execute_and_record(store, eid, run_argv, run_out, cname,
                                  symbol_map=symbol_map)
 
-    def _run_python(self, store: Store, eid: str, job, src: Path,
-                    run_out: Path, cname: str) -> None:
+    def _run_debug(self, store: Store, eid: str, job, src: Path,
+                   run_out: Path, cname: str) -> None:
+        """M5-B curated debug profile: gdb frame/variable/pointer observations for
+        allowlisted curated C fixtures only (ADR-0008). One container, no privilege
+        expansion (gdb traces its own child under cap-drop ALL / no-new-privileges)."""
+        from app.services.curated import curated_entry
+        snap = store.query_one("SELECT combined_sha256 FROM source_snapshots WHERE id=?",
+                               (job["snapshot_id"],))
+        entry = curated_entry(snap["combined_sha256"])
+        if not entry:
+            self._finish(store, eid, "BLOCKED", "curated manifest entry vanished")
+            return
         run_argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
                     "-v", f"{src}:/work:ro", "-v", f"{run_out}:/out",
-                    RUNTIME_IMAGE, "python3", "/opt/runtime/py_trace_harness.py",
-                    "--file", job["primary_file"], "--out", "/out"]
+                    DEBUG_IMAGE, "python3", "/opt/debug/c_debug_worker.py",
+                    "--file", job["primary_file"], "--out", "/out",
+                    "--bp", json.dumps(entry["breakpoints"])]
         self._execute_and_record(store, eid, run_argv, run_out, cname,
-                                 stdout_from_file=True)
+                                 stdout_from_file=False, profile="debug")
 
     def _execute_and_record(self, store: Store, eid: str, argv: list[str],
                             run_out: Path, cname: str,
                             symbol_map: list | None = None,
-                            stdout_from_file: bool = False) -> None:
+                            stdout_from_file: bool = False,
+                            profile: str = "standard") -> None:
         if store.query_one("SELECT cancel_requested FROM executions WHERE id=?",
                            (eid,))["cancel_requested"]:
             self._finish(store, eid, "CANCELLED", None)
             return
-        r = run_capped(argv, RUN_TIMEOUT_S)
+        # M5-D: best-effort host-side PID of the container while it exists.
+        pid_stop = threading.Event()
+        pid_result: list[int] = []
+        pid_thread = threading.Thread(target=lambda: pid_result.extend(
+            _host_pid_sampler(cname, pid_stop)), daemon=True)
+        pid_thread.start()
+        try:
+            r = run_capped(argv, RUN_TIMEOUT_S)
+        finally:
+            pid_stop.set()
+            pid_thread.join(timeout=20)
         if store.query_one("SELECT cancel_requested FROM executions WHERE id=?",
                            (eid,))["cancel_requested"]:
             subprocess.run(["docker", "rm", "-f", cname], capture_output=True, timeout=60)
@@ -374,6 +474,13 @@ class _ExecRunner:
                 meta_payloads.append(rec)
         n_events = self._record_events(store, eid, lines)
         trace_ref = store.put_artifact(trace_bytes) if trace_p.is_file() else None
+
+        # M5-F: bounded observation capture (memory + process streams).
+        mem_rows, mem_art, mem_trunc = self._capture_memory(
+            store, eid, run_out, profile)
+        proc_rows, proc_art, proc_trunc = _store_observations(
+            store, eid, "process", run_out / "process.jsonl", PROCESS_ROW_CAP)
+
         # Python harness redirects fd 1 to a file: read the file for stdout.
         # C binary writes to the docker pipe: use run_capped's captured bytes.
         stdout_file_trunc = stderr_file_trunc = False
@@ -392,13 +499,48 @@ class _ExecRunner:
         store.execute(
             "UPDATE executions SET status='COMPLETED', exit_code=?, stdout_sha256=?,"
             " stderr_sha256=?, trace_sha256=?, events_count=?, events_truncated=?,"
-            " stdout_truncated=?, stderr_truncated=?, finished_utc=? WHERE id=?",
+            " stdout_truncated=?, stderr_truncated=?, finished_utc=?, host_pid=?,"
+            " memory_sha256=?, process_sha256=?, memory_count=?, process_count=?"
+            " WHERE id=?",
             (r["exit_code"], stdout_art, stderr_art, trace_ref, n_events,
              int(n_events >= EVENTS_CAP or r["stdout_truncated"] or r["stderr_truncated"]
                  or trace_file_truncated or meta["trace"]),
              int(r["stdout_truncated"] or stdout_file_trunc or meta["stdout"]),
              int(r["stderr_truncated"] or stderr_file_trunc or meta["stderr"]),
-             now_utc(), eid))
+             now_utc(),
+             pid_result[0] if pid_result else None,
+             mem_art, proc_art, mem_rows, proc_rows, eid))
+        _ = (mem_trunc, proc_trunc)  # stored rows are already bounded by row caps
+
+    def _capture_memory(self, store: Store, eid: str, run_out: Path,
+                        profile: str) -> tuple[int, str | None, bool]:
+        """Store the memory observation stream; standard C runs always get the
+        honest debugger-unavailable marker first (even for curated snapshots run
+        in the standard profile — no gdb ran there). Never writes into the
+        container output dir (orchestrator only reads it)."""
+        job = store.query_one("SELECT language FROM executions WHERE id=?", (eid,))
+        p = run_out / "memory.jsonl"
+        if profile == "standard" and job and job["language"] == "c":
+            marker = {"kind": "unavailable",
+                      "topic": "c_frame_locals_and_pointer_dereferences",
+                      "observation_class": "unavailable",
+                      "reason": "debugger-based capture (gdb) runs only in the "
+                                "curated debug profile (ADR-0008); allocator "
+                                "interposition still provides real heap evidence "
+                                "for this run"}
+            pre = json.dumps(marker).encode() + b"\n"
+            data = pre + p.read_bytes() if p.is_file() else pre
+            return _store_memory_bytes(store, eid, data)
+        return _store_observations(store, eid, "memory", p, MEMORY_ROW_CAP)
+
+    def _run_python(self, store: Store, eid: str, job, src: Path,
+                    run_out: Path, cname: str) -> None:
+        run_argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
+                    "-v", f"{src}:/work:ro", "-v", f"{run_out}:/out",
+                    RUNTIME_IMAGE, "python3", "/opt/runtime/py_trace_harness.py",
+                    "--file", job["primary_file"], "--out", "/out"]
+        self._execute_and_record(store, eid, run_argv, run_out, cname,
+                                 stdout_from_file=True)
 
     def cancel(self, execution_id: str) -> str:
         job = self.store.query_one("SELECT status FROM executions WHERE id=?",
@@ -467,7 +609,8 @@ def get_execution_runner(store: Store) -> _ExecRunner:
         return _RUNNERS[key]
 
 
-def create_execution(store: Store, snapshot_id: str, target_id: str) -> dict:
+def create_execution(store: Store, snapshot_id: str, target_id: str,
+                     profile: str = "standard") -> dict:
     snap = store.query_one("SELECT * FROM source_snapshots WHERE id=?", (snapshot_id,))
     if not snap:
         raise ExecutionError("NOT_FOUND", "unknown snapshot", 404)
@@ -477,6 +620,8 @@ def create_execution(store: Store, snapshot_id: str, target_id: str) -> dict:
         raise ExecutionError("EXECUTION_ORIGIN_BLOCKED",
                              "execution of imported repository code is disabled "
                              "pending independent security review", 403)
+    if profile not in ("standard", "debug"):
+        raise ExecutionError("INVALID_PROFILE", f"unknown profile {profile!r}", 400)
     target = store.query_one("SELECT * FROM compilation_targets WHERE id=? AND snapshot_id=?",
                              (target_id, snapshot_id))
     if not target:
@@ -486,6 +631,16 @@ def create_execution(store: Store, snapshot_id: str, target_id: str) -> dict:
         raise ExecutionError("NOT_EXECUTABLE",
                              f"target status {target['status']} is not execution-eligible")
     language = "python" if target["kind"].startswith("python") else "c"
+    # M5-B (ADR-0008): the gdb debug profile is admitted ONLY for curated
+    # allowlisted C fixtures — content-hash allowlist computed from the pinned
+    # manifest, never from user input. Pasted/untrusted code: fail closed.
+    if profile == "debug":
+        from app.services.curated import curated_entry
+        if language != "c" or not curated_entry(snap["combined_sha256"]):
+            raise ExecutionError(
+                "DEBUG_PROFILE_BLOCKED",
+                "debugger capture is restricted to curated allowlisted C fixtures "
+                "(ADR-0008); pasted code keeps an explicit unavailable state", 403)
     available, reason = None, None
     from app.services.analyzer import docker_status
     available, reason = docker_status()
@@ -493,12 +648,17 @@ def create_execution(store: Store, snapshot_id: str, target_id: str) -> dict:
         eid = new_id()
         store.execute(
             "INSERT INTO executions (id, snapshot_id, target_id, language, primary_file,"
-            " status, fingerprint, source_combined_sha256, error_code, created_utc)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?)",
+            " status, fingerprint, source_combined_sha256, error_code, created_utc,"
+            " profile)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             (eid, snapshot_id, target_id, language, target["primary_file"], "BLOCKED",
-             "unavailable", snap["combined_sha256"], reason, now_utc()))
+             "unavailable", snap["combined_sha256"], reason, now_utc(), profile))
         return {"execution_id": eid, "status": "BLOCKED", "error": reason, "existed": False}
-    fp = f"{snap['combined_sha256']}:{target_id}:{runtime_image_id()}"
+    image_ref = DEBUG_IMAGE if profile == "debug" else RUNTIME_IMAGE
+    out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", image_ref],
+                         capture_output=True, timeout=30)
+    image_id = out.stdout.decode().strip() or "unavailable"
+    fp = f"{snap['combined_sha256']}:{target_id}:{image_id}:{profile}"
     existing = store.query_one(
         "SELECT id, status FROM executions WHERE fingerprint=? AND status IN"
         " ('COMPLETED','RUNNING','QUEUED') ORDER BY created_utc DESC LIMIT 1", (fp,))
@@ -507,8 +667,9 @@ def create_execution(store: Store, snapshot_id: str, target_id: str) -> dict:
     eid = new_id()
     store.execute(
         "INSERT INTO executions (id, snapshot_id, target_id, language, primary_file,"
-        " status, fingerprint, source_combined_sha256, created_utc) VALUES (?,?,?,?,?,?,?,?,?)",
+        " status, fingerprint, source_combined_sha256, created_utc, profile)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?)",
         (eid, snapshot_id, target_id, language, target["primary_file"], "QUEUED", fp,
-         snap["combined_sha256"], now_utc()))
+         snap["combined_sha256"], now_utc(), profile))
     get_execution_runner(store).enqueue(eid)
     return {"execution_id": eid, "status": "QUEUED", "existed": False}

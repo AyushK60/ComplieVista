@@ -80,6 +80,10 @@ _SCHEMA = [
     """CREATE TABLE IF NOT EXISTS snapshot_diagnostics (
         id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL, file_path TEXT NOT NULL,
         severity TEXT NOT NULL, code TEXT NOT NULL, detail TEXT NOT NULL)""",
+    """CREATE TABLE IF NOT EXISTS execution_observations (
+        execution_id TEXT NOT NULL, kind TEXT NOT NULL, seq INTEGER NOT NULL,
+        payload_json TEXT NOT NULL, sha256 TEXT NOT NULL,
+        PRIMARY KEY (execution_id, kind, seq))""",
     # --- m2.v1: analysis jobs ---
     """CREATE TABLE IF NOT EXISTS analyses (
         id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL, target_id TEXT NOT NULL,
@@ -95,6 +99,18 @@ _SCHEMA = [
         raw_artifact TEXT, stderr_artifact TEXT, truncated INTEGER DEFAULT 0,
         duration_ms INTEGER, UNIQUE (analysis_id, stage))""",
 ]
+
+
+def combined_hash(files: dict[str, bytes]) -> str:
+    """Canonical snapshot content hash (sorted sha256-name lines, M1). The curated
+    debug-profile allowlist (app.services.curated) derives from this — keep one
+    implementation."""
+    return hashlib.sha256(
+        "\n".join(
+            f"{hashlib.sha256(data).hexdigest()}  {path}"
+            for path, data in sorted(files.items())
+        ).encode()
+    ).hexdigest()
 
 
 class Store:
@@ -130,6 +146,20 @@ class Store:
                 "PRAGMA table_info(analysis_stages)").fetchall()}
             if "invocation_json" not in cols:
                 self._conn.execute("ALTER TABLE analysis_stages ADD COLUMN invocation_json TEXT")
+            # m5.v1: MemoryScope/ProcessScope evidence columns (M5-F, additive).
+            ecols = {r["name"] for r in self._conn.execute(
+                "PRAGMA table_info(executions)").fetchall()}
+            for stmt in (
+                "ALTER TABLE executions ADD COLUMN profile TEXT DEFAULT 'standard'",
+                "ALTER TABLE executions ADD COLUMN host_pid INTEGER",
+                "ALTER TABLE executions ADD COLUMN memory_sha256 TEXT",
+                "ALTER TABLE executions ADD COLUMN process_sha256 TEXT",
+                "ALTER TABLE executions ADD COLUMN memory_count INTEGER",
+                "ALTER TABLE executions ADD COLUMN process_count INTEGER",
+            ):
+                name = stmt.split("ADD COLUMN ")[1].split()[0]
+                if name not in ecols:
+                    self._conn.execute(stmt)
             self._conn.commit()
 
     # --- content-addressed artifacts -------------------------------------
@@ -169,12 +199,7 @@ class Store:
         """Create (or idempotently return) a snapshot. files: rel_path -> bytes."""
         if not files:
             raise StoreError("EMPTY_SNAPSHOT", "no acceptable source files")
-        combined = hashlib.sha256(
-            "\n".join(
-                f"{hashlib.sha256(data).hexdigest()}  {path}"
-                for path, data in sorted(files.items())
-            ).encode()
-        ).hexdigest()
+        combined = combined_hash(files)
 
         existing = self.query_one(
             "SELECT id FROM source_snapshots WHERE project_id=? AND combined_sha256=?",

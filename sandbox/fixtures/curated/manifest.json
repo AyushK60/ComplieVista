@@ -1,0 +1,16 @@
+{
+  "version": "m5.curated.v1",
+  "policy": "debug profile admitted ONLY for snapshots whose combined hash matches an entry here; pasted/untrusted code never runs under gdb (ADR-0008)",
+  "fixtures": [
+    {
+      "name": "c_pointer_array",
+      "language": "c",
+      "file": "c_pointer_array.c",
+      "filename_in_snapshot": "c_pointer_array.c",
+      "breakpoints": [
+        {"fn": "process", "inspect": ["p", "*p", "values", "values[2]"]},
+        {"fn": "main", "line": 28, "inspect": ["mid", "heap", "p", "total"]}
+      ]
+    }
+  ]
+}

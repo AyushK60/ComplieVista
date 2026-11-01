@@ -1,18 +1,17 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M4QA adversarial audit)
+Updated: 1 November 2026 (M5)
 
-## Current milestone: **M4QA — adversarial runtime/sandbox audit & surgical repair**
+## Current milestone: **M5 — Evidence-Based MemoryScope & ProcessScope**
 
-Status: **M4QA PASS on all exit gates Q1–Q6** (`docs/TEST_EVIDENCE/M4QA.md`,
-`docs/milestones/M4QA.json`, handoff `docs/HANDOFF_AFTER_M4QA.md`).
-The second-pass audit (same-agent, NOT an independent external review) reproduced a
-blocker — execution timeouts left live ghost containers — plus unbounded Python
-stdout (1.75 GB / 10 s probe) and unbounded C trace files (442 MB / 10 s), and six
-more medium/low findings; all 9 fixed surgically with 14 permanent regression/oracle
-tests. Backend: 154 passed / 0 failed / 0 skipped. E2E: M3 6/6 (incl. M4), M2 3/3,
-M1 5 journeys (1 reasoned GitHub rate-limit skip). TSC clean, Vite build OK.
-**M4QA PASS authorizes M5; M5 not started.**
+Status: **M5 PASS on all exit gates G0–G7** (`docs/TEST_EVIDENCE/M5.md`,
+`docs/milestones/M5.json`, handoff `docs/HANDOFF_AFTER_M5.md`, ADR-0008).
+MemoryScope (C allocator interposition + curated gdb profile; Python frames/
+alias/object-graph/tracemalloc/gc with redaction) and ProcessScope (container
+/proc sampling, pid namespace, children, thread ids; syscall timelines honestly
+UNAVAILABLE) integrated into the M4 replay timeline and M3 inspector.
+Backend **164/0/0**; E2E M5 4/4 (desktop+mobile), M3 6/6, M2 3/3, M1 5/5;
+TSC clean; vite build OK. **M5QA authorized on this PASS; M6 NOT STARTED.**
 
 ## What exists now (cumulative)
 
@@ -37,8 +36,9 @@ M1 5 journeys (1 reasoned GitHub rate-limit skip). TSC clean, Vite build OK.
 
 ## Next
 
-**M5 NOT STARTED — authorized by M4QA PASS (docs/milestones/M4QA.json); begin only
-with a fresh entry-gate check of git ancestry and manifests.**
+**M6 NOT STARTED.** M5QA (second-pass audit of M5) is authorized per the stage
+contract; begin any later stage only with a fresh entry-gate check of git
+ancestry and manifests.
 
 ## Active risks / quirks
 

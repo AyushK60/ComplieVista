@@ -150,3 +150,13 @@ button.cancel { background: none; color: #ff8f8f; border: 1px solid #6b3434; bor
 .event-detail p { font-family: Consolas, monospace; font-size: 0.8rem; }
 .locals { max-height: 200px; }
 button.run { background: #1f3a2f; border-color: #2f5d42; color: #b8e6cc; }
+
+/* M5: execution evidence tabs + observation sections */
+.tabs { display: flex; gap: 0.3rem; margin: 0.4rem 0; }
+.tabs button { background: #161c24; color: #9fb0c0; border: 1px solid #2c3844;
+               border-radius: 4px 4px 0 0; padding: 3px 10px; cursor: pointer; }
+.tabs button.active { color: #e8eef4; border-bottom-color: #4a78a8; }
+.memoryscope section, .processscope section { margin: 0.5rem 0; }
+.memoryscope h4, .processscope h4 { margin: 0.2rem 0; font-size: 0.82rem; }
+button.link { background: none; border: none; color: #7fb2e5; cursor: pointer;
+              padding: 0; font-size: 0.78rem; }

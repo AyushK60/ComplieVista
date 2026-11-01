@@ -209,6 +209,8 @@ export interface ExecutionJob {
   stdout_truncated: number; stderr_truncated: number;
   stdout_sha256: string | null; stderr_sha256: string | null; trace_sha256: string | null;
   duration_ms: number | null;
+  profile?: string; host_pid?: number | null;
+  memory_count?: number | null; process_count?: number | null;
   ready_for_controlled_execution: boolean; note: string;
 }
 export interface ExecutionEvent {
@@ -217,17 +219,32 @@ export interface ExecutionEvent {
 export interface ExecutionOutput {
   exit_code: number | null; stdout: string | null; stderr: string | null; truncated: boolean;
 }
+/** M5: typed observation chunks (m5.memory.v1 / m5.process.v1). */
+export interface ObservationChunk {
+  seq: number; payload: Record<string, unknown>; sha256: string;
+}
+export interface ObservationStream {
+  execution_id: string; status: string; schema: string; language: string;
+  profile: string; total: number; artifact_sha256: string | null;
+  chunks: ObservationChunk[]; count: number; kinds: string[]; next_after: number;
+  limitations: string[];
+  host_pid?: number | null; exit_code?: number | null; duration_ms?: number | null;
+}
 
 export const executions = {
-  create: (snapshot_id: string, target_id: string) =>
+  create: (snapshot_id: string, target_id: string, profile?: string) =>
     fetch("/api/v1/executions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ snapshot_id, target_id }),
+      body: JSON.stringify({ snapshot_id, target_id, profile }),
     }).then(unwrap<ExecutionRef>),
   get: (id: string) => fetch(`/api/v1/executions/${id}`).then(unwrap<ExecutionJob>),
   events: (id: string, after = 0, limit = 500) =>
     fetch(`/api/v1/executions/${id}/events?after=${after}&limit=${limit}`).then(unwrap<{events: ExecutionEvent[]}>),
   output: (id: string) => fetch(`/api/v1/executions/${id}/output`).then(unwrap<ExecutionOutput>),
   cancel: (id: string) => fetch(`/api/v1/executions/${id}/cancel`, { method: "POST" }).then(unwrap),
+  memory: (id: string, after = 0, limit = 500) =>
+    fetch(`/api/v1/executions/${id}/memory?after=${after}&limit=${limit}`).then(unwrap<ObservationStream>),
+  process: (id: string, after = 0, limit = 500) =>
+    fetch(`/api/v1/executions/${id}/process?after=${after}&limit=${limit}`).then(unwrap<ObservationStream>),
 };

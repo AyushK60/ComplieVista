@@ -93,4 +93,5 @@ def test_persistence_across_reopen(tmp_path):
     files = s2.query("SELECT rel_path, content_sha256 FROM source_files WHERE snapshot_id=?",
                      (r["snapshot_id"],))
     assert len(files) == 1
-    assert s2.query_one("SELECT value FROM meta WHERE key='schema_version'")["value"] in ("m1.v1", "m2.v1")
+    from app.core.config import SCHEMA_VERSION
+    assert s2.query_one("SELECT value FROM meta WHERE key='schema_version'")["value"] == SCHEMA_VERSION  # additive upgrade to current

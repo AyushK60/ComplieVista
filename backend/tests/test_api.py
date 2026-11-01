@@ -14,7 +14,10 @@ def test_health():
     r = client.get("/api/v1/health")
     assert r.status_code == 200
     body = r.json()
-    assert body["status"] == "ok" and body["schema_version"] == "m2.v1"  # additive schema bumps (ADR-0002/0005), M0 behavior otherwise unchanged
+    assert body["status"] == "ok"
+    # additive schema bumps (ADR-0002/0005): track the application constant
+    from app.core.config import SCHEMA_VERSION
+    assert body["schema_version"] == SCHEMA_VERSION
     assert body["python_version"].startswith("3.12")
 
 

@@ -134,5 +134,6 @@ def test_db_migrates_from_m1_v1(tmp_path):
     s1.execute("UPDATE meta SET value='m1.v1' WHERE key='schema_version'")
     s1.close()
     s2 = Store(data_dir=data)  # must not raise SCHEMA_MISMATCH
-    assert s2.query_one("SELECT value FROM meta WHERE key='schema_version'")["value"] == "m2.v1"
+    from app.core.config import SCHEMA_VERSION
+    assert s2.query_one("SELECT value FROM meta WHERE key='schema_version'")["value"] == SCHEMA_VERSION  # additive upgrade reaches the current version
     s2.query("SELECT * FROM analyses")  # m2 tables exist

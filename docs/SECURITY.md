@@ -22,6 +22,24 @@ residual risks. Nothing here weakens the README.
   endpoints. See docs/TEST_EVIDENCE/M4QA.md for reproductions (1.75 GB stdout and
   442 MB C trace in 10 s pre-repair).
 
+## Memory & process evidence (M5, ADR-0008)
+
+- Capture rides the existing restricted containers (no second executor, no new
+  privileges). C heap evidence via allocator interposition (no ptrace); Python
+  evidence via the trace harness (id()-based identities, bounded graph,
+  tracemalloc/gc); process evidence via /proc inside the container (stated
+  sample interval, capped) plus a best-effort host-side pid from the runtime.
+- **Curated gdb debug profile** (`compilevista/debug:m5`): gdb-based frame/
+  variable/pointer capture for content-hash-allowlisted curated fixtures ONLY.
+  Verified: no capability expansion needed (gdb traces its own child under
+  cap-drop ALL / no-new-privileges). Pasted/untrusted code never runs under gdb
+  (untrusted DWARF/ELF parsing is attack surface); it gets an explicit
+  `unavailable` record and 403 `DEBUG_PROFILE_BLOCKED` at admission.
+- Syscall/strace timelines: UNSUPPORTED by policy; shown as unavailable, never
+  inferred. Secret-named bindings are redacted in value previews by a documented
+  name rule. Python references are id()-based identities, not C pointers; C
+  addresses carry an ASLR instability caveat.
+
 ## Trust assumptions
 
 | Asset | Trust level |
