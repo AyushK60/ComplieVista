@@ -37,8 +37,8 @@ M2 3/3, M1 5/5; TSC clean; vite build OK. **M6QA authorized; M7 NOT STARTED.**
 
 ## Next
 
-**M6 NOT STARTED — authorized by M5QA PASS (docs/milestones/M5QA.json); begin
-only with a fresh entry-gate check of git ancestry and manifests.**
+**M7 NOT STARTED.** M6QA authorized by M6 PASS (docs/milestones/M6.json); begin
+any later stage only with a fresh entry-gate check of git ancestry and manifests.
 
 ## Active risks / quirks
 
