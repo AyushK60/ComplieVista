@@ -1,0 +1,296 @@
+{
+ "demos": [
+  {
+   "demo": "PY-01",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PY-02",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PY-03",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PY-04",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PY-05",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "C-01",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "C-02",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "C-03",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "C-04",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": false
+  },
+  {
+   "demo": "C-05",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-01-C",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-01-PY",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-02-C",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-02-PY",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-03-C",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-03-PY",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-04-C",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-04-PY",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-05-C",
+   "language": "c",
+   "stages": [
+    "Preprocessing",
+    "Token Formation",
+    "Syntax Tree",
+    "LLVM IR (-O0)",
+    "LLVM IR (-O2)",
+    "Assembly",
+    "Disassembly",
+    "Object File",
+    "Symbol Table"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  },
+  {
+   "demo": "PAIR-05-PY",
+   "language": "python",
+   "stages": [
+    "Token Formation",
+    "Syntax Tree",
+    "Code Objects",
+    "Bytecode"
+   ],
+   "console_errors": 0,
+   "explorable": true
+  }
+ ],
+ "console_errors": [],
+ "failures": []
+}

@@ -148,7 +148,7 @@ export default function GraphView({
   // Legibility floor: 11px mono at zoom 0.7 is the smallest readable size.
   // When the framed region needs less, keep it centered; when it needs more,
   // anchor on the region's top (the selected function header stays visible).
-  const MIN_READ_ZOOM = 0.7;
+  const MIN_READ_ZOOM = 0.66; // below this, 11px labels blur; near-misses prefer fitting over clipping
   const applyFrame = useCallback((ids?: Set<string>) => {
     const flow = flowRef.current;
     const nds = nodesRef.current;
@@ -694,6 +694,7 @@ export default function GraphView({
         <span><i className="lg-dot cat-expr" />expressions &amp; operators</span>
         <span><i className="lg-dot cat-name" />names</span>
         <span><i className="lg-dot cat-literal" />literals</span>
+        {payload.stage.startsWith("ir_") && <span><i className="lg-dot cat-block" />basic blocks</span>}
         {syntheticAvailable && <span><i className="lg-dot cat-synthetic" />compiler-inserted</span>}
       </div>
     </div>

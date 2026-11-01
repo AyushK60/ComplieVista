@@ -80,17 +80,18 @@ export default function MemoryPanel({ executionId, onSelectLine }: {
       ) : null}
 
       {!isC && frameSnaps.length > 0 && (
-        <section className="mem-frames">
-          <h4>Frame observations <span className="badge exact">observed</span></h4>
-          <p className="muted">{frameSnaps.length} frame snapshots were recorded
-            (at call and return). Python cannot be sampled continuously without a debugger —
-            these are the frames the cooperative tracer reported.</p>
-          <div className="framegrid">
-            {frameSnaps.slice(-8).reverse().map((f, i) => (
-              <FrameCard key={i} f={f} onSelectLine={onSelectLine} />
-            ))}
-          </div>
-        </section>
+        <>
+          <FrameLadder snaps={frameSnaps} onSelectLine={onSelectLine} />
+          <section className="mem-frames">
+            <h4>Frame observations <span className="badge exact">observed</span>
+              <span className="muted"> — most recent first; click a card to see the line</span></h4>
+            <div className="framegrid">
+              {frameSnaps.slice(-8).reverse().map((f, i) => (
+                <FrameCard key={i} f={f} onSelectLine={onSelectLine} />
+              ))}
+            </div>
+          </section>
+        </>
       )}
 
       {aliases.length > 0 && (
@@ -174,8 +175,63 @@ export default function MemoryPanel({ executionId, onSelectLine }: {
   );
 }
 
-function FrameCard({ f, onSelectLine }: { f: Record<string, unknown>; onSelectLine: (l: number) => void }) {
-  const locals = (f.locals as Array<Record<string, unknown>>) ?? [];
+/** Python frame lifetimes: one band per frame_id, spanning its first to last
+ * snapshot record — the Python analogue of the C heap ladder, built only from
+ * recorded frame_snapshot records (not sampled, not inferred). */
+function FrameLadder({ snaps, onSelectLine }: {
+  snaps: Array<Record<string, unknown>>;
+  onSelectLine: (l: number) => void;
+}) {
+  const byFrame = new Map<number, { fn: string; line: number; first: number; last: number; count: number }>();
+  for (const f of snaps) {
+    const id = Number(f.frame_id);
+    const seq = Number(f.event_seq);
+    const cur = byFrame.get(id);
+    if (!cur) byFrame.set(id, { fn: String(f.fn), line: Number(f.line ?? 0), first: seq, last: seq, count: 1 });
+    else { cur.last = Math.max(cur.last, seq); cur.count += 1; }
+  }
+  const rows = [...byFrame.entries()].sort((a, b) => a[1].first - b[1].first);
+  const maxSeq = Math.max(...rows.map(([, r]) => r.last), 1);
+  const shown = rows.slice(0, 14);
+  const deep = rows.length - shown.length;
+  const activeFrames = (seq: number) => rows.filter(([, r]) => r.first <= seq && seq <= r.last).length;
+  const peak = Math.max(...Array.from({ length: maxSeq }, (_, s) => activeFrames(s + 1)), 0);
+  return (
+    <section>
+      <h4>Frame lifetimes <span className="badge exact">observed</span>
+        <span className="muted"> — one band per recorded frame, spanning its snapshots</span></h4>
+      <div className="memscope-stats">
+        <span className="chip">{rows.length} frames</span>
+        <span className="chip">{snaps.length} snapshots</span>
+        <span className="chip">peak concurrent frames {peak}</span>
+      </div>
+      <div className="allocladder">
+        {shown.map(([id, r]) => {
+          const left = ((r.first - 1) / maxSeq) * 100;
+          const width = Math.max(((r.last - r.first + 1) / maxSeq) * 100, 1.2);
+          return (
+            <button key={id} className="alloc-row memband" onClick={() => onSelectLine(r.line)}
+                    title={`frame ${r.fn} (id ${id}) — snapshots at events ${r.first}…${r.last}`}>
+              <code className="alloc-addr" style={{ width: 110 }}>{r.fn}</code>
+              <span className="alloc-lane">
+                <span className="alloc-bar freed" style={{ marginLeft: `${left}%`, width: `${width}%` }}>
+                  {r.count} snapshot{r.count === 1 ? "" : "s"}
+                </span>
+              </span>
+              <span className="alloc-status ok">:{r.line}</span>
+            </button>
+          );
+        })}
+      </div>
+      {deep > 0 && <p className="muted">…{deep} more frames recorded (shown: first 14 by start)</p>}
+      <p className="muted">Bands span from each frame's first snapshot to its last — snapshot
+        sequence, not wall-clock time. Python frames cannot be sampled continuously without a
+        debugger; these are the observations the cooperative tracer reported.</p>
+    </section>
+  );
+}
+
+function FrameCard({ f, onSelectLine }: { f: Record<string, unknown>; onSelectLine: (l: number) => void }) {  const locals = (f.locals as Array<Record<string, unknown>>) ?? [];
   return (
     <button className="framecard panel"
             onClick={() => onSelectLine(Number(f.line))}>

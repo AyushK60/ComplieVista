@@ -358,28 +358,38 @@ export default function DemoLibrary() {
 
       <section className="dl-errors">
         <h2>Error Microscope <span className="muted">— real diagnostic fixtures, not part of the 20</span></h2>
-        <p className="muted">Genuine clang/CPython diagnostics: syntax, semantic, link and runtime errors. See exactly how each tool explains a broken program.</p>
+        <p className="muted">Genuine clang/CPython diagnostics: syntax, semantic, link and runtime errors. Each card shows
+          <b> where in the journey the error is detected</b> — before the program ever runs, or during it.</p>
         <div className="errgrid">
-          {(fixtures.data ?? []).map((f) => (
-            <div key={f.id} className="errcard panel">
-              <div className="fc-head">
-                <span className={`badge ${f.kind === "runtime" || f.kind === "link" ? "blocked" : "partial"}`}>{f.kind}</span>
-                <code>{f.id}</code>
-                <span className="chip">{f.language}</span>
+          {(fixtures.data ?? []).map((f) => {
+            const phase = f.kind === "runtime"
+              ? { label: "detected during execution", cls: "runtime" }
+              : f.kind === "link"
+                ? { label: "detected at link time (after compilation)", cls: "link" }
+                : { label: "detected before execution (compiler front-end)", cls: "compile" };
+            return (
+              <div key={f.id} className="errcard panel">
+                <div className="fc-head">
+                  <span className={`badge ${f.kind === "runtime" || f.kind === "link" ? "blocked" : "partial"}`}>{f.kind}</span>
+                  <code>{f.id}</code>
+                  <span className="chip">{f.language}</span>
+                  <span className="spacer" />
+                  <span className={`badge ${phase.cls === "compile" ? "derived" : "blocked"}`}>{phase.label}</span>
+                </div>
+                <button className="btn" disabled={busy === f.id} onClick={async () => {
+                  setBusy(f.id);
+                  try {
+                    const r = await errorFixtures.run(f.id);
+                    setErrDiag((prev) => ({ ...prev, [f.id]: r.diagnostic ?? "(no diagnostic)" }));
+                  } catch (e) {
+                    setErrDiag((prev) => ({ ...prev, [f.id]: String(e) }));
+                  }
+                  setBusy(null);
+                }}>Reproduce the diagnostic</button>
+                {errDiag[f.id] && <pre className="excerpt">{errDiag[f.id]}</pre>}
               </div>
-              <button className="btn" disabled={busy === f.id} onClick={async () => {
-                setBusy(f.id);
-                try {
-                  const r = await errorFixtures.run(f.id);
-                  setErrDiag((prev) => ({ ...prev, [f.id]: r.diagnostic ?? "(no diagnostic)" }));
-                } catch (e) {
-                  setErrDiag((prev) => ({ ...prev, [f.id]: String(e) }));
-                }
-                setBusy(null);
-              }}>Reproduce the diagnostic</button>
-              {errDiag[f.id] && <pre className="excerpt">{errDiag[f.id]}</pre>}
-            </div>
-          ))}
+            );
+          })}
           {!fixtures.loading && fixtures.error && !fixtures.data && (
             <p className="err" role="alert">
               Error fixtures could not be loaded: {fixtures.error}{" "}

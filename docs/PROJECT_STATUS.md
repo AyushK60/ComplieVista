@@ -1,20 +1,38 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M8 Part 2 — the compiler visualization engine)
+Updated: 1 November 2026 (M8 Part 3 — execution, systems, comparison; whole-product verification)
 
-## Current milestone: **M8 — frontend recovery + visualization engine**
+## Current milestone: **M8 complete — awaiting M9 independent audit**
 
-Status: **M8 Part 2 IMPLEMENTED and browser-verified.** Revision 2 (porcelain
-design system) was delivered earlier today; Part 2 rebuilt the compiler
-visualization engine on top of it: tidy-tree AST layout with readable default
-framing and function-subtree focus, two-way source↔graph synchronization,
-guided AST + bytecode journeys, IR basic-block instructions (backend extraction,
-tested), phase-grouped pipeline navigator, side-by-side optimization diff, and
-full-screen stage exploration. Evidence: `docs/TEST_EVIDENCE/M8.md` (Part-2
-section), `docs/TEST_EVIDENCE/m8b/` (screenshots + metrics.json), committed
-Playwright E2E `e2e/m8b_journeys.py` (ALL CHECKS PASSED, zero console errors,
-six required programs at two desktop sizes + mobile fallback). M9 independent
-audit NOT started.
+Status: **M8 Parts 1–3 IMPLEMENTED and browser-verified.** Part 3 completed the
+observatory: the Execution Observatory (call structure with recorded arguments
+and returns, call detail with ancestry and jump-to-return, stack scene, kind
+filters, guided execution story), MemoryScope frame-lifetime ladder, sampled
+ProcessScope lanes, the Dual-Language Observatory (independent pipelines, no
+equivalent stage, side-by-side sources, per-concept difference notes), Error
+Microscope phase labels, and whole-product verification: all 20 demos swept in
+a real browser with every available stage rendering, zero console errors.
+Evidence: `docs/TEST_EVIDENCE/M8.md` (Part 1/2/3 sections),
+`docs/TEST_EVIDENCE/m8{,b,c}/` (screenshots + metrics + report.json),
+`docs/RELEASE_REPORT.md`, committed E2E `e2e/m8{,b,c}_journeys.py` (all green).
+
+What Part 3 changed (frontend only):
+- **Execution Observatory**: call cards carry recorded arguments + return
+  values; ×N aggregation shows the varying argument range; call detail panel
+  (ancestry, arguments, return, event span, jump-to-return); stack scene with
+  connector rails; kind filters + filtered event navigation; guided 6-step
+  execution story driving the canvas. All values from the recorded trace.
+- **MemoryScope**: Python frame-lifetime ladder (per-frame bands from real
+  frame_snapshot records; peak concurrent frames derived, e.g. 13 on PY-03).
+- **ProcessScope**: step-drawn sampled lanes (no implied continuous
+  measurement), exit marker.
+- **Dual-Language Observatory**: replaced the two-result-card compare with two
+  independent pipeline chains, an explicit no-equivalent-stage marker,
+  side-by-side sources, honest per-concept difference notes, observatory
+  deep-links for both sides.
+- **Error Microscope**: phase-of-detection labels (front-end / link / runtime).
+- **Framing fixes**: CSS/layout node width mismatch removed; legibility floor
+  tuned so near-miss CFGs fit instead of clipping.
 
 What Part 2 changed (frontend, except one tested backend extraction):
 - **Layout engine**: tidy tree for syntax trees (was: unrelated layer columns),

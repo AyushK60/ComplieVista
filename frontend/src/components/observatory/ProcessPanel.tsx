@@ -62,6 +62,16 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
       samples.map((s, i) => `L ${x(i)} ${yRss(s.rss_kb ?? 0)}`).join(" ") +
       ` L ${x(samples.length - 1)} ${H - pad} Z`
     : "";
+  // step path: each sample holds its value until the next — drawn as steps, not
+  // smooth interpolation, because the intermediate values were NOT observed
+  const stepPath = (get: (s: Record<string, number>) => number) =>
+    samples.length
+      ? samples.map((s, i) => {
+          const px = x(i), py = get(s);
+          const nx = i + 1 < samples.length ? x(i + 1) : x(i);
+          return `${i === 0 ? `M ${px} ${py}` : `L ${px} ${py}`} L ${nx} ${py}`;
+        }).join(" ")
+      : "";
 
   return (
     <div className="proscope" role="region" aria-label="ProcessScope">
@@ -92,14 +102,20 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
                     y2={pad + g * (H - pad * 2)} className="gridline" />
             ))}
             <path d={areaPath} fill="url(#rssgrad)" stroke="none" />
-            <polyline fill="none" className="rssline"
-                      points={samples.map((s, i) => `${x(i)},${yRss(s.rss_kb ?? 0)}`).join(" ")} />
-            <polyline fill="none" className="threadline"
-                      points={samples.map((s, i) =>
-                        `${x(i)},${H - pad - ((s.threads ?? 0) / maxThreads) * (H - pad * 2)}`).join(" ")} />
-            <polyline fill="none" className="fdline"
-                      points={samples.map((s, i) =>
-                        `${x(i)},${H - pad - ((s.fds ?? 0) / maxFd) * (H - pad * 2)}`).join(" ")} />
+            <path fill="none" className="rssline" d={stepPath((s) => yRss(s.rss_kb ?? 0))} />
+            {samples.map((s, i) => (
+              <circle key={i} cx={x(i)} cy={yRss(s.rss_kb ?? 0)} r={2.2}
+                      className="sampledot" />
+            ))}
+            <path fill="none" className="threadline" d={stepPath((s) =>
+              H - pad - ((s.threads ?? 0) / maxThreads) * (H - pad * 2))} />
+            <path fill="none" className="fdline" d={stepPath((s) =>
+              H - pad - ((s.fds ?? 0) / maxFd) * (H - pad * 2))} />
+            {exit && (
+              <line x1={W - pad} x2={W - pad} y1={pad - 8} y2={H - pad}
+                    stroke="rgba(176, 69, 59, 0.5)" strokeDasharray="4 3"
+                    aria-label={`exit ${String(stream.exit_code ?? "?")} at ${String(stream.duration_ms ?? "?")} ms`} />
+            )}
             <text x={pad} y={16} className="axislabel">RSS max {maxRss} kB</text>
             <text x={W - pad} y={16} textAnchor="end" className="axislabel">
               threads ≤{maxThreads} · fds ≤{maxFd}
@@ -121,12 +137,15 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
         <section>
           <h4>Observed child processes <span className="badge exact">observed</span></h4>
           <div className="aliaswrap">
-            {children.slice(0, 6).map((c, i) => (
-              <span key={i} className="alias-chip">
-                t≈{String(c.payload.t_ms ?? "?")} ms · pids {(c.payload.pids as number[]).join(", ")}
-                <span className="muted"> · {String(c.payload.observed ?? "during run")}</span>
-              </span>
-            ))}
+            {children.slice(0, 6).map((c, i) => {
+              const pids = (c.payload.pids as number[]) ?? [];
+              return (
+                <span key={i} className="alias-chip">
+                  t≈{String(c.payload.t_ms ?? "?")} ms · {pids.length ? `pids ${pids.join(", ")}` : "no child pids recorded"}
+                  <span className="muted"> · {String(c.payload.observed ?? "during run")}</span>
+                </span>
+              );
+            })}
           </div>
         </section>
       )}
