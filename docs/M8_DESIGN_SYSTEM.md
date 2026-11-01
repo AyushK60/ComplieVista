@@ -1,106 +1,158 @@
-# M8 Design System — "Computational Atlas"
+# CompileVista Design System — "The Living Compiler"
 
-Status: M8 visual redesign (Project Phoenix), Phase A. This document is the single
-source of truth for the visual language. It constrains every M8 surface: landing,
-observatory workspace, demo library, compare, error microscope.
+Status: M8 visual recovery, revision 2 (replaces the rejected Project Phoenix
+"Computational Atlas" midnight theme — see git history for revision 1).
 
-## 1. Identity
+**Porcelain Instrument × Ink Canvas × Scientific Precision**
 
-**CompileVista — Computational Atlas.** A scientific computational observatory:
-immersive dark canvases for the machine's data, precise ivory editorial surfaces
-for human explanation, restrained luminous accents for semantics. Premium, calm,
-technically credible. No developer-dashboard gray, no decorative glow.
+This document is the single source of truth for the visual language. It
+constrains every surface: landing, observatory workspace, demo library,
+compare, error microscope. Implementation: `frontend/src/styles/tokens.css`.
 
-## 2. Foundations (implementation: `frontend/src/styles/tokens.css`)
+## 1. Product identity
 
-### 2.1 Color
+CompileVista is a **precision instrument for watching code transform**. The
+metaphor carried through every surface: a **porcelain instrument** (calm,
+warm, light, precisely machined chrome) into which **ink screens** are set
+(deep, quiet, high-contrast canvases where the machine's artifacts are
+shown). Nothing glows, nothing is decorative. Color exists only to explain
+concepts, selection and relationships. The tone is a beautifully printed
+lab notebook next to an oscilloscope — not a developer dashboard.
 
-Dark canvas (immersive surfaces — canvas, docks, visualizations):
+The rejected direction (and why): a midnight-blue/purple/cyan dashboard with
+random alternation between black and ivory page sections, gradient glow, and
+giant rounded panels. All of that is banned.
 
-| Token | Value | Use |
+## 2. The two-surface rule (the core compositional law)
+
+1. **Porcelain** (`#F6F5F0` page, `#FCFBF8` surfaces) is the *page*: chrome,
+   navigation, headings, explanatory text, tables, controls, docks.
+2. **Ink** (`#1D292F` family) is the *screen inside the instrument*: token
+   formation, graphs, bytecode lanes, hero screen, demo specimens, memory
+   lanes. Ink **always appears inside a framed instrument bezel** (porcelain
+   border, labeled header), never as a full-page background.
+
+A page is therefore never "a black section followed by a white section" —
+it is one continuous porcelain composition with instruments set into it.
+
+## 3. Surface hierarchy
+
+| Tier | Token | Use |
 |---|---|---|
-| `--bg` | `#070a16` | app background (deep midnight indigo) |
-| `--bg-raised` | `#0d1226` | raised panels, docks |
-| `--bg-panel` | `#111731` | cards, canvases |
-| `--bg-inset` | `#0a0e1e` | code surfaces, wells |
-| `--line` | `rgba(148,163,255,.14)` | hairline borders |
-| `--line-strong` | `rgba(148,163,255,.28)` | emphasized borders |
-| `--ink` | `#e8ecff` | primary text |
-| `--ink-2` | `#b7bfe0` | secondary text |
-| `--ink-3` | `#7d87ad` | muted text |
+| Page | `--bg #F6F5F0` | body background |
+| Surface | `--bg-raised #FCFBF8` | cards, panels, docks |
+| Well | `--bg-inset #EFEEE7` | inputs, quiet code wells on porcelain |
+| Hairline | `--line / --line-strong` | 1px borders (ink-tinted alpha) |
+| Ink screen | `--canvas #1D292F` | visualization canvases |
+| Ink raised | `--canvas-raised #24333B` | cards/nodes on ink |
+| Ink well | `--canvas-inset #162025` | deepest layer of a screen |
 
-Ivory editorial surface (explanatory chapters, guided narration):
+## 4. Color system
 
-| Token | Value |
-|---|---|
-| `--ivory` | `#f4f0e6` |
-| `--ivory-ink` | `#1d2233` |
-| `--ivory-ink-2` | `#5a607a` |
+Neutrals are derived from the ink hue (`#1D292F`), so borders and muted text
+sit naturally on porcelain.
 
-Semantic accents (used sparingly, consistently meaning the same thing everywhere):
+Semantic accents — each means exactly one thing everywhere:
 
-| Token | Meaning |
-|---|---|
-| `--cyan #67e8f9` | lexical / text-derived artifacts, interactive highlights |
-| `--violet #a78bfa` | structure (AST, code objects), primary action glow |
-| `--mint #6ee7b7` | success, verified/EXACT provenance |
-| `--coral #fb7185` | runtime execution, errors, destructors |
-| `--amber #fbbf24` | caution, DERIVED provenance, sampled data |
+| Token | Value | Meaning |
+|---|---|---|
+| `--teal #166D68` | primary | interactive elements, links, active state, **identifiers/names** |
+| `--clay #C77950` | warm | **runtime/execution**, numbers, sampled data, DERIVED provenance |
+| `--plum #84719B` | structural | **structure** (AST nodes, keywords, code objects) |
+| `--moss #56794F` | verified | **strings/literals**, EXACT provenance, success |
+| `--crimson #B0453B` | alert | errors, destructive/runtime-hot, BLOCKED |
 
-Honesty colors (never decorative): `EXACT` → mint, `DERIVED` → amber,
-`UNAVAILABLE`/`BLOCKED` → dim gray with explanation. These map directly to the
-backend `mapping_confidence` / `availability` enums.
+Light variants (`--teal-l`, `--clay-l`, `--plum-l`, `--moss-l`, `--crimson-l`)
+are the same hues lifted for contrast **on ink screens**. Dim tints
+(`--teal-dim` etc.) are 10–13% alpha washes for backgrounds. Accent colors are
+never used as large fills; they color text, 1px borders, small chips and thin
+indicators.
 
-### 2.2 Typography
+Honesty mapping (maps to backend enums, never decorative):
+`EXACT` → moss · `DERIVED`/`APPROXIMATE` → clay · `UNAVAILABLE`/`BLOCKED` →
+dim gray + explained empty state.
 
-- UI: **Inter Variable** (`@fontsource-variable/inter`), system fallbacks.
-- Code: **JetBrains Mono** (`@fontsource/jetbrains-mono`), monospace fallbacks.
-- Display scale: hero clamp(2.6rem→4.5rem) tight (−0.03em); section titles
-  clamp(1.8rem→2.6rem); body 15–16px/1.6. Numeric/technical metadata always mono.
+Token categories (lexical visualization): keyword → plum · identifier → teal ·
+number → clay · string → moss · operator/punctuation → ink-2 (quiet by
+design) · layout tokens (INDENT/DEDENT/NEWLINE) → ghost style.
 
-### 2.3 Space, radius, depth, motion
+## 5. Typography
 
-- Space scale 4px base; panel padding 16/20/28; section rhythm 96–140px on landing.
-- Radii: `--r-s 8px` (chips), `--r-m 12px` (cards), `--r-l 18px` (panels).
-- Elevation via layered shadow tokens (`--shadow-1/2`), subtle; plus 1px hairlines.
-- Motion: `--t-fast 140ms`, `--t-med 260ms`, `--t-slow 480ms`, easing
-  `cubic-bezier(.22,.61,.21,1)`. All transitions honor `prefers-reduced-motion`
-  (animation/transition durations collapse to near-zero via the global media rule).
+- **Display: Fraunces** (variable serif) — landing headline, chapter titles,
+  page titles. Gives the product its printed-lab-notebook voice.
+- **UI: Inter Variable** — body, controls, docks.
+- **Code: JetBrains Mono** — all source, tokens, offsets, digests, metadata.
 
-## 3. Experience modes
+Scale: hero clamp(2.7rem→4.3rem) tight; section titles clamp(1.7rem→2.5rem);
+body 15–16px/1.65; small labels 12–13px; technical metadata always mono
+10.5–12.5px. Eyebrow labels: mono, uppercase, 0.14em tracking, teal.
 
-`<html data-mode="explore|technical">`, persisted in `localStorage`
-(`cv.mode`), toggled from the top bar. Explore hides technical provenance rows,
-raw excerpts and dense tables (`.tech-only { display:none }` in explore);
-Technical reveals them. Selected program/stage/selection/execution persist across
-the switch — mode is presentation-only state.
+## 6. Source-code typography
 
-## 4. Honesty rules baked into the UI kit
+Read-only source and token canvases use JetBrains Mono 13px/1.7 minimum
+(12.5px in the source dock), ligatures off, `white-space: pre` — whitespace is
+data. Line numbers are 10.5px, right-aligned, muted, non-selectable.
 
-Every visualization component must render, for the data it shows:
+## 7. Graph node styles (Syntax Tree / IR / object graph)
 
-1. a provenance line (tool, `mapping_confidence`, artifact digest) in Technical mode;
-2. an explicit `EXACT`/`DERIVED`/`UNAVAILABLE` badge on derived structures (CFG
-   edges, block inventories);
-3. an *explained empty state* (`<Unavailable note>`) — never a blank panel —
-   when the backend marks a stage unavailable/blocked.
+Ink screen; nodes are `--canvas-raised` cards with 1px category-colored
+borders (structure → plum, lexical → teal, runtime → crimson, unavailable →
+dashed gray). Labels mono 11px. Selection = 2px teal ring. Dimming (search
+focus) = opacity 0.28. Edges: 1.4px strokes at 0.5–0.8 alpha in the hue of
+their source category; animated draw-in on landing previews only.
 
-No component may invent linkage. Edges/positions come from API records only.
+## 8. Spacing, radii, density
 
-## 5. Layout system
+- 4px base grid; panel padding 16/20/28; landing section rhythm 96–128px.
+- **Radii are deliberately restrained** (anti "giant rounded rectangle"):
+  `--r-s 6px` chips/inputs · `--r-m 10px` cards · `--r-l 14px` large panels ·
+  instrument bezels 16px. No radius above 16px anywhere.
+- Density: Explore mode is spacious (larger paddings, short labels);
+  Technical mode compacts (`html[data-mode="technical"]` reduces panel
+  padding and reveals provenance rows, digests, raw excerpts).
 
-- **Landing**: full-bleed scroll narrative; hero (dark) → alternating ivory/dark
-  chapters; max-width 1180px content column; sticky chapter margins allowed.
-- **Observatory workspace**: CSS grid
-  `source-dock 380px | canvas 1fr | inspector 320px` with the journey navigator
-  as a rail above the canvas; execution dock slides over the bottom of the
-  canvas region. Collapses to stacked single column < 1100px.
-- **Demo library**: grouped gallery (Python-only / C-only / Pairs), concept-tag
-  filter chips, detail overlay with guided story levels.
+## 9. Motion principles
 
-## 6. Accessibility
+Motion is **explanatory, never decorative**: a transition may only show a
+transformation the compiler actually performs (text → tokens → tree) or a
+change of selection. Durations: `--t-fast 140ms` (hover/press), `--t-med
+260ms` (state change), `--t-slow 480ms` (canvas reveals); easing
+`cubic-bezier(.22,.61,.21,1)`. Landing hero cycles through its five phases on
+a labeled timer (conceptual, on-screen labeled as such). No parallax, no
+scroll hijacking, no glow pulses. `prefers-reduced-motion: reduce` collapses
+all animation/transition durations globally and the hero jumps to its final
+phase.
 
-Keyboard focus visible on every interactive element (`:focus-visible` rings);
-interactive nodes in canvases are buttons or `role=button`+tabindex; color never
-the sole carrier of meaning (paired with labels/badges); reduced-motion honored;
-contrast ≥ 4.5:1 for body text on both dark and ivory surfaces.
+## 10. Navigation behavior
+
+Sticky porcelain top bar, hairline-separated, with mono brand mark, plain
+text links (active = ink text + hairline underline accent), and the
+Explore/Technical mode switch on the right. The observatory keeps its own
+Journey Navigator rail above the canvas; mode, program, stage, selection and
+execution survive navigation (persisted in URL/localStorage).
+
+## 11. Responsive behavior
+
+- Landing: hero collapses to one column < 1080px; chapters stack; feature
+  rows 2-col < 1080px, 1-col < 720px.
+- Observatory: 3-column grid `minmax(330px,400px) | 1fr | minmax(280px,330px)`
+  ≥ 1180px; below that, stacks to one column with bounded dock heights.
+- Demo library: auto-fill card grid, 1-col < 720px.
+- Mobile (390px): everything single column; canvases keep horizontal scroll
+  for wide artifacts; no fixed-width element exceeds the viewport.
+
+## 12. Accessibility
+
+`prefers-reduced-motion` honored globally; `:focus-visible` 2px teal ring on
+every interactive element; interactive graph nodes are buttons; color never
+the sole carrier of meaning (paired with labels/badges/text); body text
+contrast ≥ 4.5:1 on porcelain and on ink (ink-screen text uses the light
+variants); canvases expose `role="list"`/`aria-label` structure.
+
+## 13. Explore vs Technical mode
+
+One website, two densities — never two designs. `html[data-mode]` +
+`.tech-only`/`.explore-only` classes. Explore hides provenance rows, digests,
+raw excerpts and dense tables; Technical reveals them and compacts spacing.
+Mode is presentation-only: program, stage, selection, execution and scroll
+context are untouched by the switch.

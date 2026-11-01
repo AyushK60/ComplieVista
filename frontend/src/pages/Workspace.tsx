@@ -10,6 +10,7 @@ import StageCanvas from "../components/observatory/StageCanvas";
 import Inspector from "../components/observatory/Inspector";
 import ExecutionDock from "../components/observatory/ExecutionDock";
 import OptimizationExplorer from "../components/observatory/OptimizationExplorer";
+import { SourceSpan } from "../components/observatory/TokenFormation";
 import { Selection } from "../components/observatory/types";
 
 /**
@@ -67,7 +68,16 @@ export default function Workspace() {
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [demoMeta, setDemoMeta] = useState<string | null>(null);
   const [optPair, setOptPair] = useState<{ snapshotId: string; targetId: string } | null>(null);
+  const [hoverSpan, setHoverSpan] = useState<SourceSpan | null>(null);
+  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [canvasFull, setCanvasFull] = useState(false);
   const stageSeqRef = useRef(0);
+
+  // full-screen exploration locks page scroll
+  useEffect(() => {
+    document.body.classList.toggle("fs-lock", canvasFull);
+    return () => document.body.classList.remove("fs-lock");
+  }, [canvasFull]);
 
   const showLine = useCallback((line: number | null, isLinked = true) => {
     setHighlightLine(line);
@@ -376,10 +386,10 @@ export default function Workspace() {
       )}
 
       {(job?.status === "COMPLETED" || (executionId && !analysisId)) && (
-        <div className="obs-grid">
+        <div className={"obs-grid" + (inspectorOpen ? "" : " insp-collapsed")}>
           <div className="obs-left">
             <SourceDock text={sourceText} path={selected?.rel_path ?? "?"} language={lang}
-                        activeLine={highlightLine} linked={linked}
+                        activeLine={highlightLine} linked={linked} activeSpan={hoverSpan}
                         onSelectLine={(l) => showLine(l, false)} />
             <div className="obs-filemeta muted tech-only">
               sha256 <code>{selected?.content_sha256.slice(0, 32)}…</code> · encoding <code>{selected?.encoding}</code>
@@ -393,10 +403,18 @@ export default function Workspace() {
                                 onSelectStage={(s) => setStageName(s)} />
             )}
             {stageData ? (
-              <div className="obs-canvas panel">
+              <div className={"obs-canvas panel" + (canvasFull ? " fullscreen" : "")}>
+                <button className={"btn ghost fs-toggle" + (canvasFull ? " fs-exit" : "")}
+                        onClick={() => setCanvasFull((v) => !v)}
+                        title={canvasFull ? "exit full-screen exploration" : "expand the canvas to full screen"}
+                        aria-pressed={canvasFull}>
+                  {canvasFull ? "✕ exit focus" : "⤢ focus"}
+                </button>
                 <StageCanvas analysisId={analysisId!} stageData={stageData} sourceText={sourceText}
                              language={lang} onSelect={setSelection}
-                             onSelectLine={(l) => showLine(l, true)} activeLine={highlightLine} />
+                             onSelectLine={(l) => showLine(l, true)} activeLine={highlightLine}
+                             onHoverSpan={setHoverSpan} guided={guided}
+                             onNavigateStage={(st) => setStageName(st)} />
               </div>
             ) : job?.status === "COMPLETED" ? (
               <div className="obs-canvas panel canvas-loading">
@@ -419,10 +437,16 @@ export default function Workspace() {
             )}
           </div>
 
-          <div className="obs-right">
-            <Inspector selection={selection} onClose={() => setSelection(null)}
-                       onShowSource={(l) => showLine(l, true)} />
-          </div>
+          {inspectorOpen ? (
+            <div className="obs-right">
+              <Inspector selection={selection} onClose={() => setInspectorOpen(false)}
+                         onShowSource={(l) => showLine(l, true)} />
+            </div>
+          ) : (
+            <div className="obs-right-rail">
+              <button onClick={() => setInspectorOpen(true)}>contextual inspector</button>
+            </div>
+          )}
         </div>
       )}
     </main>

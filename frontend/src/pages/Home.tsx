@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { api, Capabilities, Health } from "../api";
 
 /**
- * M8 landing page — the public presentation of the product.
- * Hero: conceptual, choreographed source→tokens→AST→bytecode→execution loop
- * (educational only; never claims measured compiler timing). Chapters tell the
- * story; system diagnostics live in the footer, not the headline.
+ * CompileVista landing — "The Living Compiler" (porcelain revision).
+ * One continuous porcelain composition; every machine artifact lives on an
+ * ink screen set into an instrument bezel. Hero: conceptual, choreographed
+ * source→tokens→AST→bytecode→execution loop (educational only; never claims
+ * measured compiler timing). System diagnostics live in the footer.
  */
 
 type Phase = 0 | 1 | 2 | 3 | 4;
@@ -54,73 +55,91 @@ function HeroVisual() {
   return (
     <div className="hero-stage" role="img"
          aria-label="Conceptual animation: source code separates into tokens, forms a syntax tree, compiles to bytecode, then executes">
-      <div className="hero-frame panel">
-        <div className="hero-frame-h">
-          <span className="dot" /><span className="dot" /><span className="dot" />
-          <span className="hero-frame-title">total_demo.py — conceptual view</span>
-          <span className={`hero-phase p${phase}`}>{PHASE_LABELS[phase]}</span>
+      <div className="hero-bezel bezel">
+        <div className="bezel-h">
+          <span>the living compiler</span>
+          <span className="spacer" />
+          <span className="explore-only">watch the whole journey</span>
         </div>
+        <div className="hero-frame screen">
+          <div className="hero-frame-h">
+            <span className="dot" /><span className="dot" /><span className="dot" />
+            <span className="hero-frame-title">total_demo.py — conceptual view</span>
+            <span className={`hero-phase p${phase}`}>{PHASE_LABELS[phase]}</span>
+          </div>
 
-        {/* phase 0: source */}
-        <pre className={"hero-src" + (phase === 0 ? " on" : "")} aria-hidden>
-          {HERO_LINES.map((l, i) => (
-            <div className="hl" key={i}>
-              <span className="ln">{i + 1}</span>
-              {l.map((seg, j) => <span key={j}>{seg}</span>)}
+          {/* phase 0: source */}
+          <pre className={"hero-src" + (phase === 0 ? " on" : "")} aria-hidden>
+            {HERO_LINES.map((l, i) => (
+              <div className="hl" key={i}>
+                <span className="ln">{i + 1}</span>
+                {l.map((seg, j) => <span key={j}>{seg}</span>)}
+              </div>
+            ))}
+          </pre>
+
+          {/* phase 1: tokens */}
+          <div className={"hero-tokens" + (phase === 1 ? " on" : "")} aria-hidden>
+            {HERO_TOKENS.map((tk, i) => (
+              <span key={i} className={`hero-token ${tk.c}`} style={{ animationDelay: `${i * 45}ms` }}>
+                {tk.t}
+              </span>
+            ))}
+          </div>
+
+          {/* phase 2: AST */}
+          <svg className={"hero-ast" + (phase === 2 ? " on" : "")} viewBox="0 0 460 170" aria-hidden>
+            <g className="ast-edge"><path d="M230 30 L120 85" /><path d="M230 30 L340 85" /><path d="M230 30 L230 85" /></g>
+            <g className="ast-edge"><path d="M120 85 L70 140" /><path d="M120 85 L170 140" /><path d="M340 85 L300 140" /><path d="M340 85 L390 140" /></g>
+            <g className="ast-node">
+              <rect x="196" y="8" width="68" height="26" rx="7" /><text x="230" y="25">Module</text>
+              <rect x="86" y="63" width="68" height="26" rx="7" /><text x="120" y="80">For</text>
+              <rect x="196" y="63" width="68" height="26" rx="7" /><text x="230" y="80">Assign</text>
+              <rect x="306" y="63" width="68" height="26" rx="7" /><text x="340" y="80">Expr</text>
+              <rect x="36" y="118" width="68" height="26" rx="7" /><text x="70" y="135">Name</text>
+              <rect x="136" y="118" width="68" height="26" rx="7" /><text x="170" y="135">Call</text>
+              <rect x="266" y="118" width="68" height="26" rx="7" /><text x="300" y="135">Name</text>
+              <rect x="356" y="118" width="68" height="26" rx="7" /><text x="390" y="135">Call</text>
+            </g>
+          </svg>
+
+          {/* phase 3: bytecode lanes */}
+          <div className={"hero-bc" + (phase === 3 ? " on" : "")} aria-hidden>
+            <div className="bc-co">code object <b>“&lt;module&gt;”</b> · CPython 3.12</div>
+            <div className="bc-lanes">
+              {HERO_BC.map((op, i) => (
+                <span key={i} className="bc-op" style={{ animationDelay: `${i * 30}ms` }}>{op}</span>
+              ))}
             </div>
-          ))}
-        </pre>
+          </div>
 
-        {/* phase 1: tokens */}
-        <div className={"hero-tokens" + (phase === 1 ? " on" : "")} aria-hidden>
-          {HERO_TOKENS.map((tk, i) => (
-            <span key={i} className={`hero-token ${tk.c}`} style={{ animationDelay: `${i * 45}ms` }}>
-              {tk.t}
-            </span>
-          ))}
-        </div>
+          {/* phase 4: execution */}
+          <div className={"hero-run" + (phase === 4 ? " on" : "")} aria-hidden>
+            <div className="run-frames">
+              <div className="run-frame main">&lt;module&gt;</div>
+              <div className="run-cursor" />
+            </div>
+            <div className="run-out"><span className="run-caret" />stdout: <b>3</b></div>
+          </div>
 
-        {/* phase 2: AST */}
-        <svg className={"hero-ast" + (phase === 2 ? " on" : "")} viewBox="0 0 460 170" aria-hidden>
-          <g className="ast-edge"><path d="M230 30 L120 85" /><path d="M230 30 L340 85" /><path d="M230 30 L230 85" /></g>
-          <g className="ast-edge"><path d="M120 85 L70 140" /><path d="M120 85 L170 140" /><path d="M340 85 L300 140" /><path d="M340 85 L390 140" /></g>
-          <g className="ast-node">
-            <rect x="196" y="8" width="68" height="26" rx="7" /><text x="230" y="25">Module</text>
-            <rect x="86" y="63" width="68" height="26" rx="7" /><text x="120" y="80">For</text>
-            <rect x="196" y="63" width="68" height="26" rx="7" /><text x="230" y="80">Assign</text>
-            <rect x="306" y="63" width="68" height="26" rx="7" /><text x="340" y="80">Expr</text>
-            <rect x="36" y="118" width="68" height="26" rx="7" /><text x="70" y="135">Name</text>
-            <rect x="136" y="118" width="68" height="26" rx="7" /><text x="170" y="135">Call</text>
-            <rect x="266" y="118" width="68" height="26" rx="7" /><text x="300" y="135">Name</text>
-            <rect x="356" y="118" width="68" height="26" rx="7" /><text x="390" y="135">Call</text>
-          </g>
-        </svg>
-
-        {/* phase 3: bytecode lanes */}
-        <div className={"hero-bc" + (phase === 3 ? " on" : "")} aria-hidden>
-          <div className="bc-co">code object <b>“&lt;module&gt;”</b> · CPython 3.12</div>
-          <div className="bc-lanes">
-            {HERO_BC.map((op, i) => (
-              <span key={i} className="bc-op" style={{ animationDelay: `${i * 30}ms` }}>{op}</span>
+          <div className="hero-progress" aria-hidden>
+            {PHASE_LABELS.map((l, i) => (
+              <span key={l} className={i === phase ? "on" : ""} data-label={l} />
             ))}
           </div>
         </div>
-
-        {/* phase 4: execution */}
-        <div className={"hero-run" + (phase === 4 ? " on" : "")} aria-hidden>
-          <div className="run-frames">
-            <div className="run-frame main">&lt;module&gt;</div>
-            <div className="run-cursor" />
-          </div>
-          <div className="run-out"><span className="run-caret" />stdout: <b>3</b></div>
-        </div>
-
-        <div className="hero-progress" aria-hidden>
-          {PHASE_LABELS.map((l, i) => (
-            <span key={l} className={i === phase ? "on" : ""} data-label={l} />
-          ))}
-        </div>
       </div>
+
+      {/* phase rail: the pipeline the screen is walking through */}
+      <div className="hero-rail" aria-hidden>
+        {PHASE_LABELS.map((l, i) => (
+          <span key={l} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            {i > 0 && <span className="hr-arrow">→</span>}
+            <span className={"hr-step" + (i === phase ? " on" : "")}>{l}</span>
+          </span>
+        ))}
+      </div>
+
       <p className="hero-note">
         Conceptual animation — the real product shows your program’s actual tokens, AST,
         bytecode and recorded execution.
@@ -159,12 +178,12 @@ export default function Home() {
       {/* ——— HERO ——— */}
       <section className="hero">
         <div className="hero-copy">
-          <p className="hero-eyebrow">CompileVista · Computational Atlas</p>
-          <h1>Your code has a<br /><em>hidden journey.</em><br />Explore every step.</h1>
+          <p className="hero-eyebrow">CompileVista · The Living Compiler</p>
+          <h1>Your code transforms before it runs. <em>See how.</em></h1>
           <p className="hero-sub">
-            Paste a C or Python program and watch real compiler and interpreter artifacts
-            unfold — tokens, syntax trees, LLVM IR, bytecode, recorded execution — in one
-            connected, visual observatory.
+            CompileVista lets you watch it happen: paste a C or Python program and follow the
+            real compiler and interpreter artifacts — tokens, syntax trees, LLVM IR, bytecode,
+            recorded execution — through one connected, visual observatory.
           </p>
           <div className="hero-ctas">
             <Link to="/demos" className="btn primary big">Explore a Program</Link>
@@ -179,7 +198,7 @@ export default function Home() {
       </section>
 
       {/* ——— CH1 The Hidden Journey ——— */}
-      <section className="chapter ivory">
+      <section className="chapter">
         <div className="chapter-inner">
           <p className="ch-no">01 · The Hidden Journey</p>
           <h2>Between your keystrokes and the machine’s answer, your code is transformed — twice.</h2>
@@ -192,13 +211,13 @@ export default function Home() {
           <div className="two-worlds">
             <div className="world">
               <h3><span className="world-dot c" />C — compiled with Clang/LLVM</h3>
-              <PipelineMap stages={C_STAGES} accent="var(--cyan)" />
+              <PipelineMap stages={C_STAGES} accent="var(--clay)" />
               <p className="world-note">Your program becomes native machine instructions before it runs.
                 Every stage is a real Clang 18 invocation inside a restricted container.</p>
             </div>
             <div className="world">
               <h3><span className="world-dot py" />Python — interpreted by CPython 3.12</h3>
-              <PipelineMap stages={PY_STAGES} accent="var(--violet)" />
+              <PipelineMap stages={PY_STAGES} accent="var(--plum)" />
               <p className="world-note">Your program is compiled to bytecode and executed by the CPython
                 virtual machine. Different road, same rigorous evidence.</p>
             </div>
@@ -213,7 +232,7 @@ export default function Home() {
           <h2>Watch your text become structure you can click.</h2>
           <div className="feature-row">
             <div className="feature panel">
-              <div className="feature-visual tok-demo" aria-hidden>
+              <div className="feature-visual screen" aria-hidden>
                 <span className="tok tok-kw">for</span>
                 <span className="tok tok-name">i</span>
                 <span className="tok tok-op">in</span>
@@ -228,7 +247,7 @@ export default function Home() {
                 types, values and source positions. Hover a token, see where it lives.</p>
             </div>
             <div className="feature panel">
-              <div className="feature-visual" aria-hidden>
+              <div className="feature-visual screen" aria-hidden>
                 <svg viewBox="0 0 220 96" className="mini-ast">
                   <g className="ast-edge"><path d="M110 18 L55 52" /><path d="M110 18 L165 52" /></g>
                   <g className="ast-edge"><path d="M55 52 L30 86" /><path d="M55 52 L85 86" /><path d="M165 52 L140 86" /><path d="M165 52 L190 86" /></g>
@@ -248,7 +267,7 @@ export default function Home() {
                 back to the exact lines and columns that produced it.</p>
             </div>
             <div className="feature panel">
-              <div className="feature-visual bc-demo" aria-hidden>
+              <div className="feature-visual screen bc-demo" aria-hidden>
                 <div className="bc-line"><code>0000</code><b>RESUME</b><span>0</span></div>
                 <div className="bc-line"><code>0002</code><b>LOAD_CONST</b><span>0</span></div>
                 <div className="bc-line"><code>0004</code><b>STORE_NAME</b><span>total</span></div>
@@ -263,7 +282,7 @@ export default function Home() {
       </section>
 
       {/* ——— CH3 Watch It Execute ——— */}
-      <section className="chapter ivory">
+      <section className="chapter">
         <div className="chapter-inner">
           <p className="ch-no">03 · Watch It Execute</p>
           <h2>Execution isn’t a log file. It’s a landscape.</h2>
@@ -273,33 +292,38 @@ export default function Home() {
             the stack tower grow and unwind, inspect the variables each frame held.
           </p>
           <div className="exec-teaser panel">
-            <svg viewBox="0 0 640 170" className="exec-svg" aria-hidden>
-              <g className="exec-tree">
-                <path d="M80 30 L50 78" /><path d="M80 30 L110 78" />
-                <path d="M50 78 L35 126" /><path d="M50 78 L70 126" />
-                <path d="M110 78 L95 126" /><path d="M110 78 L130 126" />
-              </g>
-              <g className="exec-node">
-                <rect x="52" y="12" width="58" height="24" rx="7" /><text x="81" y="28">fib(5)</text>
-                <rect x="26" y="66" width="52" height="22" rx="7" /><text x="52" y="81">fib(4)</text>
-                <rect x="88" y="66" width="48" height="22" rx="7" /><text x="112" y="81">fib(3)</text>
-                <rect x="14" y="116" width="44" height="20" rx="6" /><text x="36" y="130">fib(3)</text>
-                <rect x="58" y="116" width="40" height="20" rx="6" /><text x="78" y="130">fib(2)</text>
-                <rect x="82" y="116" width="40" height="20" rx="6" /><text x="102" y="130">fib(2)</text>
-                <rect x="126" y="116" width="40" height="20" rx="6" /><text x="146" y="130">fib(1)</text>
-              </g>
-              <g className="exec-tower">
-                <rect x="420" y="118" width="150" height="22" rx="5" />
-                <rect x="420" y="92" width="150" height="22" rx="5" />
-                <rect x="420" y="66" width="150" height="22" rx="5" />
-                <rect x="420" y="40" width="150" height="22" rx="5" />
-                <text x="432" y="133">frame &lt;module&gt;</text>
-                <text x="432" y="107">frame fib(5)</text>
-                <text x="432" y="81">frame fib(4)</text>
-                <text x="432" y="55" className="hot">frame fib(3) ← active</text>
-              </g>
-            </svg>
-            <p className="exec-caption">
+            <div className="bezel" style={{ margin: 18 }}>
+              <div className="bezel-h"><span>recorded run · recursion · conceptual illustration</span></div>
+              <div className="screen" style={{ padding: "10px 12px" }}>
+                <svg viewBox="0 0 640 170" className="exec-svg" aria-hidden>
+                  <g className="exec-tree">
+                    <path d="M59 36 L44 66" /><path d="M59 36 L114 66" />
+                    <path d="M44 88 L25 116" /><path d="M44 88 L79 116" />
+                    <path d="M114 88 L133 116" /><path d="M114 88 L187 116" />
+                  </g>
+                  <g className="exec-node">
+                    <rect x="30" y="12" width="58" height="24" rx="7" /><text x="59" y="28">fib(5)</text>
+                    <rect x="18" y="66" width="52" height="22" rx="7" /><text x="44" y="81">fib(4)</text>
+                    <rect x="88" y="66" width="52" height="22" rx="7" /><text x="114" y="81">fib(3)</text>
+                    <rect x="2" y="116" width="46" height="20" rx="6" /><text x="25" y="130">fib(3)</text>
+                    <rect x="56" y="116" width="46" height="20" rx="6" /><text x="79" y="130">fib(2)</text>
+                    <rect x="110" y="116" width="46" height="20" rx="6" /><text x="133" y="130">fib(2)</text>
+                    <rect x="164" y="116" width="46" height="20" rx="6" /><text x="187" y="130">fib(1)</text>
+                  </g>
+                  <g className="exec-tower">
+                    <rect x="420" y="118" width="150" height="22" rx="5" />
+                    <rect x="420" y="92" width="150" height="22" rx="5" />
+                    <rect x="420" y="66" width="150" height="22" rx="5" />
+                    <rect x="420" y="40" width="150" height="22" rx="5" />
+                    <text x="432" y="133">frame &lt;module&gt;</text>
+                    <text x="432" y="107">frame fib(5)</text>
+                    <text x="432" y="81">frame fib(4)</text>
+                    <text x="432" y="55" className="hot">frame fib(3) ← active</text>
+                  </g>
+                </svg>
+              </div>
+            </div>
+            <p className="exec-caption" style={{ padding: "0 18px 18px" }}>
               Left: the recorded call tree of a recursion demo. Right: the live stack tower.
               Both are built from the actual events the run produced — call, line, return,
               exception — not a simulation.
@@ -328,7 +352,7 @@ export default function Home() {
                 itself reports what it observed.</p>
             </div>
           </div>
-          <p className="ch-lede">
+          <p className="ch-lede" style={{ marginBottom: 0 }}>
             Paired demo programs run both languages through their <em>own</em> pipeline —
             stages are synchronized by concept, never pretended equivalent.
           </p>
@@ -336,7 +360,7 @@ export default function Home() {
       </section>
 
       {/* ——— CH5 Start Exploring ——— */}
-      <section className="chapter start">
+      <section className="chapter">
         <div className="chapter-inner">
           <p className="ch-no">05 · Start Exploring</p>
           <h2>Three ways in.</h2>

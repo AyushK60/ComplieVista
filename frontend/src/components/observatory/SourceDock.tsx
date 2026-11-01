@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { TokenItem } from "./types";
+import { SourceSpan } from "./TokenFormation";
 
 const KEYWORDS: Record<string, string[]> = {
   python: ["def", "return", "if", "elif", "else", "for", "while", "in", "import",
@@ -16,7 +17,7 @@ const KEYWORDS: Record<string, string[]> = {
  * Reader colorization is presentational only; the token stage shows the
  * tool-reported tokens.
  */
-export default function SourceDock({ text, path, language, activeLine, onSelectLine, linked }: {
+export default function SourceDock({ text, path, language, activeLine, onSelectLine, linked, activeSpan }: {
   text: string;
   path: string;
   language?: string;
@@ -24,6 +25,8 @@ export default function SourceDock({ text, path, language, activeLine, onSelectL
   /** when true, the active line is a real artifact↔source link (mint) vs a manual click (dim) */
   linked?: boolean;
   onSelectLine?: (line: number) => void;
+  /** exact character span (0-based half-open) currently hovered in a canvas */
+  activeSpan?: SourceSpan | null;
 }) {
   const lines = useMemo(() => text.split("\n"), [text]);
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -65,14 +68,29 @@ export default function SourceDock({ text, path, language, activeLine, onSelectL
         {lines.map((l, i) => {
           const n = i + 1;
           const isActive = activeLine === n;
+          const spanOnLine = activeSpan && activeSpan.line === n ? activeSpan : null;
+          const spanCls = "sourceline" + (isActive ? (linked ? " hl-linked" : " hl") : "") + (spanOnLine ? " span" : "");
           return (
             <div key={n}
-                 className={"sourceline" + (isActive ? (linked ? " hl-linked" : " hl") : "")}
+                 className={spanCls}
                  data-line={n}
                  onClick={() => onSelectLine?.(n)}>
               <span className="sl-no">{n}</span>
               <span className="sl-text">
-                {l.length ? colorize(l).map((p, j) =>
+                {spanOnLine ? (() => {
+                  const a = Math.max(0, Math.min(spanOnLine.col0, l.length));
+                  const b = Math.max(a, Math.min(spanOnLine.col1, l.length));
+                  return (
+                    <>
+                      {l.slice(0, a) && colorize(l.slice(0, a)).map((p, j) =>
+                        p.c ? <span key={"p" + j} className={p.c}>{p.t}</span> : <span key={"p" + j}>{p.t}</span>)}
+                      <span className="src-span">{l.slice(a, b) || "\u200b"}</span>
+                      {l.slice(b) && colorize(l.slice(b)).map((p, j) =>
+                        p.c ? <span key={"s" + j} className={p.c}>{p.t}</span> : <span key={"s" + j}>{p.t}</span>)}
+                    </>
+                  );
+                })()
+                : l.length ? colorize(l).map((p, j) =>
                   p.c ? <span key={j} className={p.c}>{p.t}</span> : <span key={j}>{p.t}</span>
                 ) : "\u200b"}
               </span>

@@ -267,10 +267,20 @@ def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language
         if language == "c":
             if stage == "tokens" and stderr_text:
                 toks = parse_dump_tokens_full(stderr_text)
-                items, truncated = _capped(toks)
                 counts["tokens"] = len(toks)
-                main_file = {t["file"] for t in toks}
-                counts["token_files"] = len(main_file)
+                files = {t["file"] for t in toks}
+                counts["token_files"] = len(files)
+                # Same policy as the AST walk (CV-01): the user's own file must
+                # not be drowned by included-header tokens when the item cap
+                # applies. Header tokens stay counted and follow their file's
+                # dump order; positions are never rewritten.
+                primary_base = Path(primary_file).name if primary_file else None
+                if primary_base and len(files) > 1:
+                    own = [t for t in toks if Path(t["file"]).name == primary_base]
+                    rest = [t for t in toks if Path(t["file"]).name != primary_base]
+                    items, truncated = _capped(own + rest)
+                else:
+                    items, truncated = _capped(toks)
             elif stage == "ast" and "ast.json" in artifacts:
                 try:
                     primary = Path(primary_file).name if primary_file else None

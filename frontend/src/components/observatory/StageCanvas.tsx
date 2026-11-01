@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { StageData } from "../../api";
 import { confBadge, Selection, STAGE_BLURBS } from "./types";
-import TokenFormation from "./TokenFormation";
+import TokenFormation, { SourceSpan } from "./TokenFormation";
 import BytecodeLanes from "./BytecodeLanes";
 import GraphViewWithSel from "./GraphSelectionBridge";
 
 /** StageCanvas — renders the selected compilation stage with the visualization
  * its data deserves. Availability is taken from the backend, never assumed. */
-export default function StageCanvas({ analysisId, stageData, sourceText, language, onSelect, onSelectLine, activeLine }: {
+export default function StageCanvas({ analysisId, stageData, sourceText, language, onSelect, onSelectLine, activeLine, onHoverSpan, guided, onNavigateStage }: {
   analysisId: string;
   stageData: StageData;
   sourceText: string;
@@ -15,6 +15,9 @@ export default function StageCanvas({ analysisId, stageData, sourceText, languag
   onSelect: (sel: Selection) => void;
   onSelectLine: (line: number) => void;
   activeLine?: number | null;
+  onHoverSpan?: (span: SourceSpan | null) => void;
+  guided?: boolean;
+  onNavigateStage?: (stage: string) => void;
 }) {
   const s = stageData;
   const blurb = STAGE_BLURBS[s.stage];
@@ -73,7 +76,8 @@ export default function StageCanvas({ analysisId, stageData, sourceText, languag
         <TokenFormation
           tokens={items as never as Array<{ kind: string; text: string; line: number; col: number; mapping_confidence?: string }>}
           sourceText={sourceText} language={language} truncated={s.truncated}
-          onSelect={onSelect} onSelectLine={onSelectLine} activeLine={activeLine} />
+          onSelect={onSelect} onSelectLine={onSelectLine} activeLine={activeLine}
+          onHoverSpan={onHoverSpan} guided={guided} onNavigateStage={onNavigateStage} />
       ) : isBytecode && language === "python" ? (
         <BytecodeLanes items={items} language={language} onSelect={onSelect} onSelectLine={onSelectLine} />
       ) : graphable ? (

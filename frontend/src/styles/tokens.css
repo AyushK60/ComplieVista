@@ -1,54 +1,85 @@
-/* CompileVista Design System — tokens (see docs/M8_DESIGN_SYSTEM.md) */
+/* CompileVista Design System — "The Living Compiler"
+ * Porcelain Instrument × Ink Canvas × Scientific Precision
+ * Spec: docs/M8_DESIGN_SYSTEM.md (revision 2 — replaces Project Phoenix). */
 :root {
-  /* dark canvas */
-  --bg: #070a16;
-  --bg-raised: #0d1226;
-  --bg-panel: #111731;
-  --bg-inset: #0a0e1e;
-  --line: rgba(148, 163, 255, 0.14);
-  --line-strong: rgba(148, 163, 255, 0.3);
-  --ink: #e8ecff;
-  --ink-2: #b7bfe0;
-  --ink-3: #7d87ad;
+  /* ——— porcelain chrome (the page) ——— */
+  --bg: #f6f5f0;
+  --bg-raised: #fcfbf8;
+  --bg-panel: #fcfbf8;
+  --bg-inset: #efeee7;
+  --line: rgba(29, 41, 47, 0.13);
+  --line-strong: rgba(29, 41, 47, 0.26);
+  --ink: #1d292f;
+  --ink-2: #45535b;
+  --ink-3: #6f7f88;
 
-  /* ivory editorial */
-  --ivory: #f4f0e6;
-  --ivory-raised: #fbf8f0;
-  --ivory-ink: #1d2233;
-  --ivory-ink-2: #5a607a;
-  --ivory-line: rgba(29, 34, 51, 0.14);
+  /* ——— ink canvas (the screens set into the instrument) ——— */
+  --canvas: #1d292f;
+  --canvas-raised: #25333a;
+  --canvas-inset: #172126;
+  --canvas-line: rgba(216, 230, 230, 0.14);
+  --canvas-line-strong: rgba(216, 230, 230, 0.3);
+  --c-ink: #e9efed;
+  --c-ink-2: #b1c3c3;
+  --c-ink-3: #84989e;
 
-  /* semantic accents */
-  --cyan: #67e8f9;
-  --cyan-dim: rgba(103, 232, 249, 0.14);
-  --violet: #a78bfa;
-  --violet-dim: rgba(167, 139, 250, 0.14);
-  --mint: #6ee7b7;
-  --mint-dim: rgba(110, 231, 183, 0.13);
-  --coral: #fb7185;
-  --coral-dim: rgba(251, 113, 133, 0.13);
-  --amber: #fbbf24;
-  --amber-dim: rgba(251, 191, 36, 0.13);
+  /* ——— semantic accents (porcelain context) ——— */
+  --teal: #166d68;       /* primary · interactive · identifiers */
+  --clay: #c77950;       /* warm · runtime/execution · numbers · DERIVED */
+  --plum: #84719b;       /* structural · AST/keywords/code objects */
+  --moss: #56794f;       /* verified · strings/literals · EXACT */
+  --crimson: #b0453b;    /* alert · errors · BLOCKED */
+  --teal-dim: rgba(22, 109, 104, 0.1);
+  --clay-dim: rgba(199, 121, 80, 0.12);
+  --plum-dim: rgba(132, 113, 155, 0.13);
+  --moss-dim: rgba(86, 121, 79, 0.12);
+  --crimson-dim: rgba(176, 69, 59, 0.1);
 
-  /* honesty */
-  --conf-exact: var(--mint);
-  --conf-derived: var(--amber);
+  /* ——— semantic accents (ink-canvas context) ——— */
+  --teal-l: #6fc3b8;
+  --clay-l: #e6a87e;
+  --plum-l: #b9a8d8;
+  --moss-l: #96c68b;
+  --crimson-l: #e28d80;
+  --teal-l-dim: rgba(111, 195, 184, 0.13);
+  --clay-l-dim: rgba(230, 168, 126, 0.13);
+  --plum-l-dim: rgba(185, 168, 216, 0.13);
+  --moss-l-dim: rgba(150, 198, 139, 0.13);
+  --crimson-l-dim: rgba(226, 141, 128, 0.13);
+
+  /* ——— legacy aliases (used by restyled components; keep meanings) ——— */
+  --cyan: var(--teal);
+  --cyan-dim: var(--teal-dim);
+  --violet: var(--plum);
+  --violet-dim: var(--plum-dim);
+  --mint: var(--moss);
+  --mint-dim: var(--moss-dim);
+  --coral: var(--crimson);
+  --coral-dim: var(--crimson-dim);
+  --amber: var(--clay);
+  --amber-dim: var(--clay-dim);
+
+  /* ——— honesty ——— */
+  --conf-exact: var(--moss);
+  --conf-derived: var(--clay);
   --conf-unavailable: var(--ink-3);
 
-  /* type */
+  /* ——— type ——— */
+  --font-display: "Fraunces Variable", Fraunces, Georgia, "Times New Roman", serif;
   --font-ui: "Inter Variable", "Inter", system-ui, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
 
-  /* radius */
-  --r-s: 8px;
-  --r-m: 12px;
-  --r-l: 18px;
+  /* ——— radius: restrained (no giant rounded rectangles) ——— */
+  --r-s: 6px;
+  --r-m: 10px;
+  --r-l: 14px;
+  --r-bezel: 16px;
 
-  /* shadow */
-  --shadow-1: 0 1px 2px rgba(2, 4, 12, 0.5), 0 4px 16px rgba(2, 4, 12, 0.35);
-  --shadow-2: 0 2px 6px rgba(2, 4, 12, 0.55), 0 12px 40px rgba(2, 4, 12, 0.5);
+  /* ——— shadow: warm, quiet ——— */
+  --shadow-1: 0 1px 2px rgba(29, 41, 47, 0.05), 0 3px 14px rgba(29, 41, 47, 0.06);
+  --shadow-2: 0 2px 6px rgba(29, 41, 47, 0.07), 0 14px 36px rgba(29, 41, 47, 0.1);
 
-  /* motion */
+  /* ——— motion ——— */
   --t-fast: 140ms;
   --t-med: 260ms;
   --t-slow: 480ms;

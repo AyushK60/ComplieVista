@@ -1,44 +1,45 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M8 visual recovery — Project Phoenix, Phase A+B)
+Updated: 1 November 2026 (M8 visual recovery — revision 2, "The Living Compiler")
 
-## Current milestone: **M8 — frontend recovery ("Computational Atlas")**
+## Current milestone: **M8 — frontend recovery (porcelain revision)**
 
-Status: **M8 visual recovery IMPLEMENTED and browser-verified — see
-`docs/TEST_EVIDENCE/M8.md` for per-journey evidence and
-`docs/M8_DESIGN_SYSTEM.md` for the design language.** M9 independent audit
-NOT started.
+Status: **M8 revision 2 IMPLEMENTED and browser-verified.** Revision 1
+("Project Phoenix / Computational Atlas", midnight-blue theme) was rejected by
+the product owner on visual quality; revision 2 rebuilds the visual system per
+`docs/M8_DESIGN_SYSTEM.md` (Porcelain Instrument × Ink Canvas × Scientific
+Precision) while keeping the honest data plumbing. Evidence:
+`docs/TEST_EVIDENCE/M8.md` (revision-2 section) +
+`docs/TEST_EVIDENCE/m8/recovery/` (9 screenshots) + committed Playwright E2E
+`e2e/m8_journeys.py` (ALL CHECKS PASSED, zero console errors). M9 independent
+audit NOT started.
 
-What M8 changed (frontend only, except one documented field addition):
-- **Landing page**: complete replacement — choreographed source→tokens→AST→
-  bytecode→execution hero (labeled conceptual animation), five scroll chapters,
-  system status demoted to the footer. Health/capabilities no longer homepage
-  content.
-- **Observatory workspace**: Source Dock | Journey Navigator (real stages only,
-  guided mode with narration) | Visual Canvas (per-stage visualizations) |
-  Contextual Inspector | Execution & Systems dock. Explore/Technical modes
-  (persisted); technical provenance (tool versions, digests, limitations,
-  raw excerpts) revealed only in Technical mode.
-- **Signature visualizations**: Token Formation (exact tool tokens on their
-  source lines with faithful whitespace), AST/IR graph explorer (M3 engine,
-  restyled, honest DERIVED/UNAVAILABLE labels), Bytecode lanes (real CPython
-  instructions, code-object navigation, branch arcs from dis data only),
-  Disassembly (addr/bytes/mnemonic/operands), Code Objects cards.
-- **Trace Theater**: recorded call tree (depth-limited, ×N sibling
-  aggregation) + stack tower with active-frame locals + playhead + timeline
-  scrubber + source sync; trust labels preserved (ADR-0011).
-- **MemoryScope/ProcessScope rebuilt**: C heap-lifetime ladder, Python frame
-  cards/alias groups/object graph/tracemalloc bars; sampled /proc lanes with
-  explicit SAMPLED labeling and policy-based unavailability states.
-- **Optimization Explorer**: real O0/O1/O2 builds, size bars, A/B asm/IR diff,
-  benchmark table with checksums/env caveats; Python honestly has no O-levels.
-- **Demo Library**: learning gallery over the exact 20-program inventory
-  (grouped Python/C/Pairs, concept+difficulty filters, three-level guided
-  stories, honest capability matrix) launching into the observatory; Error
-  Microscope fixtures kept outside the 20.
-- **Backend change (single, non-breaking)**: `POST /api/v1/demos/{id}/analyze`
-  now also returns `snapshot_id`/`target_id` for observatory deep-links;
-  regression test added (`test_m7_demos.py::test_demo_analyze_returns_snapshot_and_target_refs`).
+What revision 2 changed (frontend, except one tested backend ordering fix):
+- **Design system**: all four stylesheets rewritten — porcelain page chrome,
+  ink visualization canvases set into instrument bezels (never full-page black
+  sections), semantic accents (teal=interactive/identifiers, clay=runtime/
+  numbers/DERIVED, plum=structure/keywords, moss=verified/strings/EXACT,
+  crimson=errors), Fraunces display serif + Inter + JetBrains Mono,
+  restrained radii (≤16px), no glow/gradients.
+- **Landing**: proposition headline ("Your code transforms before it runs.
+  See how."), instrument-bezel hero (conceptual source→tokens→AST→bytecode→
+  execution loop, reduced-motion aware), phase rail, five hairline-separated
+  chapters, live CTAs (Explore a Program / Import Your Code), diagnostics in
+  the footer.
+- **Demo Library**: Explore Python / Explore C / Compare sections, concept +
+  difficulty filters, per-program ink specimen previews, teaches-line, honest
+  capability-derived stage chips; detail pages unchanged in substance.
+- **Token Formation (signature)**: default meaningful-expression focus
+  (docstrings can never monopolize), full-file toggle, category filters, token
+  search, hover-token → source-span highlight, virtual chips for CPython
+  ENCODING (never faked source), 5-step guided script that drives the canvas
+  and hands off to the Syntax Tree.
+- **Workspace shell**: source-span hover sync, collapsible Contextual
+  Inspector, canvas full-screen focus mode, mobile grid overflow fix.
+- **Backend fix (ordering-only, tested)**: C tokens stage now serves the
+  primary file's tokens before included-header tokens when the 500-item cap
+  applies (CV-01 policy, as the AST walk already did). Regression test:
+  `backend/tests/test_m8_tokens_primary_file.py`.
 
 ## Previous milestone: M8-G0 (technical integrity repairs + one-click launcher)
 
@@ -85,8 +86,8 @@ Pinned image IDs after this milestone (rebuilt from updated sandbox code):
   posture). See `docs/FINAL_M0_M7_FUNCTIONAL_MATRIX.md`.
 - **M8-G0**: the repairs and launcher above; backend suite extended by
   `backend/tests/test_m8g0.py` (13 tests) and `e2e/m8g0_journeys.py`.
-- **M8 visual recovery**: the rebuilt frontend above, verified end-to-end in a
-  real browser for both mandatory journeys (evidence in `docs/TEST_EVIDENCE/M8.md`).
+- **M8 visual recovery, revision 2**: the porcelain rebuild above, verified
+  end-to-end in a real browser (committed Playwright E2E + screenshots).
 
 ## Deliberately NOT done (no false claims)
 
