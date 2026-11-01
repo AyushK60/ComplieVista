@@ -1,0 +1,12 @@
+{
+  "version": "m6.pairs.v1",
+  "policy": "Pairs are matched-input, deterministic, defined-behavior C/Python programs. C must have no undefined behavior, no signed overflow (modulo checksums used), no unbounded loops. expected_stdout values were verified with the HOST clang-18/gcc + CPython toolchains independently of the container pipeline; both sides must match exactly.",
+  "verified_with": {"c": "Ubuntu clang 18.1.3 -O2 (host)", "python": "CPython 3.12.3 (host)", "date": "2026-11-01"},
+  "pairs": [
+    {"id": "add", "concept": "arithmetic loop / bounded iteration", "c_file": "add.c", "py_file": "add.py", "expected_stdout": "sum=299995"},
+    {"id": "conditional", "concept": "conditional branches / classification", "c_file": "conditional.c", "py_file": "conditional.py", "expected_stdout": "c0=16 c1=8 c2=4 c3=2"},
+    {"id": "recursion", "concept": "tree recursion / call depth", "c_file": "recursion.c", "py_file": "recursion.py", "expected_stdout": "fib20=6765"},
+    {"id": "arraysum", "concept": "array/list traversal", "c_file": "arraysum.c", "py_file": "arraysum.py", "expected_stdout": "total=50010"},
+    {"id": "sort", "concept": "sorting algorithm / insertion sort (modulo checksum: C signed overflow is UB)", "c_file": "sort.c", "py_file": "sort.py", "expected_stdout": "sorted=471613008"}
+  ]
+}

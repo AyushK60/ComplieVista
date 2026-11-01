@@ -1,19 +1,18 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M5QA)
+Updated: 1 November 2026 (M6)
 
-## Current milestone: **M5QA — Memory/Process scientific audit & repair**
+## Current milestone: **M6 — OptimizationLab, Cross-Language Comparison & Benchmarks**
 
-Status: **M5QA PASS on all exit gates Q1–Q5** (`docs/TEST_EVIDENCE/M5QA.md`,
-`docs/milestones/M5QA.json`, handoff `docs/HANDOFF_AFTER_M5QA.md`). The
-second-pass self-audit (not an external review) reproduced and fixed six
-findings — most notably the Python tracer executing user `__repr__` on primitive
-subclasses, misidentified exception records under CPython 3.12's tuple args, and
-unstable generator frame identity — plus UI staleness/label precision and C
-realloc accounting (the first fix deadlocked the shim and was caught by its own
-regression test before commit). Backend **171/0/0**; E2E M5 4/4 (four viewport
-widths), M3 6/6, M2 3/3, M1 5/5; TSC clean; vite build OK.
-**M6 authorized on this PASS; M6 NOT STARTED.**
+Status: **M6 PASS on all exit gates G0–G7** (`docs/TEST_EVIDENCE/M6.md`,
+`docs/milestones/M6.json`, handoff `docs/HANDOFF_AFTER_M6.md`, ADR-0009).
+Real -O0/-O1/-O2 C builds with digests/durations/tool provenance and an
+independent host-clang oracle; genuine level transformation verified (loop →
+`movl $6` at -O2); uninstrumented benchmarks with warmup exclusion, ≥5 repeats,
+wall+CPU per sample, variability and environment provenance; five C/Python pair
+specs with host-verified expected outputs run through the real M4 pipeline;
+OptimizationLab and Compare UI. Backend **179/0/0**; E2E M6 2/2, M5 4/4, M3 6/6,
+M2 3/3, M1 5/5; TSC clean; vite build OK. **M6QA authorized; M7 NOT STARTED.**
 
 ## What exists now (cumulative)
 

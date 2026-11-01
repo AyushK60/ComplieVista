@@ -53,11 +53,13 @@ export default function Home() {
         <strong>CompileVista</strong>
         <Link to="/">Home</Link>
         <Link to="/workspace">Source Workspace</Link>
+        <Link to="/compare">Compare</Link>
       </nav>
       <h1>CompileVista — toolchain proof (M0)</h1>
       <p className="muted">
         Browser (Windows) → Vite (WSL Node) → FastAPI (WSL) → genuine toolchain evidence.
-        The interactive source workspace lives in the <Link to="/workspace">Source Workspace</Link>.
+        The interactive source workspace lives in the <Link to="/workspace">Source Workspace</Link>
+        <Link to="/compare">Compare</Link>.
       </p>
       {error && <p className="err">API unreachable: {error.code}: {error.message}</p>}
       {health && (

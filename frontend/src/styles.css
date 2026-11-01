@@ -160,3 +160,12 @@ button.run { background: #1f3a2f; border-color: #2f5d42; color: #b8e6cc; }
 .memoryscope h4, .processscope h4 { margin: 0.2rem 0; font-size: 0.82rem; }
 button.link { background: none; border: none; color: #7fb2e5; cursor: pointer;
               padding: 0; font-size: 0.78rem; }
+
+/* M6: OptimizationLab + Compare */
+.optlab, .compare { margin-top: 1rem; }
+.diff .diff-del { background: #3a1c1c; color: #f2b8b8; }
+.diff .diff-add { background: #1c3a24; color: #b8f2c9; }
+.diff { max-height: 340px; overflow: auto; }
+.rails { display: flex; gap: 1rem; flex-wrap: wrap; }
+.rail { flex: 1 1 320px; border: 1px solid #2c3844; border-radius: 6px; padding: 0.5rem; }
+.pair { margin: 0.4rem 0; }

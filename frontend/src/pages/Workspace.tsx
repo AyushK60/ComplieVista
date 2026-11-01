@@ -6,6 +6,7 @@ import AnalysisPanel from "../components/AnalysisPanel";
 import CodeView from "../components/CodeView";
 import Inspector from "../components/Inspector";
 import ExecutionPanel from "../components/ExecutionPanel";
+import OptimizationLab from "../components/OptimizationLab";
 import { executions } from "../api";
 
 type Mode = "paste" | "upload" | "github";
@@ -337,6 +338,11 @@ export default function Workspace() {
                   {executionId && <ExecutionPanel executionId={executionId}
                                                   onSelectLine={(l) => setHighlightLine(l)} />}
                   {runError && <p className="err">Run failed: {runError}</p>}
+                  {snapshot && runnableTarget && selected?.language === "c" && (
+                    <OptimizationLab snapshotId={snapshot.id}
+                                     targetId={runnableTarget.target_id}
+                                     language="c" />
+                  )}
                 </>
               ) : (
                 <p className="muted">Select a file.</p>

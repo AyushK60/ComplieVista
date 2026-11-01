@@ -143,6 +143,44 @@ Memory stream ≤3000 records, process stream ≤240 samples (in-container, with
 in-band truncated markers); host-side reads capped 4 MB and stored bounded
 (2000 rows/stream, checksummed, content-addressed artifacts).
 
+---
+
+# M6 experiment endpoints (schema `m6.v1`, ADR-0009)
+
+## GET /api/v1/pairs
+The 5 pair specs (add/conditional/recursion/arraysum/sort) with `expected_stdout`
+verified by host toolchains and both sources included (small fixtures).
+
+## POST /api/v1/experiments
+`{"kind": "opt"|"bench"|"compare", "snapshot_id"?, "target_id"?, "config"?}`.
+- `opt`: builds the snapshot's C target at -O0/-O1/-O2 with fixed recorded flags
+  (no user flags). Stages `O0/O1/O2`: `{flags, steps{ir,asm,obj,link→{exit_code,
+  duration_ms}}, exe_bytes, ir|asm|symbols:{sha256,bytes,truncated}, tool{clang,
+  target}, remarks_available}`.
+- `bench`: uninstrumented timing. Stage `bench`: `{repeats, warmup, env{cpu_model,
+  kernel, cgroup_cpu_max, cgroup_memory_max}, levels{O0,O1,O2|py312:{samples[
+  {wall_ms,cpu_ms}], checksums, checksums_identical, resolution_warning,
+  wall{median,min,max,stdev,n}, cpu{...}}}, levels_semantics_equivalent}`.
+  Warmup excluded; n ≥ 5; wall and CPU are separate metrics.
+- `compare`: runs BOTH sides through the real M4 execution pipeline and checks
+  the verified expected output. Stage `compare`: `{pair, concept, expected_stdout,
+  sides{c,python:{execution_id, status, exit_code, duration_ms, image_id, stdout,
+  expected_match}}, match}`.
+GitHub origins → 403 `EXPERIMENT_ORIGIN_BLOCKED`; unknown kind → 400
+`INVALID_KIND`; ineligible targets → 400 `NOT_ELIGIBLE`. Idempotent per
+fingerprint; reopening is deterministic (no recomputation).
+
+## GET /api/v1/experiments/{id} · /experiments/{id}/artifacts/{stage}/{kind}
+Detail with per-stage availability and bounded artifact excerpts
+(ir/asm/symbols ≤ 24 KB view / 64 KB stored, truncated flagged).
+`POST /api/v1/experiments/{id}/cancel` mirrors execution cancellation
+(flag-first, `docker rm -f cv-exp-*`).
+
+## Honesty (contract-level)
+Static assembly is never an executed-instruction count. Python exposes only
+`py312` (no LLVM levels). Benchmark numbers are container-throttled
+(cgroup limits recorded) and never generalized into universal speed claims.
+
 ## Limits
 Body ≤ 32 MB (streaming cap on raw ASGI receive); runtime 30 s; build 90 s;
 memory 256 MB; pids 64; cpus 0.5; stdout/stderr 1 MB each.

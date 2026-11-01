@@ -84,6 +84,19 @@ _SCHEMA = [
         execution_id TEXT NOT NULL, kind TEXT NOT NULL, seq INTEGER NOT NULL,
         payload_json TEXT NOT NULL, sha256 TEXT NOT NULL,
         PRIMARY KEY (execution_id, kind, seq))""",
+    # --- m6.v1: OptimizationLab / benchmarks / pair comparison ---
+    """CREATE TABLE IF NOT EXISTS experiments (
+        id TEXT PRIMARY KEY, kind TEXT NOT NULL, snapshot_id TEXT,
+        target_id TEXT, config_json TEXT NOT NULL, status TEXT NOT NULL,
+        fingerprint TEXT NOT NULL, source_combined_sha256 TEXT,
+        error_code TEXT, cancel_requested INTEGER DEFAULT 0,
+        created_utc TEXT NOT NULL, started_utc TEXT, finished_utc TEXT,
+        duration_ms INTEGER, result_sha256 TEXT)""",
+    """CREATE TABLE IF NOT EXISTS experiment_stages (
+        experiment_id TEXT NOT NULL, stage TEXT NOT NULL,
+        availability TEXT NOT NULL, result_json TEXT NOT NULL,
+        artifact_sha256 TEXT, duration_ms INTEGER,
+        PRIMARY KEY (experiment_id, stage))""",
     # --- m2.v1: analysis jobs ---
     """CREATE TABLE IF NOT EXISTS analyses (
         id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL, target_id TEXT NOT NULL,

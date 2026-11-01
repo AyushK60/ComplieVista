@@ -42,6 +42,15 @@ export const api = {
     return fetch("/api/v1/sources", { method: "POST", body: form }).then(unwrap<IngestResult>);
   },
 
+  /** M6-C: paste a pair side and return its first target reference. */
+  createSnapshotFromPaste: async (language: string, filename: string, content: string) => {
+    const r = await api.paste(language, filename, content);
+    const targets = await fetch(
+      `/api/v1/projects/${r.project_id}/targets`).then(
+      unwrap<Array<{ target_id: string; status: string }>>);
+    return { snapshot_id: r.snapshot_id, target_id: targets[0].target_id };
+  },
+
   importGithub: (url: string, ref?: string) =>
     fetch("/api/v1/imports/github", {
       method: "POST",
@@ -247,4 +256,38 @@ export const executions = {
     fetch(`/api/v1/executions/${id}/memory?after=${after}&limit=${limit}`).then(unwrap<ObservationStream>),
   process: (id: string, after = 0, limit = 500) =>
     fetch(`/api/v1/executions/${id}/process?after=${after}&limit=${limit}`).then(unwrap<ObservationStream>),
+};
+
+/** M6: OptimizationLab / benchmarks / pair comparison. */
+export interface ExperimentStage {
+  stage: string; availability: string;
+  result: Record<string, unknown>;
+  artifact_sha256: string | null; duration_ms: number | null;
+}
+export interface Experiment {
+  id: string; kind: string; status: string; config: Record<string, unknown>;
+  source_combined_sha256: string | null; error_code: string | null;
+  result_sha256: string | null; created_utc: string; finished_utc: string | null;
+  duration_ms: number | null; stages: ExperimentStage[];
+}
+export interface PairSpec {
+  id: string; concept: string; c_file: string; py_file: string;
+  expected_stdout: string; c_source: string | null; py_source: string | null;
+}
+export const experiments = {
+  create: (body: Record<string, unknown>) =>
+    fetch("/api/v1/experiments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(unwrap<ExecutionRef & { experiment_id?: string }>),
+  get: (id: string) => fetch(`/api/v1/experiments/${id}`).then(unwrap<Experiment>),
+  artifact: (id: string, stage: string, kind: string) =>
+    fetch(`/api/v1/experiments/${id}/artifacts/${stage}/${kind}`)
+      .then(unwrap<{ excerpt: string; truncated: boolean; sha256: string; bytes: number }>),
+  cancel: (id: string) =>
+    fetch(`/api/v1/experiments/${id}/cancel`, { method: "POST" }).then(unwrap),
+};
+export const pairs = {
+  list: () => fetch("/api/v1/pairs").then(unwrap<{ pairs: PairSpec[] }>),
 };
