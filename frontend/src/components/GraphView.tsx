@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Background, Controls, MiniMap, ReactFlow, ReactFlowProvider,
+  Background, Controls, Handle, MiniMap, Position, ReactFlow, ReactFlowProvider,
   useEdgesState, useNodesState, useStore, type Edge, type Node,
   type ReactFlowInstance,
 } from "@xyflow/react";
@@ -150,14 +150,14 @@ export default function GraphView({
   // When the framed region needs less, keep it centered; when it needs more,
   // anchor on the region's top (the selected function header stays visible).
   const MIN_READ_ZOOM = 0.66; // below this, 11px labels blur; near-misses prefer fitting over clipping
-  const applyFrame = useCallback((ids?: Set<string>) => {
+  const applyFrame = useCallback((ids?: Set<string>, anchorId?: string) => {
     const flow = flowRef.current;
     const nds = nodesRef.current;
     if (!flow || !nds.length) return;
     const subset = ids ? nds.filter((n) => ids.has(n.id)) : nds;
     if (!subset.length) return;
     const el = document.querySelector<HTMLElement>(".graphwrap");
-    const vw = (el?.clientWidth ?? 900) - 32, vh = (el?.clientHeight ?? 500) - 32;
+    const vw = (el?.clientWidth ?? 900) - 24, vh = (el?.clientHeight ?? 500) - 24;
     const x1 = Math.min(...subset.map((n) => n.position.x));
     const y1 = Math.min(...subset.map((n) => n.position.y));
     const x2 = Math.max(...subset.map((n) => n.position.x)) + NODE_W;
@@ -165,10 +165,12 @@ export default function GraphView({
     const w = x2 - x1, h = y2 - y1;
     const raw = Math.min(vw / w, vh / h, 1.05);
     const zoom = Math.max(MIN_READ_ZOOM, raw);
-    const cx = x1 + w / 2;
-    // center vertically when it fits; otherwise anchor near the top so the
-    // selected function header stays visible while the rest is panned
-    const cy = h * zoom > vh ? y1 + 70 : y1 + h / 2;
+    // when the region fits, center it; otherwise keep the SELECTED node in
+    // view (never clipped) and let the rest pan
+    const anchor = anchorId ? nds.find((n) => n.id === anchorId) : undefined;
+    const cx = raw < MIN_READ_ZOOM && anchor ? anchor.position.x + NODE_W / 2 : x1 + w / 2;
+    const cy = raw < MIN_READ_ZOOM && anchor ? anchor.position.y + NODE_H / 2
+      : h * zoom > vh ? y1 + 70 : y1 + h / 2;
     flow.setViewport({
       x: vw / 2 - cx * zoom,
       y: vh / 2 - cy * zoom,
@@ -358,7 +360,7 @@ export default function GraphView({
       const pick = sorted[0].id as string;
       const sub = new Set([pick, ...g_descendants(payloadRef.current?.edges ?? [], new Set([pick]))]
         .filter((id) => visibleIds.has(id)));
-      applyFrame(sub);
+      applyFrame(sub, pick);
       selectNode(pick);
       return;
     }
@@ -451,6 +453,8 @@ export default function GraphView({
             </button>
           )}
           {data.collapsedCount > 0 && <span className="cvnode-badge">+{data.collapsedCount}</span>}
+          <Handle type="target" position={Position.Top} style={{ width: 6, height: 6, background: "rgba(216,230,230,0.5)", border: "none" }} isConnectable={false} />
+          <Handle type="source" position={Position.Bottom} style={{ width: 6, height: 6, background: "rgba(216,230,230,0.5)", border: "none" }} isConnectable={false} />
         </div>
       );
     },
@@ -678,7 +682,6 @@ export default function GraphView({
           onNodeDoubleClick={(_e, node) => toggleCollapse(node.id)}
           minZoom={0.08}
           maxZoom={2.2}
-          onlyRenderVisibleElements
           proOptions={{ hideAttribution: true }}
           nodesDraggable
         >

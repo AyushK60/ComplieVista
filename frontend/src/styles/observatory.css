@@ -23,9 +23,15 @@
 .obs-app .obs-left, .obs-app .obs-right { position: static; max-height: none; height: 100%; }
 .obs-app .obs-center { height: 100%; min-height: 0; overflow: hidden; }
 .obs-app .obs-viewtabs { flex-shrink: 0; }
-.obs-app .obs-canvas { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
+.obs-app .obs-canvas { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 .obs-app .obs-canvas > .stagecanvas { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.obs-app .obs-canvas > .stagecanvas > .graphwrap { flex: 1; min-height: 320px; height: auto; }
+.obs-app .obs-canvas > .stagecanvas > .graphwrap { flex: 1; min-height: 220px; height: auto; }
+.obs-app .sc-head { padding: 10px 16px 2px; }
+.obs-app .sc-what { margin-top: 2px; }
+.obs-app .sc-head .prov { margin-top: 4px; }
+.obs-app .stagecanvas > .limits { margin: 2px 16px; }
+.obs-app .tokenformation { padding: 6px 16px 14px; overflow: auto; }
+.obs-app .obs-canvas > .stagecanvas > .tokenformation { flex: 1; min-height: 0; }
 .obs-app .dock-handle {
   position: absolute; top: 0; bottom: 0; right: -5px; width: 9px;
   cursor: col-resize; border-radius: 3px; z-index: 5;

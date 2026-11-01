@@ -189,7 +189,7 @@ export default function DemoLibrary() {
         navigate(`/workspace?demo=${d.id}&analysis=${r.analysis_id}${snapPart}&file=${encodeURIComponent(d.primary_file)}`);
       } else {
         const r: DemoRunResult = await demos.run(d.id);
-        navigate(`/workspace?demo=${d.id}&execution=${r.execution_id}&snapshot=${r.snapshot_id}&project=demo-library&target=${r.target_id}&file=${encodeURIComponent(d.primary_file)}${mode === "run" ? "&walkthrough=1" : ""}`);
+        navigate(`/workspace?demo=${d.id}&execution=${r.execution_id}&snapshot=${r.snapshot_id}&project=demo-library&target=${r.target_id}&file=${encodeURIComponent(d.primary_file)}${mode === "watch" ? "&walkthrough=1" : ""}`);
       }
     } catch (e) {
       setCatalog((c) => ({ ...c, error: e instanceof Error ? e.message : String(e) }));
