@@ -291,3 +291,41 @@ export const experiments = {
 export const pairs = {
   list: () => fetch("/api/v1/pairs").then(unwrap<{ pairs: PairSpec[] }>),
 };
+
+/** M7: Demo Library + Error Microscope. */
+export interface DemoEntry {
+  id: string; group: string; title: string; difficulty: string;
+  concepts: string[];
+  files: Array<{ path: string; sha256: string }>;
+  primary_file: string; tus: string[];
+  expected_stdout: string; expected_exit: number;
+  guided: { simple: string; detailed: string; technical: string };
+  capabilities: Record<string, string>;
+  limits: string[];
+}
+export interface DemoRunResult {
+  demo_id: string; execution_id: string; snapshot_id: string; target_id: string;
+  status: string; exit_code: number | null; stdout: string | null;
+  expected_stdout: string; stdout_match: boolean; expected_exit: number;
+}
+export const demos = {
+  list: () => fetch("/api/v1/demos").then(unwrap<{ demos: DemoEntry[] }>),
+  run: (id: string) =>
+    fetch(`/api/v1/demos/${id}/run`, { method: "POST" }).then(unwrap<DemoRunResult>),
+  analyze: (id: string) =>
+    fetch(`/api/v1/demos/${id}/analyze`, { method: "POST" })
+      .then(unwrap<{ demo_id: string; analysis_id: string; status: string }>),
+  optimize: (id: string) =>
+    fetch(`/api/v1/demos/${id}/optimize`, { method: "POST" })
+      .then(unwrap<{ experiment_id?: string; status: string }>),
+  reportUrl: (id: string) => `/api/v1/demos/${id}/report`,
+};
+export const errorFixtures = {
+  list: () => fetch("/api/v1/demos/errors")
+    .then(unwrap<{ fixtures: Array<{ id: string; file: string; language: string;
+      kind: string }> }>),
+  run: (id: string) =>
+    fetch(`/api/v1/demos/errors/${id}/run`, { method: "POST" })
+      .then(unwrap<{ fixture_id: string; kind: string; status?: string;
+        exit_code?: number | null; diagnostic?: string; analysis_id?: string }>),
+};

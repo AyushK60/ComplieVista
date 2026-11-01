@@ -1,0 +1,789 @@
+{
+ "version": "m7.demos.v1",
+ "policy": "Exactly 20 logical programs: 5 Python-only (A), 5 C-only (B), 10 pair halves (C) forming 5 matched pairs. C-05 is ONE logical program across 3 files. Error fixtures are NOT counted. Expected outputs verified with host toolchains (scripts/dev/m7_verify_demos.sh).",
+ "demos": [
+  {
+   "id": "PY-01",
+   "group": "A",
+   "title": "Fundamentals: variables, expressions, functions, branching",
+   "difficulty": "introductory",
+   "concepts": [
+    "variables",
+    "expressions",
+    "functions",
+    "branching"
+   ],
+   "files": [
+    {
+     "path": "demos/PY-01.py",
+     "sha256": "44dfc57c478980f5b6ecd4b4b17309de6832f7b8e7a6633ed8487ddcbc91ee34"
+    }
+   ],
+   "primary_file": "PY-01.py",
+   "tus": [],
+   "expected_stdout": "area=10\nscaled=7\nkind=valid",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "A tiny program computes a triangle area twice and checks the result is valid.",
+    "detailed": "Watch the recorded trace: `area` is called twice with different arguments, the branch inside it takes the same path both times, and each return value flows back to the module frame.",
+    "technical": "Bytecode: CALL/RETURN under sys.settrace; locals snapshots show base/height per call. Python 3.12 bytecode is version-pinned; no LLVM IR exists here."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Trace caps: 5000 events / 64 frames / 200 locals (not reached here)."
+   ]
+  },
+  {
+   "id": "PY-02",
+   "group": "A",
+   "title": "Loops and collections: accumulator with filtering",
+   "difficulty": "introductory",
+   "concepts": [
+    "loops",
+    "collections",
+    "accumulator",
+    "bytecode jumps"
+   ],
+   "files": [
+    {
+     "path": "demos/PY-02.py",
+     "sha256": "3490091135e5bcef6ddcf4a9e48150698db5b36de5b9995e0bc78d5259d6d65c"
+    }
+   ],
+   "primary_file": "PY-02.py",
+   "tus": [],
+   "expected_stdout": "total=99\nevens=12,20,8\ncount=3",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "One loop walks a list, sums everything, and collects the even numbers.",
+    "detailed": "The line-event stream shows FOR_ITERATION jumps: the loop body runs 8 times and the branch appends only 3 values. Locals snapshots show the accumulator grow from call to call.",
+    "technical": "Bytecode: FOR_ITER/COMPARE_OP/JUMP_ABSOLUTE pattern; list.append is a C builtin (no Python frame, hence no call events for it)."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Output list order is deterministic (insertion order)."
+   ]
+  },
+  {
+   "id": "PY-03",
+   "group": "A",
+   "title": "True recursion: frame growth and unwinding",
+   "difficulty": "intermediate",
+   "concepts": [
+    "recursion",
+    "call stack",
+    "frame unwind"
+   ],
+   "files": [
+    {
+     "path": "demos/PY-03.py",
+     "sha256": "f4ec7320499b7e649f3fe3d8bcc39594aa62b2cb5f002b1f29c1b5bbaa8361a0"
+    }
+   ],
+   "primary_file": "PY-03.py",
+   "tus": [],
+   "expected_stdout": "fib12=144\ncalls=465",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "fib(12) calls itself 465 times; the trace shows the call stack grow and shrink.",
+    "detailed": "The replay timeline shows depth increasing to 12 and unwinding; each frame has its own `n` (see locals). The 465 count includes both leaf and inner calls (2*F(13)-1).",
+    "technical": "Tree recursion: calls(fib)=2*F(13)-1=465. Depth cap is 64 \u2014 this program peaks at 12, so the full tree is recorded."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Do not confuse CALLS (465) with max depth (12)."
+   ]
+  },
+  {
+   "id": "PY-04",
+   "group": "A",
+   "title": "Closure, generator suspension, exception scope",
+   "difficulty": "intermediate",
+   "concepts": [
+    "closures",
+    "generators",
+    "suspension",
+    "exceptions",
+    "finally"
+   ],
+   "files": [
+    {
+     "path": "demos/PY-04.py",
+     "sha256": "d9c3e5f389ba95fca378ab7a1b740aed263a0807578a1b0f6403d5ea060243cd"
+    }
+   ],
+   "primary_file": "PY-04.py",
+   "tus": [],
+   "expected_stdout": "counter=15,17\npairs=0,4\nsuspended=yes\ncaught=scope demo\nfinally=finally-ran",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "A closure keeps private state, a generator pauses twice, and an exception is caught with a finally block.",
+    "detailed": "The generator's frame_id stays STABLE across suspensions (M5QA fix): a yield is a suspension, not a frame death. The manual next() consumes one value (pairs=0,4 \u2014 the 2 is skipped), demonstrating the iterator protocol vs the for-loop protocol. The closure's `count` survives between calls.",
+    "technical": "Generator resumption re-fires 'call' events (CPython semantics); CO_GENERATOR frames are not popped at yield. Exception records name the instance; user __str__ is never evaluated by the tracer."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Generator memory previews show identity, not contents of suspended frames."
+   ]
+  },
+  {
+   "id": "PY-05",
+   "group": "A",
+   "title": "Classes, imports, bounded concurrency",
+   "difficulty": "advanced",
+   "concepts": [
+    "classes",
+    "imports",
+    "threads",
+    "scheduling limitations"
+   ],
+   "files": [
+    {
+     "path": "demos/PY-05.py",
+     "sha256": "8062e68b90bf69bffc5e13dc999171afa92b8924f1423a441dc2a2f2b5c9c77d"
+    }
+   ],
+   "primary_file": "PY-05.py",
+   "tus": [],
+   "expected_stdout": "acc=15\nthreads=[{\"double\": 72, \"input\": 36, \"sqrt\": 6}, {\"double\": 20, \"input\": 10, \"sqrt\": 3}]",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "Two threads compute results into preassigned slots; a small class accumulates a total.",
+    "detailed": "join() makes the outcome deterministic because each thread writes its OWN slot \u2014 the output does not depend on scheduling. The recorded trace shows only the main thread (sys.settrace is per-thread) \u2014 an honest limitation.",
+    "technical": "Worker threads are NOT traced (settrace is thread-local); results are index-addressed to avoid order dependence. GIL interleaving is not observed and not claimed."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Thread interleaving is unobservable in the trace \u2014 scheduling limitations are declared, not hidden."
+   ]
+  },
+  {
+   "id": "C-01",
+   "group": "B",
+   "title": "Expressions, functions, branching \u2192 LLVM IR",
+   "difficulty": "introductory",
+   "concepts": [
+    "expressions",
+    "functions",
+    "branching",
+    "LLVM IR"
+   ],
+   "files": [
+    {
+     "path": "demos/C-01.c",
+     "sha256": "6da48b7fc520770b90222ffbcf2e202d146ae049788ea4259b3a5d80921d327d"
+    }
+   ],
+   "primary_file": "C-01.c",
+   "tus": [],
+   "expected_stdout": "r1=37 r2=2 r3=100",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "Two small functions clamp and average values; the IR shows the unoptimized bodies.",
+    "detailed": "At -O0 the IR loads/stores every local through the stack; OptimizationLab shows -O2 collapsing the arithmetic. The recorded trace shows call/return for clamp and weighted.",
+    "technical": "Instrumented with -finstrument-functions (call/return events, no ptrace); clamp is inlined at -O2 (verify in OptimizationLab: the symbol disappears from the O2 build)."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "Static assembly is not an executed-instruction count."
+   ]
+  },
+  {
+   "id": "C-02",
+   "group": "B",
+   "title": "Preprocessor, conditional build, loop \u2192 CFG",
+   "difficulty": "intermediate",
+   "concepts": [
+    "preprocessor",
+    "macros",
+    "conditional build",
+    "CFG"
+   ],
+   "files": [
+    {
+     "path": "demos/C-02.c",
+     "sha256": "8d1338e7c1a6c754572a90619df89ef01282783779a9faaad2e68b8a65302ac7"
+    }
+   ],
+   "primary_file": "C-02.c",
+   "tus": [],
+   "expected_stdout": "acc=85",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "Macros and #if select the build path at COMPILE time; the loop's CFG has a header, body and exit block.",
+    "detailed": "The preprocess stage shows SCALE(i) expanded to ((i) * 2); DEMO_MODE=2 makes the #else branch dead at compile time \u2014 the #else code is never compiled, which the IR/ASM absence shows.",
+    "technical": "CFG: for-header \u2192 if \u2192 two successors \u2192 latch \u2192 exit. Basic-block inventory comes from real clang IR/ASM, not a generic diagram."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "#if pruning is a compile-time effect \u2014 the trace cannot show it at runtime."
+   ]
+  },
+  {
+   "id": "C-03",
+   "group": "B",
+   "title": "Pointers and arrays on the stack",
+   "difficulty": "intermediate",
+   "concepts": [
+    "pointers",
+    "arrays",
+    "stack",
+    "pointer arithmetic"
+   ],
+   "files": [
+    {
+     "path": "demos/C-03.c",
+     "sha256": "5778008839c2d4637aee42006bd42bb13fd1b61dd4007f0f6d1aca992dfb02eb"
+    }
+   ],
+   "primary_file": "C-03.c",
+   "tus": [],
+   "expected_stdout": "first=9 last=4 sum=23",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "swap() exchanges two array ends through pointers; a bounded slice sum walks the array.",
+    "detailed": "The IR shows pointer dereferences as loads/stores; swap's effects are visible in the output (first/last exchanged). Pointer arithmetic stays in bounds \u2014 the demo never walks past the array.",
+    "technical": "Array decay: sum_slice receives int* \u2014 same machine representation as &arr[0]. Address instability (ASLR) applies to any recorded addresses."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "Out-of-bounds arithmetic would be UB \u2014 this demo stays in bounds by design."
+   ]
+  },
+  {
+   "id": "C-04",
+   "group": "B",
+   "title": "Structs and dynamic memory (malloc/free, correct path)",
+   "difficulty": "advanced",
+   "concepts": [
+    "structs",
+    "malloc",
+    "free",
+    "lifetimes"
+   ],
+   "files": [
+    {
+     "path": "demos/C-04.c",
+     "sha256": "4975e1e6fe013290e38a6b8c99dacdb3b43b54861afc13e1c769b25281c773b7"
+    }
+   ],
+   "primary_file": "C-04.c",
+   "tus": [],
+   "expected_stdout": "total=66 last=ok",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "Three struct records are allocated on the heap, filled, summed and freed \u2014 correctly.",
+    "detailed": "The allocator interposition records the malloc(3*sizeof(record_t)) with its real size and the matching free: outstanding returns to zero. NULL is checked before use (no UB on OOM).",
+    "technical": "sizeof(record_t) includes tail padding for the char[8] tag \u2014 check the interposed size (3*24) rather than assuming field sums."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "Sanitizer availability varies; correct-path malloc/free here means NO diagnostics are expected \u2014 absence of findings is not proof of coverage."
+   ]
+  },
+  {
+   "id": "C-05",
+   "group": "B",
+   "title": "Multi-file C project: header + 2 translation units",
+   "difficulty": "advanced",
+   "concepts": [
+    "multi-file",
+    "linkage",
+    "symbols",
+    "translation units"
+   ],
+   "files": [
+    {
+     "path": "demos/C-05/main.c",
+     "sha256": "5f5c48ff981162f65f4fe5e7349bf0090e87697e91a2551628e6441b37c66e9c"
+    },
+    {
+     "path": "demos/C-05/math_utils.c",
+     "sha256": "666f7a6cff845f27c91af6901dfbb7372aaf0e95a354763a60aeb50018342138"
+    },
+    {
+     "path": "demos/C-05/math_utils.h",
+     "sha256": "66c930ea13398ab653e4bd5bdf5bb640340e9fbc3c9f8bab3a1fea59385333d6"
+    }
+   ],
+   "primary_file": "C-05/main.c",
+   "tus": [
+    "main.c",
+    "math_utils.c"
+   ],
+   "expected_stdout": "series=95 gcd=12",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "One program in three files: a header declares, one TU implements, the main TU uses it. The LINKER connects them.",
+    "detailed": "Both TUs are compiled separately (two compile steps in the build record), then linked. The linked binary's symbol table contains math_sum_series and math_gcd defined (T) \u2014 that is the cross-TU resolution evidence.",
+    "technical": "Analysis covers the primary TU's stages; the LINK step evidence (symbols of the final binary) is what proves cross-TU linkage \u2014 static analysis of one TU never assumes the other executes independently."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE for the primary TU (main.c); the second TU is compiled and linked, not independently analyzed",
+    "execution": "AVAILABLE (linked binary, instrumented TUs)",
+    "trace": "AVAILABLE (both TUs instrumented; call/return across TUs recorded)",
+    "memory": "PARTIAL (allocator interposition)",
+    "process": "AVAILABLE",
+    "optimization": "AVAILABLE (OptimizationLab builds the primary file; multi-file O-level builds are not wired)"
+   },
+   "limits": [
+    "Multi-file linking is a curated-demo capability; pasted multi-file C still runs single-file only."
+   ]
+  },
+  {
+   "id": "PAIR-01-C",
+   "group": "C",
+   "title": "Addition and basic functions (C side)",
+   "difficulty": "very easy",
+   "concepts": [
+    "arithmetic",
+    "functions"
+   ],
+   "files": [
+    {
+     "path": "pairs/add.c",
+     "sha256": "34551b8287b5fe28de49f82b9f96ed8468927edb4d277478f89112e159014732"
+    }
+   ],
+   "primary_file": "pairs/add.c",
+   "tus": [],
+   "expected_stdout": "sum=299995",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The C side of the PAIR-01 pair. Same sum computed in both languages; compare the C IR against Python bytecode.",
+    "detailed": "Compare with the Python side via the Compare page: matched inputs, expected output 'sum=299995' verified with host toolchains.",
+    "technical": "Concepts synchronize across languages \u2014 stages do NOT (IR vs bytecode). Trace call/return pairs come from the same instrumentation as M4."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "Paired with PAIR-01-PY; run both via the Compare page for the side-by-side view."
+   ]
+  },
+  {
+   "id": "PAIR-02-C",
+   "group": "C",
+   "title": "Classification branches (C side)",
+   "difficulty": "easy",
+   "concepts": [
+    "branching",
+    "conditions"
+   ],
+   "files": [
+    {
+     "path": "pairs/conditional.c",
+     "sha256": "f812fa95d2bf3dfb02892e23a2c77375942945e74d110b1c050a536da02fb3fc"
+    }
+   ],
+   "primary_file": "pairs/conditional.c",
+   "tus": [],
+   "expected_stdout": "c0=16 c1=8 c2=4 c3=2",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The C side of the PAIR-02 pair. Same classification; C shows branch blocks in IR, Python shows COMPARE_OP/JUMP in bytecode.",
+    "detailed": "Compare with the Python side via the Compare page: matched inputs, expected output 'c0=16 c1=8 c2=4 c3=2' verified with host toolchains.",
+    "technical": "Concepts synchronize across languages \u2014 stages do NOT (IR vs bytecode). Trace call/return pairs come from the same instrumentation as M4."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "Paired with PAIR-02-PY; run both via the Compare page for the side-by-side view."
+   ]
+  },
+  {
+   "id": "PAIR-03-C",
+   "group": "C",
+   "title": "Bounded tree recursion (fib 20) (C side)",
+   "difficulty": "moderate",
+   "concepts": [
+    "recursion",
+    "call stack"
+   ],
+   "files": [
+    {
+     "path": "pairs/recursion.c",
+     "sha256": "12bf8615984e6f20f2d0595b2dac10858bac2b06b014ab44b961d431631c9fbc"
+    }
+   ],
+   "primary_file": "pairs/recursion.c",
+   "tus": [],
+   "expected_stdout": "fib20=6765",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The C side of the PAIR-03 pair. fib(20): C call/return via instrumentation; Python via settrace; frame depths are language-specific.",
+    "detailed": "Compare with the Python side via the Compare page: matched inputs, expected output 'fib20=6765' verified with host toolchains.",
+    "technical": "Concepts synchronize across languages \u2014 stages do NOT (IR vs bytecode). Trace call/return pairs come from the same instrumentation as M4."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "Paired with PAIR-03-PY; run both via the Compare page for the side-by-side view."
+   ]
+  },
+  {
+   "id": "PAIR-04-C",
+   "group": "C",
+   "title": "Array/list aggregation (C side)",
+   "difficulty": "advanced",
+   "concepts": [
+    "arrays",
+    "lists",
+    "traversal"
+   ],
+   "files": [
+    {
+     "path": "pairs/arraysum.c",
+     "sha256": "d49e224ba6c685e73ae3ed403f194e4fce6757526391495a1ceaa558b540addd"
+    }
+   ],
+   "primary_file": "pairs/arraysum.c",
+   "tus": [],
+   "expected_stdout": "total=50010",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The C side of the PAIR-04 pair. Same aggregation over 1000 values; C uses a fixed array, Python a list comprehension \u2014 concept match, not stage match.",
+    "detailed": "Compare with the Python side via the Compare page: matched inputs, expected output 'total=50010' verified with host toolchains.",
+    "technical": "Concepts synchronize across languages \u2014 stages do NOT (IR vs bytecode). Trace call/return pairs come from the same instrumentation as M4."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "Paired with PAIR-04-PY; run both via the Compare page for the side-by-side view."
+   ]
+  },
+  {
+   "id": "PAIR-05-C",
+   "group": "C",
+   "title": "Insertion sort with modulo checksum (C side)",
+   "difficulty": "challenging",
+   "concepts": [
+    "sorting",
+    "algorithms"
+   ],
+   "files": [
+    {
+     "path": "pairs/sort.c",
+     "sha256": "1235947f318ee20df77942597ffdf4e75e89b39acb029ee06904dc3d3efa425f"
+    }
+   ],
+   "primary_file": "pairs/sort.c",
+   "tus": [],
+   "expected_stdout": "sorted=471613008",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The C side of the PAIR-05 pair. Same insertion sort; checksum uses % 1000000007 so C has NO signed overflow (UB) and Python big-int semantics stay in range.",
+    "detailed": "Compare with the Python side via the Compare page: matched inputs, expected output 'sorted=471613008' verified with host toolchains.",
+    "technical": "Concepts synchronize across languages \u2014 stages do NOT (IR vs bytecode). Trace call/return pairs come from the same instrumentation as M4."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (clang-18 tokens/AST/IR-O0+O2/asm/object/symbols)",
+    "execution": "AVAILABLE (restricted container, instrumented trace)",
+    "trace": "AVAILABLE (call/return via -finstrument-functions)",
+    "memory": "PARTIAL (C heap via allocator interposition; frame locals unavailable outside the curated gdb profile)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "AVAILABLE (OptimizationLab -O0/-O1/-O2)"
+   },
+   "limits": [
+    "Paired with PAIR-05-PY; run both via the Compare page for the side-by-side view."
+   ]
+  },
+  {
+   "id": "PAIR-01-PY",
+   "group": "C",
+   "title": "Addition and basic functions (Python side)",
+   "difficulty": "very easy",
+   "concepts": [
+    "arithmetic",
+    "functions"
+   ],
+   "files": [
+    {
+     "path": "pairs/add.py",
+     "sha256": "8a21669ddb2bb6f0ca8461652e190b6a33b280398b5e506bf3ba65019cecdd7f"
+    }
+   ],
+   "primary_file": "pairs/add.py",
+   "tus": [],
+   "expected_stdout": "sum=299995",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The Python side of the PAIR-01 pair. Same sum computed in both languages; compare the C IR against Python bytecode.",
+    "detailed": "Expected output 'sum=299995' \u2014 identical to the C side by construction and verified against host toolchains.",
+    "technical": "Group C demos use CPython 3.12 bytecode; specialization happens at runtime and is not part of static evidence."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Paired with PAIR-01-C."
+   ]
+  },
+  {
+   "id": "PAIR-02-PY",
+   "group": "C",
+   "title": "Classification branches (Python side)",
+   "difficulty": "easy",
+   "concepts": [
+    "branching",
+    "conditions"
+   ],
+   "files": [
+    {
+     "path": "pairs/conditional.py",
+     "sha256": "b2070cc46d31f682dfe63c70634dd792f0dea0734a1ab0a395bb8c7756d1c58a"
+    }
+   ],
+   "primary_file": "pairs/conditional.py",
+   "tus": [],
+   "expected_stdout": "c0=16 c1=8 c2=4 c3=2",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The Python side of the PAIR-02 pair. Same classification; C shows branch blocks in IR, Python shows COMPARE_OP/JUMP in bytecode.",
+    "detailed": "Expected output 'c0=16 c1=8 c2=4 c3=2' \u2014 identical to the C side by construction and verified against host toolchains.",
+    "technical": "Group C demos use CPython 3.12 bytecode; specialization happens at runtime and is not part of static evidence."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Paired with PAIR-02-C."
+   ]
+  },
+  {
+   "id": "PAIR-03-PY",
+   "group": "C",
+   "title": "Bounded tree recursion (fib 20) (Python side)",
+   "difficulty": "moderate",
+   "concepts": [
+    "recursion",
+    "call stack"
+   ],
+   "files": [
+    {
+     "path": "pairs/recursion.py",
+     "sha256": "68bcbb5fddef6ec1851c017621b1c1d54ec3e021ad2fb71942efddb312f2dacd"
+    }
+   ],
+   "primary_file": "pairs/recursion.py",
+   "tus": [],
+   "expected_stdout": "fib20=6765",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The Python side of the PAIR-03 pair. fib(20): C call/return via instrumentation; Python via settrace; frame depths are language-specific.",
+    "detailed": "Expected output 'fib20=6765' \u2014 identical to the C side by construction and verified against host toolchains.",
+    "technical": "Group C demos use CPython 3.12 bytecode; specialization happens at runtime and is not part of static evidence."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Paired with PAIR-03-C."
+   ]
+  },
+  {
+   "id": "PAIR-04-PY",
+   "group": "C",
+   "title": "Array/list aggregation (Python side)",
+   "difficulty": "advanced",
+   "concepts": [
+    "arrays",
+    "lists",
+    "traversal"
+   ],
+   "files": [
+    {
+     "path": "pairs/arraysum.py",
+     "sha256": "2c30f28e80d0ba20ebb1f4de1685f8900255a2a354e454f8bea2235809e029d7"
+    }
+   ],
+   "primary_file": "pairs/arraysum.py",
+   "tus": [],
+   "expected_stdout": "total=50010",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The Python side of the PAIR-04 pair. Same aggregation over 1000 values; C uses a fixed array, Python a list comprehension \u2014 concept match, not stage match.",
+    "detailed": "Expected output 'total=50010' \u2014 identical to the C side by construction and verified against host toolchains.",
+    "technical": "Group C demos use CPython 3.12 bytecode; specialization happens at runtime and is not part of static evidence."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Paired with PAIR-04-C."
+   ]
+  },
+  {
+   "id": "PAIR-05-PY",
+   "group": "C",
+   "title": "Insertion sort with modulo checksum (Python side)",
+   "difficulty": "challenging",
+   "concepts": [
+    "sorting",
+    "algorithms"
+   ],
+   "files": [
+    {
+     "path": "pairs/sort.py",
+     "sha256": "453d160a1e45ec3e8fb717fb65ddbdb6a74d40b13fa3464fb7f0744dbc90e56f"
+    }
+   ],
+   "primary_file": "pairs/sort.py",
+   "tus": [],
+   "expected_stdout": "sorted=471613008",
+   "expected_exit": 0,
+   "guided": {
+    "simple": "The Python side of the PAIR-05 pair. Same insertion sort; checksum uses % 1000000007 so C has NO signed overflow (UB) and Python big-int semantics stay in range.",
+    "detailed": "Expected output 'sorted=471613008' \u2014 identical to the C side by construction and verified against host toolchains.",
+    "technical": "Group C demos use CPython 3.12 bytecode; specialization happens at runtime and is not part of static evidence."
+   },
+   "capabilities": {
+    "analysis": "AVAILABLE (CPython 3.12 tokens/AST/symtable/code objects/bytecode)",
+    "execution": "AVAILABLE (restricted container, sys.settrace harness)",
+    "trace": "AVAILABLE (call/line/return/exception via sys.settrace)",
+    "memory": "AVAILABLE (frame snapshots, id()-based aliases, bounded object graph, tracemalloc/gc)",
+    "process": "AVAILABLE (container /proc sampling)",
+    "optimization": "UNAVAILABLE (Python has no LLVM -O levels; bytecode comparison is version-pinned CPython)"
+   },
+   "limits": [
+    "Paired with PAIR-05-C."
+   ]
+  }
+ ],
+ "error_fixtures": [
+  {
+   "id": "ERR-SYNTAX",
+   "file": "err_syntax.c",
+   "language": "c",
+   "kind": "syntax",
+   "expect": "clang parse diagnostic, exit != 0"
+  },
+  {
+   "id": "ERR-SEMANTIC",
+   "file": "err_semantic.c",
+   "language": "c",
+   "kind": "semantic",
+   "expect": "undeclared identifier diagnostic"
+  },
+  {
+   "id": "ERR-LINK",
+   "file": "err_link.c",
+   "language": "c",
+   "kind": "link",
+   "expect": "undefined reference at link step"
+  },
+  {
+   "id": "ERR-RUNTIME",
+   "file": "err_runtime.py",
+   "language": "python",
+   "kind": "runtime",
+   "expect": "ZeroDivisionError termination, exit 1"
+  }
+ ]
+}

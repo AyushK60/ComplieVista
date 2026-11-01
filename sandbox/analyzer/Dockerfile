@@ -8,6 +8,6 @@ RUN apt-get update \
       clang-18 llvm-18 binutils libc6-dev python3 \
  && rm -rf /var/lib/apt/lists/*
 
-COPY worker_c.py worker_python.py c_build_worker.py c_opt_worker.py /opt/analyzer/
+COPY worker_c.py worker_python.py c_build_worker.py c_opt_worker.py c_link_worker.py /opt/analyzer/
 COPY c_trace_shim.c /opt/analyzer/
 # Non-root runtime user is applied via docker run --user (arbitrary UID works).

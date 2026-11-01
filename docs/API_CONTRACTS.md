@@ -184,3 +184,31 @@ Static assembly is never an executed-instruction count. Python exposes only
 ## Limits
 Body ≤ 32 MB (streaming cap on raw ASGI receive); runtime 30 s; build 90 s;
 memory 256 MB; pids 64; cpus 0.5; stdout/stderr 1 MB each.
+
+
+---
+
+# M7 demo library endpoints (schema `m7.demos.v1`)
+
+## GET /api/v1/demos
+The versioned demo manifest: exactly 20 logical programs (5 Python-only,
+5 C-only incl. one multi-file project, 10 pair halves = 5 matched pairs),
+each with hash-pinned files, host-verified expected stdout/exit, capability
+matrix, limits and Simple/Detailed/Technical guided stories. Error Microscope
+fixtures are NOT part of the 20.
+
+## POST /api/v1/demos/{id}/run · /analyze · /optimize
+Run the demo through the real M4 execution pipeline (idempotent per content
+hash — browse never re-executes); analyze via the M2 static pipeline; optimize
+creates an OptimizationLab experiment (C targets only, else 400
+NOT_APPLICABLE). C-05 uses the content-hash-gated `demo-link` profile
+(multi-TU compile+link; 403 DEMO_LINK_BLOCKED for anything else).
+
+## GET /api/v1/demos/{id}/report
+Sanitized session report (`m7.demo.report.v1`): file digests, snapshot hash,
+recorded executions (status/exit/digests/image), capabilities and limits.
+No source text, no host paths — safe to export.
+
+## GET /api/v1/demos/errors · POST /api/v1/demos/errors/{id}/run
+Error Microscope: 4 genuine diagnostic fixtures (syntax/semantic/link/runtime)
+with real clang/CPython diagnostics; not counted among the 20 demos.

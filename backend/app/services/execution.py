@@ -56,7 +56,8 @@ _BASE_FLAGS = [
     "--memory", "256m", "--cpus", "0.5", "--pids-limit", "64",
 ]
 
-_TERMINAL = {"COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "BLOCKED"}
+TERMINAL = {"COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "BLOCKED"}
+_TERMINAL = TERMINAL
 
 
 class ExecutionError(Exception):
@@ -323,6 +324,8 @@ class _ExecRunner:
             profile = job["profile"] or "standard"
             if profile == "debug":
                 self._run_debug(store, eid, job, src, run_out, cname)
+            elif profile == "demo-link":
+                self._run_demo_link(store, eid, job, src, build_out, run_out, cname)
             elif job["language"] == "c":
                 self._run_c(store, eid, job, src, build_out, run_out, cname)
             else:
@@ -383,7 +386,13 @@ class _ExecRunner:
         exe_art = next((a for a in build_rec.get("artifacts", [])
                         if a["file"] == "app.bin"), None)
         if not exe_art:
-            self._finish(store, eid, "FAILED", "build produced no executable")
+            # M7 Error Microscope: surface the real compiler/linker diagnostic
+            # (e.g. "undefined reference"), not just "no executable".
+            err_tail = ""
+            bs = build_out / "build_stderr.txt"
+            if bs.is_file():
+                err_tail = bs.read_text("utf-8", "replace")[-300:]
+            self._finish(store, eid, "FAILED", "C build failed: " + err_tail)
             return
 
         bin_dir = build_out.parent / "bin"
@@ -407,6 +416,61 @@ class _ExecRunner:
         symbol_map = _parse_symbols(build_out / "symbols.txt")
         self._execute_and_record(store, eid, run_argv, run_out, cname,
                                  symbol_map=symbol_map)
+
+    def _run_demo_link(self, store: Store, eid: str, job, src: Path,
+                       build_out: Path, run_out: Path, cname: str) -> None:
+        """M7 C-05: compile ALL curated TUs, link with the shim, then run the
+        linked binary exactly like the standard C path (instrumented trace)."""
+        from app.services.demos import _demo_link_tus
+        snap = store.query_one(
+            "SELECT combined_sha256 FROM source_snapshots WHERE id=?",
+            (job["snapshot_id"],))
+        entry = _demo_link_tus()[snap["combined_sha256"]]
+        tus = json.dumps(entry["tus"])
+        bargv = ["docker", "run", "--rm", "--name", f"cv-build-{eid[:12]}",
+                 "--network", "none", "--read-only", "--tmpfs", "/tmp:rw,size=16m",
+                 "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+                 "--user", "1000:1000", "--memory", "256m", "--pids-limit", "64",
+                 "-v", f"{src}:/work:ro", "-v", f"{build_out}:/out",
+                 ANALYZER_IMAGE, "python3", "/opt/analyzer/c_link_worker.py",
+                 "--primary", entry["primary_file"], "--tus", tus, "--out", "/out"]
+        b = run_capped(bargv, BUILD_TIMEOUT_S)
+        if b["killed"]:
+            subprocess.run(["docker", "rm", "-f", f"cv-build-{eid[:12]}"],
+                           capture_output=True, timeout=60)
+            self._finish(store, eid, "TIMEOUT", "build timeout")
+            return
+        manifest_p = build_out / "manifest.json"
+        if not manifest_p.is_file():
+            self._finish_failed_build(store, eid, b)
+            return
+        link_manifest = json.loads(manifest_p.read_text())
+        if link_manifest.get("steps", {}).get("link", {}).get("exit_code") != 0:
+            self._finish_failed_build(store, eid, b, "C link failed")
+            return
+        bin_dir = build_out.parent / "bin"
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        app_bytes = (build_out / "app.bin").read_bytes()
+        app_sha = store.put_artifact(app_bytes)
+        app_path = bin_dir / "app"
+        app_path.write_bytes(app_bytes)
+        app_path.chmod(0o755)
+        store.execute("UPDATE executions SET binary_sha256=? WHERE id=?",
+                      (app_sha, eid))
+        run_argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
+                    "-e", "CV_TRACE_OUT=/out/trace.jsonl",
+                    "-e", "CV_MEM_OUT=/out/memory.jsonl",
+                    "-e", "CV_PROC_OUT=/out/process.jsonl",
+                    "-v", f"{bin_dir}:/app:ro", "-v", f"{run_out}:/out",
+                    RUNTIME_IMAGE, "/app/app"]
+        symbol_map = _parse_symbols(build_out / "symbols.txt")
+        self._execute_and_record(store, eid, run_argv, run_out, cname,
+                                 symbol_map=symbol_map)
+
+    def _finish_failed_build(self, store: Store, eid: str,
+                             b: dict, prefix: str = "C build failed") -> None:
+        self._finish(store, eid, "FAILED",
+                     prefix + ": " + b["stderr"].decode("utf-8", "replace")[:300])
 
     def _run_debug(self, store: Store, eid: str, job, src: Path,
                    run_out: Path, cname: str) -> None:
@@ -620,7 +684,7 @@ def create_execution(store: Store, snapshot_id: str, target_id: str,
         raise ExecutionError("EXECUTION_ORIGIN_BLOCKED",
                              "execution of imported repository code is disabled "
                              "pending independent security review", 403)
-    if profile not in ("standard", "debug"):
+    if profile not in ("standard", "debug", "demo-link"):
         raise ExecutionError("INVALID_PROFILE", f"unknown profile {profile!r}", 400)
     target = store.query_one("SELECT * FROM compilation_targets WHERE id=? AND snapshot_id=?",
                              (target_id, snapshot_id))
@@ -641,6 +705,14 @@ def create_execution(store: Store, snapshot_id: str, target_id: str,
                 "DEBUG_PROFILE_BLOCKED",
                 "debugger capture is restricted to curated allowlisted C fixtures "
                 "(ADR-0008); pasted code keeps an explicit unavailable state", 403)
+    if profile == "demo-link":
+        # M7 C-05: multi-TU compile+link for curated demo-manifest snapshots
+        # only; the TU list comes from the versioned manifest, never from input.
+        from app.services.demos import _demo_link_tus
+        if language != "c" or snap["combined_sha256"] not in _demo_link_tus():
+            raise ExecutionError(
+                "DEMO_LINK_BLOCKED",
+                "multi-file linking is restricted to curated demo programs", 403)
     available, reason = None, None
     from app.services.analyzer import docker_status
     available, reason = docker_status()

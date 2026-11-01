@@ -13,6 +13,7 @@ from pathlib import Path
 from app.store.db import combined_hash
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]  # backend/app/services -> repo root
+FIXTURES = _REPO_ROOT / "sandbox" / "fixtures"
 CURATED_DIR = _REPO_ROOT / "sandbox" / "fixtures" / "curated"
 MANIFEST_PATH = CURATED_DIR / "manifest.json"
 

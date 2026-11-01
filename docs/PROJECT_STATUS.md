@@ -1,19 +1,19 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M6QA)
+Updated: 1 November 2026 (M7)
 
-## Current milestone: **M6QA — Optimization/Comparison Oracle Audit & Repair**
+## Current milestone: **M7 — exactly 20 real programs, guided journeys & integration**
 
-Status: **M6QA PASS on all exit gates Q1–Q5** (`docs/TEST_EVIDENCE/M6QA.md`,
-`docs/milestones/M6QA.json`, handoff `docs/HANDOFF_AFTER_M6QA.md`). The
-second-pass self-audit ran independent oracles — distinct per-level digests
-(no relabeling), fresh host-clang assembly fingerprint equality at O0/O2, exact
-recomputation of benchmark statistics from raw samples, and a CPython 3.12 dis
-oracle — then fixed two UI findings (OptimizationLab stale state across target
-switches; compare-rail duration now labeled as container wall including startup
-and explicitly non-comparable to benchmark medians). Backend **183/0/0**; E2E
-all suites green; TSC clean; vite build OK. **M7 authorized on this PASS; M7
-NOT STARTED.**
+Status: **M7 PASS on all exit gates G0–G8** (`docs/TEST_EVIDENCE/M7.md`,
+`docs/milestones/M7.json`, handoff `docs/HANDOFF_AFTER_M7.md`,
+`docs/DEMO_CATALOG.md`). Exactly 20 curated real programs (5 Python-only,
+5 C-only incl. a genuine multi-file linked project, 5 matched C/Python pairs)
+with guided Simple/Detailed/Technical stories, honest capability matrices, real
+sandbox runs with recorded replay, OptimizationLab and pair comparisons; Error
+Microscope with 4 genuine diagnostic fixtures outside the count; sanitized
+report export. Backend **191/0/0**; browser E2E journeyed **all 20 demos
+(20/20 run+replay)** plus all prior suites; TSC clean; vite build OK.
+**M7QA authorized; M8 NOT STARTED.**
 
 ## What exists now (cumulative)
 
@@ -38,7 +38,7 @@ NOT STARTED.**
 
 ## Next
 
-**M7 NOT STARTED.** M6QA PASS (docs/milestones/M6QA.json) authorizes M7; begin
+**M8 NOT STARTED.** M7QA authorized by M7 PASS (docs/milestones/M7.json); begin
 any later stage only with a fresh entry-gate check of git ancestry and manifests.
 
 ## Active risks / quirks
