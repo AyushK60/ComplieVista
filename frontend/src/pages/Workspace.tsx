@@ -228,6 +228,8 @@ export default function Workspace() {
     try {
       const ref = await executions.create(snapshot.id, runnableTarget.target_id, profile);
       setExecutionId(ref.execution_id);
+      // the user asked to run: the run becomes the visible view (1.5 mapping)
+      setView(profile === "debug" ? "execution" : "execution");
       if (profile !== "debug") setOptPair({ snapshotId: snapshot.id, targetId: runnableTarget.target_id });
       const next = new URLSearchParams(params);
       next.set("execution", ref.execution_id);

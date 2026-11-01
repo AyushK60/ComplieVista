@@ -113,15 +113,22 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
   const framesAt = useMemo(() => stackAt(events, curIdx + 1), [events, curIdx]);
   const active: Frame | null = framesAt.length ? framesAt[framesAt.length - 1] : null;
 
-  // loop iteration counter: DERIVED — revisits of the current line within the active frame
+  // loop indicator: DERIVED — the most-revisited line of the active frame.
+  // Persists while the loop is running (any line of the frame), so the label
+  // doesn't flash only when the playhead sits exactly on the loop header.
   const iterations = useMemo(() => {
     if (!active || !cur || cur.kind !== "line") return null;
-    let count = 0;
+    const visits = new Map<number, number>();
     for (let i = active.callIdx; i <= curIdx && i < events.length; i++) {
       const e = events[i];
-      if (e.kind === "line" && e.payload.fn === active.fn && Number(e.payload.line) === Number(cur.payload.line)) count++;
+      if (e.kind === "line" && e.payload.fn === active.fn) {
+        const ln = Number(e.payload.line);
+        visits.set(ln, (visits.get(ln) ?? 0) + 1);
+      }
     }
-    return count > 1 ? count : null;
+    let max = 0;
+    for (const c of visits.values()) max = Math.max(max, c);
+    return max > 2 ? max : null;
   }, [active, cur, curIdx, events]);
 
   // latest memory snapshot for the active frame (event_seq <= current)
