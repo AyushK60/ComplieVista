@@ -80,6 +80,22 @@ sweep (§16 below) and remains recommended as a separate audit.
 9. Landing hero is a labeled conceptual animation.
 10. Execution of imported GitHub repositories remains BLOCKED by design.
 
+## Part-3 defect list (found by self-review and browser verification; all fixed)
+
+1. [HIGH] Trace theater showed "produced no trace events" while events were
+   still paginating → explicit loading state added.
+2. [MED] Graph CSS node width (196px) diverged from the layout engine (172px),
+   clipping edge labels on CFG framing → matched.
+3. [MED] CFG graphs that missed the 0.7 legibility floor by a few percent were
+   centered with clipped edges → floor tuned to 0.66 (near-misses fit).
+4. [LOW] ProcessScope exit label overlapped the axis caption → removed the
+   redundant top label (dashed exit line + bottom caption retained).
+5. [LOW] Empty child-process record rendered "pids " → explicit
+   "no child pids recorded".
+6. [LOW] E2E timing races (event pagination, compare >45 s) → proper waits;
+   re-run green.
+7. [LOW] C IR graph legend lacked the basic-block category → added.
+
 ## Release readiness
 
 Educational standard: a beginner can follow source → tokens → tree →

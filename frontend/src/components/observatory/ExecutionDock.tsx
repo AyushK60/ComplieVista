@@ -145,6 +145,7 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
 }) {
   const [job, setJob] = useState<ExecutionJob | null>(null);
   const [events, setEvents] = useState<ExecutionEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(true);
@@ -161,6 +162,7 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
         if (["QUEUED", "RUNNING"].includes(j.status)) setTimeout(poll, 800);
         else if (j.status === "COMPLETED") {
           // paginate the recorded event stream (500/page cap) up to 5000 events
+          setEventsLoading(true);
           const evs: ExecutionEvent[] = [];
           let after = 0;
           for (let page = 0; page < 10; page++) {
@@ -173,6 +175,7 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
           const out = await executions.output(executionId);
           if (!alive) return;
           setEvents(evs);
+          setEventsLoading(false);
           setOutput(out.stdout ?? "(no stdout)");
         }
       } catch (e) { if (alive) setError(String(e)); }
@@ -249,7 +252,7 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
               ))}
           </div>
           {tab === "trace" && (
-            <TraceTheater events={events} job={job}
+            <TraceTheater events={events} job={job} loading={eventsLoading}
                           onSelectLine={onSelectLine} activeLine={activeLine}
                           onOpenOutput={() => setTab("output")} />
           )}
@@ -281,9 +284,10 @@ const GUIDE_STEPS = [
   { cap: "step 6 · the output", body: "The original call finishes and the program prints. Open the Output tab to see the recorded stdout." },
 ];
 
-function TraceTheater({ events, job, onSelectLine, activeLine, onOpenOutput }: {
+function TraceTheater({ events, job, loading, onSelectLine, activeLine, onOpenOutput }: {
   events: ExecutionEvent[];
   job: ExecutionJob;
+  loading?: boolean;
   onSelectLine: (line: number | null) => void;
   activeLine?: number | null;
   onOpenOutput: () => void;
@@ -397,6 +401,10 @@ function TraceTheater({ events, job, onSelectLine, activeLine, onOpenOutput }: {
   };
   const [expandRequest, setExpandRequest] = useState<number | null>(null);
 
+  if (loading) {
+    return <p className="muted" style={{ padding: 16 }} role="status">
+      <span className="spinner" /> loading recorded events…</p>;
+  }
   if (!events.length) {
     return <div className="unavailable"><span className="glyph">◍</span>
       This run produced no trace events{job.language === "c"
