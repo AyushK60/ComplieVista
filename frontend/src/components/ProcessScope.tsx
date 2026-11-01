@@ -70,7 +70,8 @@ export default function ProcessScope({
           </svg>
           <p className="muted">
             {samples.length} samples · interval {String(meta?.sample_interval_ms ?? "?")} ms ·
-            max RSS {maxRss} kB · sampled data, not event data
+            max SAMPLED RSS {maxRss} kB (sampled data — not a guaranteed true peak) ·
+            "len" fields elsewhere count elements, not bytes
           </p>
         </section>
       )}

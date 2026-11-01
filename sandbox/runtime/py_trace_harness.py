@@ -58,18 +58,52 @@ def _is_secret_name(name: str) -> bool:
     return any(part in low for part in _SECRET_FLAGS)
 
 
+_PRIMITIVE_TYPES = (int, float, bool, type(None))
+_PREVIEWABLE = (str, bytes, bytearray)
+
+
 def safe_value(v):
-    if isinstance(v, (int, float, bool, type(None))):
+    # M5QA: EXACT type checks. Subclasses of primitives may override __repr__/
+    # __str__ — calling repr() on them executes user code inside the tracer
+    # (side-effect channel, reproduced live). Subclasses get identity treatment.
+    if type(v) in (int, float, bool, type(None)):
         return {"type": type(v).__name__, "repr": repr(v)[:MAX_STR]}
-    if isinstance(v, str):
+    if type(v) is str:
         return {"type": "str", "repr": repr(v)[:MAX_STR],
                 "truncated": len(v) > MAX_STR}
-    if isinstance(v, (bytes, bytearray)):
-        return {"type": type(v).__name__, "len": len(v)}
+    if isinstance(v, _PRIMITIVE_TYPES + _PREVIEWABLE):
+        return {"type": type(v).__name__, "identity": id(v) % 10**8}
     if isinstance(v, (list, tuple, set, frozenset, dict)):
         return {"type": type(v).__name__, "len": len(v)}
     # Never call user __repr__ (M4-D): identity summary only.
     return {"type": type(v).__module__ + "." + type(v).__qualname__, "identity": id(v) % 10**8}
+
+
+def safe_exc_record(arg):
+    """Build the exc/msg fields for an 'exception' event. CPython 3.12 passes the
+    (type, value, traceback) tuple here. str() is called on the instance ONLY for
+    builtin-module exception types — user __str__ must never run inside the
+    tracer (M5QA)."""
+    if isinstance(arg, tuple):
+        instance = arg[1] if len(arg) > 1 and arg[1] is not None else arg[0]
+    else:
+        instance = arg
+    if instance is None:
+        return {"exc": None, "msg": None}
+    cls = type(instance)
+    rec = {"exc": cls.__name__}
+    if cls.__module__ == "builtins":
+        try:
+            rec["msg"] = str(instance)[:MAX_STR]
+        except Exception:
+            rec["msg"] = None
+            rec["msg_error"] = True
+    else:
+        rec["msg"] = None
+        rec["msg_unavailable"] = True
+        rec["msg_reason"] = "user exception __str__ is not evaluated (no " \
+                            "instrumentation side effects)"
+    return rec
 
 
 def safe_locals(frame):
@@ -185,15 +219,15 @@ def tracer(frame, event, arg):
     if event == "return":
         emit({"kind": "return", "fn": frame.f_code.co_name, "line": frame.f_lineno,
               "depth": depth, "arg": safe_value(arg)})
+        if frame.f_code.co_flags & 0x20:  # CO_GENERATOR: yield suspension, not exit
+            return tracer  # frame stays alive; frame_id must stay stable (M5QA)
         emit_frame_snapshot(frame, events)  # exit-time locals: aliasing/lifetime here
         frame_ids.pop(id(frame), None)  # frame lifetime ends here (observed)
         return tracer
     if event == "exception":
-        exc = arg[0] if isinstance(arg, tuple) else None
+        exc_rec = safe_exc_record(arg)
         emit({"kind": "exception", "fn": frame.f_code.co_name, "line": frame.f_lineno,
-              "depth": depth,
-              "exc": type(exc).__name__ if exc else None,
-              "msg": str(exc)[:MAX_STR] if exc else None})
+              "depth": depth, **exc_rec})
         return tracer
     return None
 
@@ -335,7 +369,15 @@ try:
     sys.settrace(None)
 except BaseException as e:
     exit_code = 1
-    emit({"kind": "termination", "exc": type(e).__name__, "msg": str(e)[:MAX_STR]})
+    term = {"kind": "termination", "exc": type(e).__name__}
+    if type(e).__module__ == "builtins":
+        try:
+            term["msg"] = str(e)[:MAX_STR]
+        except Exception:
+            term["msg"] = None
+    else:
+        term["msg_unavailable"] = True
+    emit(term)
     traceback.print_exc(file=sys.stderr)
 finally:
     sys.settrace(None)

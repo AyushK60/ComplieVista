@@ -52,6 +52,17 @@ Status: Accepted (M5)
    `GET /api/v1/executions/{id}/memory` and `.../process` (paginated,
    checksummed, versioned `m5.memory.v1` / `m5.process.v1`). Browsing never
    re-runs code.
+9. **M5QA amendment — no instrumentation side effects, faithful identity.**
+   Value previews use EXACT type checks (primitive subclasses may override
+   `__repr__`; calling it inside the tracer is a side-effect channel —
+   reproduced and fixed). Exception records identify the exception INSTANCE
+   from CPython 3.12's tuple arg; `str()` is evaluated only for builtin-module
+   exception types, so user `__str__` never runs inside the tracer. Generator
+   suspensions are not frame exits: frame ids stay stable across yields and no
+   exit-style snapshot is emitted per suspension. The C shim counts `reallocs`
+   separately in `mem_meta` (outstanding remains malloc/free-based, stated as
+   approximate for realloc-heavy programs; the first fix deadlocked the shim on
+   a nested mutex and was caught by its regression test before commit).
 
 ## Consequences
 

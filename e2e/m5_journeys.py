@@ -73,6 +73,12 @@ def journey_python_memory(page: Page) -> None:
     expect(page.get_by_role("heading", name="tracemalloc")).to_be_visible()
     expect(page.get_by_text("gc activity")).to_be_visible()
     shot(page, "m5_python_memoryscope.png")
+    # M5QA: multi-viewport evidence (1366 / 1920 / mobile)
+    page.set_viewport_size({"width": 1366, "height": 768})
+    shot(page, "m5_memoryscope_1366.png")
+    page.set_viewport_size({"width": 1920, "height": 1080})
+    shot(page, "m5_memoryscope_1920.png")
+    page.set_viewport_size({"width": 1440, "height": 900})
 
 
 def journey_python_process(page: Page) -> None:

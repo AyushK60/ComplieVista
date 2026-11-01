@@ -1,17 +1,19 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M5)
+Updated: 1 November 2026 (M5QA)
 
-## Current milestone: **M5 — Evidence-Based MemoryScope & ProcessScope**
+## Current milestone: **M5QA — Memory/Process scientific audit & repair**
 
-Status: **M5 PASS on all exit gates G0–G7** (`docs/TEST_EVIDENCE/M5.md`,
-`docs/milestones/M5.json`, handoff `docs/HANDOFF_AFTER_M5.md`, ADR-0008).
-MemoryScope (C allocator interposition + curated gdb profile; Python frames/
-alias/object-graph/tracemalloc/gc with redaction) and ProcessScope (container
-/proc sampling, pid namespace, children, thread ids; syscall timelines honestly
-UNAVAILABLE) integrated into the M4 replay timeline and M3 inspector.
-Backend **164/0/0**; E2E M5 4/4 (desktop+mobile), M3 6/6, M2 3/3, M1 5/5;
-TSC clean; vite build OK. **M5QA authorized on this PASS; M6 NOT STARTED.**
+Status: **M5QA PASS on all exit gates Q1–Q5** (`docs/TEST_EVIDENCE/M5QA.md`,
+`docs/milestones/M5QA.json`, handoff `docs/HANDOFF_AFTER_M5QA.md`). The
+second-pass self-audit (not an external review) reproduced and fixed six
+findings — most notably the Python tracer executing user `__repr__` on primitive
+subclasses, misidentified exception records under CPython 3.12's tuple args, and
+unstable generator frame identity — plus UI staleness/label precision and C
+realloc accounting (the first fix deadlocked the shim and was caught by its own
+regression test before commit). Backend **171/0/0**; E2E M5 4/4 (four viewport
+widths), M3 6/6, M2 3/3, M1 5/5; TSC clean; vite build OK.
+**M6 authorized on this PASS; M6 NOT STARTED.**
 
 ## What exists now (cumulative)
 
@@ -36,9 +38,8 @@ TSC clean; vite build OK. **M5QA authorized on this PASS; M6 NOT STARTED.**
 
 ## Next
 
-**M6 NOT STARTED.** M5QA (second-pass audit of M5) is authorized per the stage
-contract; begin any later stage only with a fresh entry-gate check of git
-ancestry and manifests.
+**M6 NOT STARTED — authorized by M5QA PASS (docs/milestones/M5QA.json); begin
+only with a fresh entry-gate check of git ancestry and manifests.**
 
 ## Active risks / quirks
 

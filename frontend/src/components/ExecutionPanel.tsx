@@ -24,6 +24,14 @@ export default function ExecutionPanel({
 
   useEffect(() => {
     let alive = true;
+    // M5QA: never show a previous run's evidence while the new one is pending.
+    setEvents([]);
+    setOutput(null);
+    setMemory(null);
+    setProcess(null);
+    setCursor(0);
+    setTab("replay");
+    setError(null);
     const poll = async () => {
       try {
         const j = await executions.get(executionId);

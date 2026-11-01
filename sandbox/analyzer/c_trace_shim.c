@@ -83,7 +83,7 @@ static char boot_arena[1 << 16];
 static size_t boot_used = 0;
 static int mem_fd = -1;
 static unsigned long mem_written = 0;
-static unsigned long allocs = 0, frees = 0;
+static unsigned long allocs = 0, frees = 0, reallocs = 0;
 static int mem_cap_marker = 0;
 static pthread_mutex_t mem_mu = PTHREAD_MUTEX_INITIALIZER;
 
@@ -147,10 +147,13 @@ static void mem_meta_atexit(void) {
     char buf[512];
     long n = snprintf(buf, sizeof buf,
                       "{\"kind\":\"mem_meta\",\"allocs\":%lu,\"frees\":%lu,"
-                      "\"outstanding\":%ld,\"records\":%lu,"
+                      "\"reallocs\":%lu,\"outstanding\":%ld,\"records\":%lu,"
                       "\"caveat\":\"allocator interposition observes allocations "
-                      "that flowed through libc malloc during the run\"}\n",
-                      allocs, frees, (long)(allocs - frees), mem_written);
+                      "that flowed through libc malloc during the run; "
+                      "outstanding counts malloc/free pairs only (realloc "
+                      "moves are tracked separately, so it is approximate for "
+                      "realloc-heavy programs)\"}\n",
+                      allocs, frees, reallocs, (long)(allocs - frees), mem_written);
     if (n < 0 || n >= (long)sizeof buf) n = (long)sizeof buf - 1;
     (void)write(mem_fd, buf, (size_t)n);
 }
@@ -212,10 +215,14 @@ void *realloc(void *old, size_t size) {
     if (!real_realloc) init_real();
     void *p = real_realloc(old, size);
     if (p) {
-        pthread_mutex_lock(&mem_mu);
-        if (!old) allocs++;
+        if (!old) {
+            pthread_mutex_lock(&mem_mu); allocs++;
+            pthread_mutex_unlock(&mem_mu);
+        } else {
+            pthread_mutex_lock(&mem_mu); reallocs++;
+            pthread_mutex_unlock(&mem_mu);
+        }
         MEM_LOG("realloc", (unsigned long)(uintptr_t)old, (unsigned long)(uintptr_t)p);
-        pthread_mutex_unlock(&mem_mu);
     }
     return p;
 }

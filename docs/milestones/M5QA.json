@@ -1,0 +1,43 @@
+{
+  "milestone": "M5QA",
+  "title": "Memory/Process scientific audit & repair",
+  "verdict": "PASS",
+  "date": "2026-11-01",
+  "project_root_verified": "E:\\ComplieVista",
+  "audit_type": "SECOND-PASS SELF-AUDIT by the same agent (NOT an independent external review); M5 self-report treated as untrusted hypothesis",
+  "prior_checkpoints": {"M0": "5718e07", "M1": "347d768", "M2": "78976fe", "M2.5": "abd88e8", "M3": "0c51ddd", "M3.5": "a8b2c44", "M4G0": "8383d40", "M4": "1325186", "M4QA": "d0a557c", "M5": "6428a76"},
+  "images": {
+    "analyzer": "sha256:77d175e8252be3f8fdccc069b56e25a39a524ec3a11732b1aaa3b299cf392111",
+    "runtime": "sha256:37cbc9ff3ce174f195776a7c00586a4f9d59c59f28e6221aaa74c641498d13c3",
+    "debug": "sha256:63d87538dc23b6cc4e416e7fdbda370a4ea01e5d188bf12ccca83479bdad4bf4"
+  },
+  "findings": [
+    {"id": "CV-M5QA-01", "severity": "high", "status": "FIXED", "summary": "tracer executed user __repr__ on primitive subclasses (side effect + fabricated-looking preview); exact-type previews now"},
+    {"id": "CV-M5QA-02", "severity": "medium", "status": "FIXED", "summary": "exception records showed exc='type' with class-repr msg (CPython 3.12 tuple arg); instance identified; user __str__ never evaluated (builtin-only str)"},
+    {"id": "CV-M5QA-03", "severity": "medium", "status": "FIXED", "summary": "generator frame_id changed per suspension with implied frame deaths; stable id, no snapshot on yield-returns"},
+    {"id": "CV-M5QA-04", "severity": "low", "status": "FIXED", "summary": "reallocs counted separately in mem_meta (first fix deadlocked the shim — caught by the regression test pre-commit)"},
+    {"id": "CV-M5QA-05", "severity": "low", "status": "FIXED", "summary": "stale previous-run evidence shown while a new run was pending; panel now resets on executionId change"},
+    {"id": "CV-M5QA-06", "severity": "low", "status": "FIXED", "summary": "imprecise metric labels: 'max SAMPLED RSS (not a guaranteed true peak)', 'len counts elements, not bytes'"}
+  ],
+  "checked_no_defect": [
+    "no privileged container flags or syscalls for memory/process capture (no SYS_PTRACE anywhere)",
+    "no untrusted execution outside containers (argv-array docker only)",
+    "browser never triggers a run (GET-only observation endpoints; POST dedups)",
+    "no cross-run identity/address assertion (within-run labeling asserted)",
+    "no host path/env/secret leaks in artifacts (container paths, redaction rule)",
+    "cancelled/failed runs present no partial observation sessions",
+    "deep recursion respects the documented 64-frame cap; program completes honestly",
+    "optimized-away C variables: debug profile is -O0-only, no higher-opt claims"
+  ],
+  "gates": [
+    {"id": "Q1", "result": "PASS", "evidence": ["every displayed value tied to tool + units + per-run/namespace caveats; imprecise labels corrected"]},
+    {"id": "Q2", "result": "PASS", "evidence": ["identical _BASE_FLAGS for all three images; no SYS_PTRACE; docker inspect host-side only"]},
+    {"id": "Q3", "result": "PASS", "evidence": ["side-effect oracle: program observes 0 tracer side effects; exception records honest; truncation/unavailable markers intact"]},
+    {"id": "Q4", "result": "PASS", "evidence": ["7 new regressions green; full backend 171/0/0; E2E M5 4/4, M3+M4 6/6, M2 3/3, M1 5/5; TSC clean; vite build OK"]},
+    {"id": "Q5", "result": "PASS", "evidence": ["docs/TEST_EVIDENCE/M5QA.md", "docs/milestones/M5QA.json", "docs/HANDOFF_AFTER_M5QA.md", "ADR-0008 amended; clean commit"]}
+  ],
+  "tests": {"backend": {"passed": 171, "failed": 0, "skipped": 0},
+            "e2e": {"m5": "4/4 (1440/1366/1920/390 screenshots)", "m3_incl_m4": "6/6", "m2": "3/3", "m1": "5/5"}},
+  "not_achieved_in_m5qa_do_not_claim": ["independent external audit (M9)", "M6 work", "gdb for pasted code", "syscall timelines"],
+  "next_milestone": "M6 authorized on this PASS per contract; M6 NOT STARTED"
+}
