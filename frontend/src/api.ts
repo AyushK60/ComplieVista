@@ -59,6 +59,9 @@ export const api = {
     }).then(unwrap<IngestResult & ImportProvenance>),
 
   project: (id: string) => fetch(`/api/v1/projects/${id}`).then(unwrap<Project>),
+  projects: () => fetch("/api/v1/projects").then(unwrap<Array<{
+    id: string; name: string; created_utc: string;
+    snapshot_id: string; origin: string; combined_sha256: string }>>),
   targets: (id: string) => fetch(`/api/v1/projects/${id}/targets`).then(unwrap<Target[]>),
   snapshot: (pid: string, sid: string) =>
     fetch(`/api/v1/projects/${pid}/snapshots/${sid}`).then(unwrap<SnapshotDetail>),

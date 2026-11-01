@@ -1,118 +1,177 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ApiError, api, FileDetail, Project, Reason, SnapshotDetail, StageData, Target } from "../api";
-import type { GraphSelection } from "../components/GraphView";
-import AnalysisPanel from "../components/AnalysisPanel";
-import CodeView from "../components/CodeView";
-import Inspector from "../components/Inspector";
-import ExecutionPanel from "../components/ExecutionPanel";
-import OptimizationLab from "../components/OptimizationLab";
-import { executions } from "../api";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import {
+  AnalysisJob, ApiError, api, FileDetail, Project, Reason, SnapshotDetail,
+  StageData, Target, demos, executions,
+} from "../api";
+import SourceDock from "../components/observatory/SourceDock";
+import JourneyNavigator from "../components/observatory/JourneyNavigator";
+import StageCanvas from "../components/observatory/StageCanvas";
+import Inspector from "../components/observatory/Inspector";
+import ExecutionDock from "../components/observatory/ExecutionDock";
+import OptimizationExplorer from "../components/observatory/OptimizationExplorer";
+import { Selection } from "../components/observatory/types";
+
+/**
+ * M8 Observatory — one cohesive source-to-execution environment.
+ * Source Dock | Journey Navigator + Visual Canvas | Contextual Inspector,
+ * with the Execution & Systems dock under the canvas. Stages and availability
+ * always come from the real analysis job; nothing is invented or auto-run.
+ */
 
 type Mode = "paste" | "upload" | "github";
 
-const STATUS_CLASS: Record<string, string> = {
-  STATIC_ANALYZABLE: "chip ok",
-  COMPILATION_CANDIDATE: "chip partial",
-  EXECUTABLE_CANDIDATE: "chip partial",
-  READY_FOR_CONTROLLED_EXECUTION: "chip ok",
-  BLOCKED: "chip blocked",
-  UNSUPPORTED: "chip blocked",
+const STATUS_LABEL: Record<string, string> = {
+  STATIC_ANALYZABLE: "static-analyzable",
+  COMPILATION_CANDIDATE: "compiles",
+  EXECUTABLE_CANDIDATE: "executable",
+  READY_FOR_CONTROLLED_EXECUTION: "execution-ready",
+  BLOCKED: "blocked",
+  UNSUPPORTED: "unsupported",
 };
 
 function StatusChip({ status }: { status: string }) {
-  return <span className={STATUS_CLASS[status] ?? "chip"}>{status}</span>;
+  const cls = status.startsWith("READY") ? "chip ok"
+    : status === "BLOCKED" || status === "UNSUPPORTED" ? "chip blocked" : "chip partial";
+  return <span className={cls}>{STATUS_LABEL[status] ?? status}</span>;
 }
 
 export default function Workspace() {
+  const [params] = useSearchParams();
+  // ——— ingest ———
   const [mode, setMode] = useState<Mode>("paste");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<{ code: string; message: string } | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  // paste inputs
+  const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState("python");
   const [filename, setFilename] = useState("demo.py");
-  const [content, setContent] = useState("x = 41\nx += 1\nif __name__ == '__main__':\n    print(x)\n");
-  // github inputs
+  const [content, setContent] = useState(
+    "def area(base, height):\n    return base * height / 2\n\n\ndef main():\n    print(area(3, 4))\n\n\nif __name__ == '__main__':\n    main()\n");
   const [ghUrl, setGhUrl] = useState("https://github.com/antirez/kilo");
   const [ghRef, setGhRef] = useState("");
 
+  // ——— observatory state ———
   const [project, setProject] = useState<Project | null>(null);
   const [snapshot, setSnapshot] = useState<SnapshotDetail | null>(null);
   const [targets, setTargets] = useState<Target[]>([]);
   const [selected, setSelected] = useState<FileDetail | null>(null);
-  const [tools, setTools] = useState<Record<string, { available: boolean; version: string }>>({});
   const [analysisId, setAnalysisId] = useState<string | null>(null);
-  const [highlightLine, setHighlightLine] = useState<number | null>(null);
-  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
-  const [selection, setSelection] = useState<GraphSelection>(null);
-  const [executionId, setExecutionId] = useState<string | null>(null);
-  const [runError, setRunError] = useState<string | null>(null);
+  const [job, setJob] = useState<AnalysisJob | null>(null);
+  const [stageName, setStageName] = useState<string | null>(null);
   const [stageData, setStageData] = useState<StageData | null>(null);
-  useEffect(() => { setSelection(null); }, [stageData]);
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [highlightLine, setHighlightLine] = useState<number | null>(null);
+  const [linked, setLinked] = useState(false);
+  const [executionId, setExecutionId] = useState<string | null>(null);
+  const [guided, setGuided] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [demoMeta, setDemoMeta] = useState<string | null>(null);
+  const [optPair, setOptPair] = useState<{ snapshotId: string; targetId: string } | null>(null);
+  const stageSeqRef = useRef(0);
 
-  useEffect(() => {
-    api.capabilities().then((c) => setTools(c.tools)).catch(() => setTools({}));
+  const showLine = useCallback((line: number | null, isLinked = true) => {
+    setHighlightLine(line);
+    setLinked(isLinked);
   }, []);
+
+  /* ——— demo deep-link: /workspace?analysis=&execution=&snapshot=&target= ——— */
+  useEffect(() => {
+    const aId = params.get("analysis");
+    const eId = params.get("execution");
+    const sId = params.get("snapshot");
+    const tId = params.get("target");
+    if (aId) setAnalysisId(aId);
+    if (eId) setExecutionId(eId);
+    if (tId && sId) setOptPair({ snapshotId: sId, targetId: tId });
+    if (sId) {
+      (async () => {
+        try {
+          const projects = await api.projects();
+          const hit = projects.find((p) => p.snapshot_id === sId);
+          if (!hit) return;
+          const proj = await api.project(hit.id);
+          const snap = await api.snapshot(hit.id, sId);
+          setProject(proj); setSnapshot(snap); setTargets(await api.targets(hit.id));
+          const primary = snap.files.find((f) => f.rel_path === (params.get("file") ?? "")) ?? snap.files[0];
+          if (primary) setSelected(await api.file(hit.id, sId, primary.id));
+          const demoId = params.get("demo");
+          if (demoId) {
+            const all = await demos.list();
+            const d = all.demos.find((x) => x.id === demoId);
+            if (d) setDemoMeta(`${d.id} — ${d.title}`);
+          }
+        } catch { /* demo deep-link best effort */ }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ——— analysis job polling ——— */
+  useEffect(() => {
+    if (!analysisId) { setJob(null); return; }
+    let alive = true;
+    const poll = async () => {
+      try {
+        const j = await api.analysis(analysisId);
+        if (!alive) return;
+        setJob(j);
+        if (["QUEUED", "RUNNING"].includes(j.status)) setTimeout(poll, 800);
+        else if (j.stages.length && !stageName) {
+          const first = j.stages.find((s) => s.availability === "AVAILABLE")
+            ?? j.stages.find((s) => s.stage === "tokens") ?? j.stages[0];
+          setStageName(first.stage);
+        }
+      } catch (e) { if (alive) setAnalyzeError(String(e)); }
+    };
+    poll();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysisId]);
+
+  /* ——— stage data (stale-result guarded) ——— */
+  useEffect(() => {
+    if (!analysisId || !stageName || !job || ["QUEUED", "RUNNING"].includes(job.status)) return;
+    const seq = ++stageSeqRef.current;
+    setStageData(null);
+    setSelection(null);
+    api.stage(analysisId, stageName).then((sd) => {
+      if (seq === stageSeqRef.current) setStageData(sd);
+    }).catch(() => { if (seq === stageSeqRef.current) setStageData(null); });
+  }, [stageName, analysisId, job?.status]);
 
   async function loadProject(pid: string) {
     const [proj, tgts] = await Promise.all([api.project(pid), api.targets(pid)]);
     const sid = proj.snapshots[0]?.id;
     if (!sid) throw new ApiError({ code: "NO_SNAPSHOT", message: "project has no snapshot" });
     const snap = await api.snapshot(pid, sid);
-    setProject(proj);
-    setTargets(tgts);
-    setSnapshot(snap);
-    const preferred =
-      snap.files.find((f) => f.language === "python") ?? snap.files.find((f) => f.language === "c") ?? snap.files[0];
+    setProject(proj); setTargets(tgts); setSnapshot(snap);
+    const preferred = snap.files.find((f) => f.language === "python")
+      ?? snap.files.find((f) => f.language === "c") ?? snap.files[0];
     if (preferred) setSelected(await api.file(pid, sid, preferred.id));
+    setAnalysisId(null); setJob(null); setStageName(null); setStageData(null);
+    setExecutionId(null); setSelection(null); setOptPair(null);
   }
 
-  async function runIngest(action: () => Promise<{ project_id: string; rejected_count: number; existed: boolean }>) {
-    setBusy(true);
-    setError(null);
-    setNotice(null);
-    try {
-      const r = await action();
-      await loadProject(r.project_id);
-      setNotice(
-        `${r.existed ? "Existing snapshot returned (idempotent)" : "Snapshot created"} · ` +
-          `${r.rejected_count} archive entr${r.rejected_count === 1 ? "y" : "ies"} rejected` +
-          (r.rejected_count ? ` (see diagnostics)` : ""),
-      );
-    } catch (e) {
-      if (e instanceof ApiError) setError({ code: e.code, message: e.body.message });
-      else setError({ code: "CLIENT", message: String(e) });
-    } finally {
-      setBusy(false);
-    }
+  async function runIngest(action: () => Promise<{ project_id: string }>) {
+    setBusy(true); setError(null);
+    try { await loadProject((await action()).project_id); }
+    catch (e) { setError(e instanceof ApiError ? `${e.code}: ${e.body.message}` : String(e)); }
+    setBusy(false);
+  }
+
+  function selectFile(id: string) {
+    if (!project || !snapshot) return;
+    (async () => {
+      setSelected(await api.file(project.id, snapshot.id, id));
+      setAnalysisId(null); setJob(null); setStageName(null); setStageData(null);
+      setExecutionId(null); setSelection(null); setOptPair(null);
+      showLine(null, false);
+    })();
   }
 
   const fileTargets = (rel: string) => targets.filter((t) => t.primary_file === rel);
-  const orderedFiles = snapshot
-    ? [...snapshot.files].sort((a, b) => {
-        const rank = (f: { language: string; rel_path: string }) =>
-          (f.language === "python" ? 0 : f.language === "c" ? 1 : 2) + f.rel_path.localeCompare(b.rel_path) * 0;
-        const r = rank(a) - rank(b);
-        return r !== 0 ? r : a.rel_path.localeCompare(b.rel_path);
-      })
-    : [];
-
-  async function selectFile(id: string) {
-    if (!project || !snapshot) return;
-    setSelected(await api.file(project.id, snapshot.id, id));
-    setAnalysisId(null);
-    setHighlightLine(null);
-    setAnalyzeError(null);
-    setSelection(null);
-    setStageData(null);
-    setExecutionId(null);
-    setRunError(null);
-  }
-
-  const selectedTargets = selected ? fileTargets(selected.rel_path) : [];
   const ANALYZABLE = new Set(["STATIC_ANALYZABLE", "COMPILATION_CANDIDATE", "EXECUTABLE_CANDIDATE"]);
+  const selectedTargets = selected ? fileTargets(selected.rel_path) : [];
   const runnableTarget = selectedTargets.find(
     (t) => (t.status === "EXECUTABLE_CANDIDATE" || t.status === "COMPILATION_CANDIDATE")
       && snapshot?.origin !== "github");
@@ -122,240 +181,235 @@ export default function Workspace() {
   async function startRun(profile?: string) {
     if (!snapshot || !runnableTarget) return;
     setRunError(null);
-    setExecutionId(null);
     try {
       const ref = await executions.create(snapshot.id, runnableTarget.target_id, profile);
       setExecutionId(ref.execution_id);
-    } catch (e) {
-      setRunError(e instanceof ApiError ? e.message : String(e));
-    }
+      if (profile !== "debug") setOptPair({ snapshotId: snapshot.id, targetId: runnableTarget.target_id });
+    } catch (e) { setRunError(e instanceof ApiError ? e.message : String(e)); }
   }
 
   async function startAnalysis() {
     if (!snapshot || !analyzableTarget) return;
     setAnalyzeError(null);
-    setAnalysisId(null);
     try {
       const ref = await api.createAnalysis(snapshot.id, analyzableTarget.target_id);
+      setStageName(null);
       setAnalysisId(ref.analysis_id);
-    } catch (e) {
-      setAnalyzeError(e instanceof ApiError ? e.message : String(e));
-    }
+    } catch (e) { setAnalyzeError(e instanceof ApiError ? e.message : String(e)); }
   }
 
-  return (
-    <main className={project ? "observatory-main" : ""}>
-      <nav className="topnav">
-        <strong>CompileVista</strong>
-        <Link to="/">Home</Link>
-        <Link to="/workspace">Source Workspace</Link>
-        <span className="muted" style={{ marginLeft: "auto" }}>
-          {Object.entries(tools)
-            .filter(([, v]) => v.available)
-            .map(([k, v]) => `${k} ${v.version.split(" ").slice(-1)[0]}`)
-            .join(" · ")}
-        </span>
-      </nav>
-      <h1>Source Workspace</h1>
-      <p className="muted">
-        Paste, upload or import public GitHub repositories. Sources become immutable SHA-256
-        snapshots; nothing is ever executed just by being added.
-      </p>
+  const sourceText = selected?.text ?? "";
+  const lang = selected?.language ?? job?.language ?? "python";
 
-      <section className="ingest">
-        <div className="tabs" role="tablist">
-          {(["paste", "upload", "github"] as Mode[]).map((m) => (
-            <button key={m} role="tab" aria-selected={mode === m}
-                    className={mode === m ? "tab active" : "tab"}
-                    onClick={() => setMode(m)} disabled={busy}>
-              {m === "paste" ? "Paste" : m === "upload" ? "Upload" : "GitHub import"}
-            </button>
-          ))}
+  const header = useMemo(() => {
+    if (!project || !snapshot) return null;
+    return (
+      <div className="obs-head">
+        <div className="obs-title">
+          <h1>{demoMeta ?? project.name}</h1>
+          {demoMeta && <span className="chip ok">demo program</span>}
+          <span className="chip">{lang === "c" ? "C · Clang/LLVM 18" : "Python · CPython 3.12"}</span>
+          <span className="chip">{snapshot.origin}</span>
         </div>
+        <p className="muted tech-only">
+          snapshot <code>{snapshot.combined_sha256.slice(0, 24)}…</code> ·{" "}
+          {snapshot.files.length} file(s) · nothing executes by being added
+        </p>
+      </div>
+    );
+  }, [project, snapshot, lang, demoMeta]);
 
-        {mode === "paste" && (
-          <div>
-            <div className="row">
-              <label>
-                Language{" "}
-                <select value={language}
-                        onChange={(e) => {
-                          setLanguage(e.target.value);
-                          setFilename(e.target.value === "python" ? "demo.py" : "demo.c");
-                        }}>
-                  <option value="python">Python</option>
-                  <option value="c">C</option>
-                </select>
-              </label>
-              <label>
-                Filename <input value={filename} onChange={(e) => setFilename(e.target.value)} />
-              </label>
-            </div>
-            <textarea className="paste" rows={10} value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      aria-label="paste source code" />
-            <button className="primary" disabled={busy}
-                    onClick={() => runIngest(() => api.paste(language, filename, content))}>
-              Create snapshot
-            </button>
-          </div>
-        )}
-
-        {mode === "upload" && (
-          <div>
-            <p className="muted">
-              Individual <code>.c</code> <code>.h</code> <code>.py</code> files or one bounded
-              <code> .zip</code> (≤ 25 MB compressed; hostile entries are rejected and reported).
-            </p>
-            <input type="file" multiple
-                   accept=".c,.h,.py,.zip"
-                   aria-label="upload source files"
-                   disabled={busy}
-                   onChange={(e) => {
-                     const files = Array.from(e.target.files ?? []);
-                     if (files.length) runIngest(() => api.upload(files));
-                   }} />
-          </div>
-        )}
-
-        {mode === "github" && (
-          <div>
-            <div className="row">
-              <label style={{ flex: 1 }}>
-                Public repository URL{" "}
-                <input style={{ width: "100%" }} value={ghUrl}
-                       onChange={(e) => setGhUrl(e.target.value)}
-                       placeholder="https://github.com/OWNER/REPO" />
-              </label>
-              <label>
-                Ref (optional) <input value={ghRef} onChange={(e) => setGhRef(e.target.value)}
-                                       placeholder="branch/tag/sha" />
-              </label>
-            </div>
-            <button className="primary" disabled={busy}
-                    onClick={() => runIngest(() => api.importGithub(ghUrl, ghRef || undefined))}>
-              Import pinned revision
-            </button>
-          </div>
-        )}
-
-        {busy && <p className="notice">Working…</p>}
-        {notice && <p className="notice">{notice}</p>}
-        {error && (
-          <p className="err">
-            {error.code}: {error.message}
-          </p>
-        )}
-      </section>
-
-      {project && snapshot && (
-        <section className="workspace">
-          <h2>{project.name}</h2>
+  /* ——— ingest (empty state) ——— */
+  if (!project || !snapshot) {
+    return (
+      <main className="obs obs-empty">
+        <div className="obs-ingest panel">
+          <h1>Bring a program to the observatory</h1>
           <p className="muted">
-            snapshot <code>{snapshot.combined_sha256.slice(0, 24)}…</code> · origin{" "}
-            <code>{snapshot.origin}</code> · {snapshot.files.length} file(s)
-            {snapshot.diagnostics.length > 0 && <> · {snapshot.diagnostics.length} recorded intake diagnostics</>}
+            Paste source, upload files, or import a public GitHub repository. Everything
+            becomes an immutable SHA-256 snapshot. Nothing is ever executed just by being added.
           </p>
-          <div className={`cols ${analysisId ? "has-inspector" : ""}`}>
-            <div className="filelist" role="list">
-              {orderedFiles.map((f) => {
-                const tg = fileTargets(f.rel_path);
-                const status = tg[0]?.status;
-                return (
-                  <button key={f.id} role="listitem"
-                          className={selected?.id === f.id ? "fileitem active" : "fileitem"}
-                          onClick={() => selectFile(f.id)}>
-                    <span className="fname">{f.rel_path}</span>
-                    <span className="fmeta">{f.language} · {f.size} B</span>
-                    {status && <StatusChip status={status} />}
-                  </button>
-                );
-              })}
+          <div className="ingest-tabs" role="tablist">
+            {(["paste", "upload", "github"] as Mode[]).map((m) => (
+              <button key={m} role="tab" aria-selected={mode === m}
+                      className={mode === m ? "active" : ""} onClick={() => setMode(m)} disabled={busy}>
+                {m === "paste" ? "Paste code" : m === "upload" ? "Upload files" : "GitHub import"}
+              </button>
+            ))}
+          </div>
+          {mode === "paste" && (
+            <div className="ingest-body">
+              <div className="row2">
+                <label>Language
+                  <select className="input" value={language}
+                          onChange={(e) => {
+                            setLanguage(e.target.value);
+                            setFilename(e.target.value === "python" ? "demo.py" : "demo.c");
+                          }}>
+                    <option value="python">Python</option>
+                    <option value="c">C</option>
+                  </select>
+                </label>
+                <label>Filename
+                  <input className="input" value={filename} onChange={(e) => setFilename(e.target.value)} />
+                </label>
+              </div>
+              <textarea className="input paste-area" rows={12} value={content} aria-label="paste source code"
+                        spellCheck={false}
+                        onChange={(e) => setContent(e.target.value)} />
+              <button className="btn primary" disabled={busy}
+                      onClick={() => runIngest(() => api.paste(language, filename, content))}>
+                Create snapshot
+              </button>
             </div>
-            <div className="detail">
-              {selected ? (
-                <>
-                  <CodeView text={selected.text ?? "(binary content not previewable)"}
-                            path={selected.rel_path}
-                            language={selected.language}
-                            highlightLine={highlightLine} />
-                  <p className="muted">
-                    sha256 <code>{selected.content_sha256.slice(0, 32)}…</code> · encoding{" "}
-                    <code>{selected.encoding}</code>
-                  </p>
-                  <h3>Targets for this file</h3>
-                  {selectedTargets.length === 0 && (
-                    <p className="muted">No compilation targets detected for this file.</p>
-                  )}
-                  {selectedTargets.map((t) => (
-                    <div className="target" key={t.target_id}>
-                      <p>
-                        <code>{t.kind}</code> <StatusChip status={t.status} />{" "}
-                        {t.ready_for_controlled_execution ? null : (
-                          <span className="chip blocked">execution: gated by M4</span>
-                        )}
-                      </p>
-                      <ul className="reasons">
-                        {t.reasons.map((r: Reason, i: number) => (
-                          <li key={i}>
-                            <code>{r.code}</code> — {r.detail}{" "}
-                            <em className={r.verified ? "ok" : "unverified"}>
-                              [{r.verified ? "verified" : "detected"}]
-                            </em>
-                          </li>
-                        ))}
-                      </ul>
-                      {t === analyzableTarget && (
-                        <button className="primary" onClick={startAnalysis} disabled={!snapshot}>
-                          Analyze with real {selected.language === "c" ? "Clang/LLVM 18" : "CPython 3.12"} (static)
-                        </button>
-                      )}
-                      {t === runnableTarget && (
-                        <>
-                        <button className="primary run" onClick={() => startRun()} disabled={!snapshot}
-                                title="Runs once in a restricted container; results are recorded for replay.">
-                          Run in restricted container
-                        </button>{" "}
-                        <button className="run" onClick={() => startRun("debug")} disabled={!snapshot}
-                                title="MemoryScope debugger capture — curated allowlisted C fixtures only (ADR-0008); other code is refused with an explanation.">
-                          Debug run (curated only)
-                        </button>
-                        </>
-                      )}
-                      {t !== analyzableTarget && (
-                        <button className="analyze" disabled title=
-                          "No bounded analysis path for this target yet; execution requires the M4 security gate.">
-                          Analyze
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {analyzeError && <p className="err">Analyze failed: {analyzeError}</p>}
-                  {analysisId && <AnalysisPanel analysisId={analysisId}
-                                                onSelectLine={(l) => setHighlightLine(l)}
-                                                onSelectNode={setSelection}
-                                                onSelectStageData={setStageData} />}
-                  {executionId && <ExecutionPanel executionId={executionId}
-                                                  onSelectLine={(l) => setHighlightLine(l)} />}
-                  {runError && <p className="err">Run failed: {runError}</p>}
-                  {snapshot && runnableTarget && selected?.language === "c" && (
-                    <OptimizationLab snapshotId={snapshot.id}
-                                     targetId={runnableTarget.target_id}
-                                     language="c" />
-                  )}
-                </>
-              ) : (
-                <p className="muted">Select a file.</p>
-              )}
+          )}
+          {mode === "upload" && (
+            <div className="ingest-body">
+              <p className="muted">
+                Individual <code>.c</code> <code>.h</code> <code>.py</code> files or one bounded
+                <code> .zip</code> (≤ 25 MB). Hostile archive entries are rejected and reported.
+              </p>
+              <input type="file" multiple accept=".c,.h,.py,.zip" aria-label="upload source files"
+                     disabled={busy}
+                     onChange={(e) => {
+                       const files = Array.from(e.target.files ?? []);
+                       if (files.length) runIngest(() => api.upload(files));
+                     }} />
             </div>
-            {analysisId && (
-              <div className="inspcol">
-                <Inspector selection={selection} stageData={stageData}
-                           onClose={() => setSelection(null)} />
+          )}
+          {mode === "github" && (
+            <div className="ingest-body">
+              <div className="row2">
+                <label style={{ flex: 1 }}>Public repository URL
+                  <input className="input" value={ghUrl} placeholder="https://github.com/OWNER/REPO"
+                         onChange={(e) => setGhUrl(e.target.value)} />
+                </label>
+                <label>Ref (optional)
+                  <input className="input" value={ghRef} placeholder="branch/tag/sha"
+                         onChange={(e) => setGhRef(e.target.value)} />
+                </label>
+              </div>
+              <button className="btn primary" disabled={busy}
+                      onClick={() => runIngest(() => api.importGithub(ghUrl, ghRef || undefined))}>
+                Import pinned revision
+              </button>
+              <p className="muted">Imported repositories are analyzed read-only; their code is
+                never compiled or executed.</p>
+            </div>
+          )}
+          {busy && <p className="notice"><span className="spinner" /> Working…</p>}
+          {error && <p className="err">{error}</p>}
+          <p className="muted">Looking for a quick start? Pick a program in the{" "}
+            <Link to="/demos">Demo Library</Link>.</p>
+        </div>
+      </main>
+    );
+  }
+
+  /* ——— observatory ——— */
+  return (
+    <main className="obs">
+      {header}
+      <div className="obs-filebar" role="list" aria-label="snapshot files">
+        {[...snapshot.files]
+          .sort((a, b) => a.rel_path.localeCompare(b.rel_path))
+          .map((f) => {
+            const st = fileTargets(f.rel_path)[0]?.status;
+            return (
+              <button key={f.id} role="listitem"
+                      className={"filechip" + (selected?.id === f.id ? " active" : "")}
+                      onClick={() => selectFile(f.id)}>
+                <code>{f.rel_path}</code>
+                {st && <StatusChip status={st} />}
+              </button>
+            );
+          })}
+        <span className="spacer" />
+        {analyzableTarget && (
+          <button className="btn primary" onClick={startAnalysis} disabled={!!analysisId && ["QUEUED", "RUNNING"].includes(job?.status ?? "")}>
+            {analysisId && job && ["QUEUED", "RUNNING"].includes(job.status)
+              ? <><span className="spinner" /> analyzing…</>
+              : `Analyze with ${lang === "c" ? "Clang/LLVM 18" : "CPython 3.12"}`}
+          </button>
+        )}
+        {runnableTarget && (
+          <>
+            <button className="btn run" onClick={() => startRun()}>Run in restricted container</button>
+            <button className="btn" onClick={() => startRun("debug")}
+                    title="MemoryScope debugger capture — curated allowlisted C fixtures only (ADR-0008); other code is refused with an explanation.">
+              Debug run (curated)
+            </button>
+          </>
+        )}
+      </div>
+      {analyzableTarget && analyzableTarget !== runnableTarget && analyzableTarget.reasons.length > 0 && (
+        <ul className="obs-reasons tech-only">
+          {analyzableTarget.reasons.slice(0, 3).map((r: Reason, i: number) => (
+            <li key={i}><code>{r.code}</code> — {r.detail} <em>[{r.verified ? "verified" : "detected"}]</em></li>
+          ))}
+        </ul>
+      )}
+      {analyzeError && <p className="err">Analyze failed: {analyzeError}</p>}
+      {runError && <p className="err">Run failed: {runError}</p>}
+      {job && ["BLOCKED", "FAILED", "TIMEOUT"].includes(job.status) && (
+        <p className="err">Analysis {job.status}: {job.error_code ?? "no stage output"}</p>
+      )}
+
+      {job && ["QUEUED", "RUNNING"].includes(job.status) && (
+        <p className="notice"><span className="spinner" /> Analysis {job.status.toLowerCase()}… bounded container run
+          <button className="btn ghost" onClick={() => api.cancelAnalysis(analysisId!)}>Cancel</button>
+        </p>
+      )}
+
+      {(job?.status === "COMPLETED" || (executionId && !analysisId)) && (
+        <div className="obs-grid">
+          <div className="obs-left">
+            <SourceDock text={sourceText} path={selected?.rel_path ?? "?"} language={lang}
+                        activeLine={highlightLine} linked={linked}
+                        onSelectLine={(l) => showLine(l, false)} />
+            <div className="obs-filemeta muted tech-only">
+              sha256 <code>{selected?.content_sha256.slice(0, 32)}…</code> · encoding <code>{selected?.encoding}</code>
+            </div>
+          </div>
+
+          <div className="obs-center">
+            {job?.status === "COMPLETED" && (
+              <JourneyNavigator job={job} stageName={stageName} language={lang}
+                                guided={guided} onToggleGuided={setGuided}
+                                onSelectStage={(s) => setStageName(s)} />
+            )}
+            {stageData ? (
+              <div className="obs-canvas panel">
+                <StageCanvas analysisId={analysisId!} stageData={stageData} sourceText={sourceText}
+                             language={lang} onSelect={setSelection}
+                             onSelectLine={(l) => showLine(l, true)} activeLine={highlightLine} />
+              </div>
+            ) : job?.status === "COMPLETED" ? (
+              <div className="obs-canvas panel canvas-loading">
+                <p className="muted"><span className="spinner" /> loading stage…</p>
+              </div>
+            ) : (
+              <div className="obs-canvas panel canvas-loading">
+                <p className="muted">
+                  Execution replay is loaded below. Click <b>Analyze</b> in the file bar to open
+                  the static compilation journey (tokens → AST → {lang === "c" ? "IR → assembly" : "bytecode"}) alongside it.
+                </p>
               </div>
             )}
+            {executionId && (
+              <ExecutionDock executionId={executionId} onSelectLine={(l) => showLine(l, true)}
+                             activeLine={highlightLine} />
+            )}
+            {optPair && (
+              <OptimizationExplorer snapshotId={optPair.snapshotId} targetId={optPair.targetId} language={lang} />
+            )}
           </div>
-        </section>
+
+          <div className="obs-right">
+            <Inspector selection={selection} onClose={() => setSelection(null)}
+                       onShowSource={(l) => showLine(l, true)} />
+          </div>
+        </div>
       )}
     </main>
   );
