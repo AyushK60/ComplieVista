@@ -86,7 +86,9 @@ export default function Compare() {
                 <p className="muted">concept: {selected.concept}</p>
                 <p>
                   status {String(s.status ?? "—")} · exit {String(s.exit_code ?? "—")} ·{" "}
-                  {String(s.duration_ms ?? "—")} ms{" "}
+                  container wall {String(s.duration_ms ?? "—")} ms
+                  (includes runtime startup — <strong>not comparable</strong> to
+                  OptimizationLab benchmark medians){" "}
                   {s.expected_match
                     ? <span className="chip ok">matches expected</span>
                     : <span className="chip blocked">mismatch/absent</span>}

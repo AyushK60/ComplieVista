@@ -1,18 +1,19 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M6)
+Updated: 1 November 2026 (M6QA)
 
-## Current milestone: **M6 — OptimizationLab, Cross-Language Comparison & Benchmarks**
+## Current milestone: **M6QA — Optimization/Comparison Oracle Audit & Repair**
 
-Status: **M6 PASS on all exit gates G0–G7** (`docs/TEST_EVIDENCE/M6.md`,
-`docs/milestones/M6.json`, handoff `docs/HANDOFF_AFTER_M6.md`, ADR-0009).
-Real -O0/-O1/-O2 C builds with digests/durations/tool provenance and an
-independent host-clang oracle; genuine level transformation verified (loop →
-`movl $6` at -O2); uninstrumented benchmarks with warmup exclusion, ≥5 repeats,
-wall+CPU per sample, variability and environment provenance; five C/Python pair
-specs with host-verified expected outputs run through the real M4 pipeline;
-OptimizationLab and Compare UI. Backend **179/0/0**; E2E M6 2/2, M5 4/4, M3 6/6,
-M2 3/3, M1 5/5; TSC clean; vite build OK. **M6QA authorized; M7 NOT STARTED.**
+Status: **M6QA PASS on all exit gates Q1–Q5** (`docs/TEST_EVIDENCE/M6QA.md`,
+`docs/milestones/M6QA.json`, handoff `docs/HANDOFF_AFTER_M6QA.md`). The
+second-pass self-audit ran independent oracles — distinct per-level digests
+(no relabeling), fresh host-clang assembly fingerprint equality at O0/O2, exact
+recomputation of benchmark statistics from raw samples, and a CPython 3.12 dis
+oracle — then fixed two UI findings (OptimizationLab stale state across target
+switches; compare-rail duration now labeled as container wall including startup
+and explicitly non-comparable to benchmark medians). Backend **183/0/0**; E2E
+all suites green; TSC clean; vite build OK. **M7 authorized on this PASS; M7
+NOT STARTED.**
 
 ## What exists now (cumulative)
 
@@ -37,7 +38,7 @@ M2 3/3, M1 5/5; TSC clean; vite build OK. **M6QA authorized; M7 NOT STARTED.**
 
 ## Next
 
-**M7 NOT STARTED.** M6QA authorized by M6 PASS (docs/milestones/M6.json); begin
+**M7 NOT STARTED.** M6QA PASS (docs/milestones/M6QA.json) authorizes M7; begin
 any later stage only with a fresh entry-gate check of git ancestry and manifests.
 
 ## Active risks / quirks

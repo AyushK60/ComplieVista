@@ -60,6 +60,15 @@ export default function OptimizationLab({ snapshotId, targetId, language }: {
     if (["QUEUED", "RUNNING"].includes(e.status)) setTimeout(() => poll(id, set), 1000);
   }, []);
 
+  // M6QA-01: never show a previous target's experiments when the selection
+  // changes (same staleness class fixed for executions in M5QA).
+  useEffect(() => {
+    setOptId(null); setOpt(null);
+    setBenchId(null); setBench(null);
+    setAsmA(null); setAsmB(null);
+    setError(null);
+  }, [snapshotId, targetId]);
+
   useEffect(() => {
     if (optId) poll(optId, setOpt).catch((e) => setError(String(e)));
   }, [optId, poll]);
