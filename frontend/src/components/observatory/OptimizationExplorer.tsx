@@ -22,6 +22,26 @@ function lineDiff(a: string, b: string): Array<[" " | "-" | "+", string]> {
   return out;
 }
 
+/** Aligned side-by-side rows from the unified diff. Consecutive removals and
+ * additions are paired as CHANGED where they plausibly correspond; leftovers
+ * stay pure add/remove. Alignment is a reading aid, never a 1:1 claim. */
+function diffRows(a: string, b: string): Array<{ a: string | null; b: string | null; s: "same" | "changed" | "del" | "add" }> {
+  const d = lineDiff(a, b);
+  const rows: Array<{ a: string | null; b: string | null; s: "same" | "changed" | "del" | "add" }> = [];
+  let i = 0;
+  while (i < d.length) {
+    if (d[i][0] === " ") { rows.push({ a: d[i][1], b: d[i][1], s: "same" }); i++; continue; }
+    const dels: string[] = [], adds: string[] = [];
+    while (i < d.length && d[i][0] === "-") { dels.push(d[i][1]); i++; }
+    while (i < d.length && d[i][0] === "+") { adds.push(d[i][1]); i++; }
+    const pairs = Math.min(dels.length, adds.length);
+    for (let k = 0; k < pairs; k++) rows.push({ a: dels[k], b: adds[k], s: "changed" });
+    for (let k = pairs; k < dels.length; k++) rows.push({ a: dels[k], b: null, s: "del" });
+    for (let k = pairs; k < adds.length; k++) rows.push({ a: null, b: adds[k], s: "add" });
+  }
+  return rows;
+}
+
 const LEVELS = ["O0", "O1", "O2"] as const;
 
 /**
@@ -159,15 +179,32 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
                       onClick={() => setKind("ir")}>LLVM IR</button>
             </div>
           </div>
-          {artA && artB ? (
-            <div className="optdiff">
-              <pre className="excerpt diff">{lineDiff(artA, artB).slice(0, 400).map(([mark, line], i) => (
-                <div key={i} className={mark === "-" ? "diff-del" : mark === "+" ? "diff-add" : ""}>
-                  {mark} {line}
+          {artA && artB ? (() => {
+            const rows = diffRows(artA, artB);
+            const nAdd = rows.filter((r) => r.s === "add").length;
+            const nDel = rows.filter((r) => r.s === "del").length;
+            const nChg = rows.filter((r) => r.s === "changed").length;
+            return (
+              <div className="optdiff">
+                <div className="optdiff-legend">
+                  <span className="badge derived">changed ×{nChg}</span>
+                  <span className="badge blocked">removed ×{nDel}</span>
+                  <span className="badge ok">added ×{nAdd}</span>
+                  <span className="muted">row alignment is a reading aid — an IR/asm line never maps 1:1 to a source line or to one machine instruction</span>
                 </div>
-              ))}</pre>
-            </div>
-          ) : <p className="muted"><span className="spinner" /> loading artifacts…</p>}
+                <div className="optdiff-side" role="table" aria-label={`${levelA} vs ${levelB} side-by-side`}>
+                  <div className="optdiff-head"><b>{levelA}</b><b>{levelB}</b></div>
+                  {rows.slice(0, 400).map((r, i) => (
+                    <div key={i} className={`optdiff-row s-${r.s}`}>
+                      <code>{r.a ?? ""}</code>
+                      <code>{r.b ?? ""}</code>
+                    </div>
+                  ))}
+                  {rows.length > 400 && <p className="muted" style={{ padding: "6px 12px" }}>… {rows.length - 400} further diff rows (bounded view)</p>}
+                </div>
+              </div>
+            );
+          })() : <p className="muted"><span className="spinner" /> loading artifacts…</p>}
           <p className="muted">
             What this can tell you: how the emitted {kind === "asm" ? "assembly" : "IR"} differs
             between levels (fewer instructions, hoisted constants, eliminated work) and code

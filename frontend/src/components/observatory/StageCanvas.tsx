@@ -7,7 +7,7 @@ import GraphViewWithSel from "./GraphSelectionBridge";
 
 /** StageCanvas — renders the selected compilation stage with the visualization
  * its data deserves. Availability is taken from the backend, never assumed. */
-export default function StageCanvas({ analysisId, stageData, sourceText, language, onSelect, onSelectLine, activeLine, onHoverSpan, guided, onNavigateStage }: {
+export default function StageCanvas({ analysisId, stageData, sourceText, language, onSelect, onSelectLine, activeLine, onHoverSpan, guided, onNavigateStage, fullscreen, sourceFocusLine }: {
   analysisId: string;
   stageData: StageData;
   sourceText: string;
@@ -18,6 +18,9 @@ export default function StageCanvas({ analysisId, stageData, sourceText, languag
   onHoverSpan?: (span: SourceSpan | null) => void;
   guided?: boolean;
   onNavigateStage?: (stage: string) => void;
+  fullscreen?: boolean;
+  /** source-dock-initiated line selection (linked=false in Workspace) */
+  sourceFocusLine?: number | null;
 }) {
   const s = stageData;
   const blurb = STAGE_BLURBS[s.stage];
@@ -79,9 +82,13 @@ export default function StageCanvas({ analysisId, stageData, sourceText, languag
           onSelect={onSelect} onSelectLine={onSelectLine} activeLine={activeLine}
           onHoverSpan={onHoverSpan} guided={guided} onNavigateStage={onNavigateStage} />
       ) : isBytecode && language === "python" ? (
-        <BytecodeLanes items={items} language={language} onSelect={onSelect} onSelectLine={onSelectLine} />
+        <BytecodeLanes items={items} language={language} onSelect={onSelect} onSelectLine={onSelectLine}
+                       activeLine={activeLine} guided={guided} onNavigateStage={onNavigateStage}
+                       analysisId={analysisId} />
       ) : graphable ? (
-        <GraphViewWithSel analysisId={analysisId} stage={s.stage} onSelect={onSelect} onSelectLine={onSelectLine} />
+        <GraphViewWithSel analysisId={analysisId} stage={s.stage} onSelect={onSelect} onSelectLine={onSelectLine}
+                          focusLine={sourceFocusLine} guided={guided} onNavigateStage={onNavigateStage}
+                          fullscreen={fullscreen} />
       ) : s.stage === "code_object" ? (
         <CodeObjects items={items} onSelect={onSelect} language={language} />
       ) : s.stage === "assembly" ? (

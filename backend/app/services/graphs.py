@@ -101,6 +101,7 @@ def _cfg_graph(items: list[dict], analysis_id: str, stage: str) -> tuple[list, l
             nodes.append({"id": bid, "kind": "basic_block", "name": b["label"],
                           "function": fn["name"],
                           "terminators": b.get("terminators", []),
+                          "n_instructions": len(b.get("instructions", [])),
                           "confidence": "DERIVED", "group": "cfg"})
             edges.append({"source": fid, "target": bid, "kind": "containment",
                           "confidence": "DERIVED"})

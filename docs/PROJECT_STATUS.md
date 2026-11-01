@@ -1,20 +1,40 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M8 visual recovery — revision 2, "The Living Compiler")
+Updated: 1 November 2026 (M8 Part 2 — the compiler visualization engine)
 
-## Current milestone: **M8 — frontend recovery (porcelain revision)**
+## Current milestone: **M8 — frontend recovery + visualization engine**
 
-Status: **M8 revision 2 IMPLEMENTED and browser-verified.** Revision 1
-("Project Phoenix / Computational Atlas", midnight-blue theme) was rejected by
-the product owner on visual quality; revision 2 rebuilds the visual system per
-`docs/M8_DESIGN_SYSTEM.md` (Porcelain Instrument × Ink Canvas × Scientific
-Precision) while keeping the honest data plumbing. Evidence:
-`docs/TEST_EVIDENCE/M8.md` (revision-2 section) +
-`docs/TEST_EVIDENCE/m8/recovery/` (9 screenshots) + committed Playwright E2E
-`e2e/m8_journeys.py` (ALL CHECKS PASSED, zero console errors). M9 independent
+Status: **M8 Part 2 IMPLEMENTED and browser-verified.** Revision 2 (porcelain
+design system) was delivered earlier today; Part 2 rebuilt the compiler
+visualization engine on top of it: tidy-tree AST layout with readable default
+framing and function-subtree focus, two-way source↔graph synchronization,
+guided AST + bytecode journeys, IR basic-block instructions (backend extraction,
+tested), phase-grouped pipeline navigator, side-by-side optimization diff, and
+full-screen stage exploration. Evidence: `docs/TEST_EVIDENCE/M8.md` (Part-2
+section), `docs/TEST_EVIDENCE/m8b/` (screenshots + metrics.json), committed
+Playwright E2E `e2e/m8b_journeys.py` (ALL CHECKS PASSED, zero console errors,
+six required programs at two desktop sizes + mobile fallback). M9 independent
 audit NOT started.
 
-What revision 2 changed (frontend, except one tested backend ordering fix):
+What Part 2 changed (frontend, except one tested backend extraction):
+- **Layout engine**: tidy tree for syntax trees (was: unrelated layer columns),
+  top-down layered CFG for IR; stable source-order siblings; zoom floor 0.7 so
+  labels are always legible; full-tree overview is an explicit action.
+- **Default framing**: the program's first function subtree, selected and
+  framed, with its source line highlighted; full graph available via "Full".
+- **Node categories**: declarations/statements/expressions/operators/names/
+  literals + compiler-inserted nodes (dashed, honest, filterable).
+- **Cross-stage selection continuity**: node→source-line and
+  source-line→node both work; stage switches preserve the journey context.
+- **Bytecode observatory**: code-object constants/names, source-line grouped
+  lanes, source↔instruction selection, real branch arcs, guided script.
+- **LLVM IR**: per-block verbatim instructions extracted from the stored .ll
+  (backend `_ir_summary`, capped + honestly flagged; regression-tested in
+  `backend/tests/test_m8b_ir_instructions.py`); block inspector shows them.
+- **Full-screen exploration** per stage with compact stage bar + on-demand
+  inspector; Explore-mode copy shortened to one sentence per stage.
+
+What revision 2 (earlier today) changed:
 - **Design system**: all four stylesheets rewritten — porcelain page chrome,
   ink visualization canvases set into instrument bezels (never full-page black
   sections), semantic accents (teal=interactive/identifiers, clay=runtime/

@@ -113,7 +113,11 @@ def _ir_summary(ir_text: str) -> dict:
     """Functions, blocks and REAL terminator-derived edges (DERIVED confidence).
     The entry block has no label line in LLVM IR — represented as '<entry>'.
     Terminators are accumulated across physical lines: LLVM prints switch case
-    labels on continuation lines (CV-02)."""
+    labels on continuation lines (CV-02). Per-block instruction text is
+    extracted verbatim from the same .ll artifact (presentation extraction —
+    the compilation engine is untouched); lines are whitespace-trimmed and
+    capped per block with an honest truncated flag."""
+    MAX_BLOCK_INSTRUCTIONS = 200
     functions = []
     cur: dict | None = None
     block: dict | None = None
@@ -124,7 +128,8 @@ def _ir_summary(ir_text: str) -> dict:
         m = re.match(r"^define\s+.*@([\w.$-]+)", line)
         if m:
             cur = {"name": m.group(1), "blocks": [], "mapping_confidence": "DERIVED"}
-            block = {"label": "<entry>", "terminators": [], "successors": []}
+            block = {"label": "<entry>", "terminators": [], "successors": [],
+                     "instructions": []}
             cur["blocks"].append(block)
             functions.append(cur)
             i += 1
@@ -141,8 +146,14 @@ def _ir_summary(ir_text: str) -> dict:
                     and len(cur["blocks"]) == 1):
                 block["label"] = bm.group(1)
             else:
-                block = {"label": bm.group(1), "terminators": [], "successors": []}
+                block = {"label": bm.group(1), "terminators": [], "successors": [],
+                         "instructions": []}
                 cur["blocks"].append(block)
+            i += 1
+            continue
+        if line.startswith("}"):
+            cur = None
+            block = None
             i += 1
             continue
         tm = re.match(r"^\s*(br|switch|ret|unreachable|invoke|callbr)\b", line)
@@ -156,10 +167,19 @@ def _ir_summary(ir_text: str) -> dict:
                 acc += " " + lines[i].strip()
                 depth = acc.count("[") - acc.count("]")
             block["terminators"].append(tm.group(1))
+            if len(block["instructions"]) < MAX_BLOCK_INSTRUCTIONS:
+                block["instructions"].append(acc)
             for lbl in re.findall(r"\blabel\s+%([\w.$-]+)", acc):
                 block["successors"].append(lbl)
             i += 1
             continue
+        if block is not None:
+            stripped = line.strip()
+            if stripped and not stripped.startswith(";"):
+                if len(block["instructions"]) < MAX_BLOCK_INSTRUCTIONS:
+                    block["instructions"].append(stripped)
+                elif not block.get("instructions_truncated"):
+                    block["instructions_truncated"] = True
         i += 1
     edges = sum(len(b["successors"]) for f in functions for b in f["blocks"])
     return {"functions": functions,

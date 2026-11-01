@@ -1,0 +1,112 @@
+[
+ {
+  "program": "PY-01",
+  "stage": "ast-initial",
+  "nodes_total": 117,
+  "nodes_visible": 22,
+  "edges_visible": 21,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "tidy-tree",
+  "note": "fundamentals"
+ },
+ {
+  "program": "PY-03",
+  "stage": "ast-initial",
+  "nodes_total": 79,
+  "nodes_visible": 18,
+  "edges_visible": 17,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "tidy-tree",
+  "note": "recursion"
+ },
+ {
+  "program": "PY-04",
+  "stage": "ast-initial",
+  "nodes_total": 213,
+  "nodes_visible": 24,
+  "edges_visible": 23,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "tidy-tree",
+  "note": "advanced"
+ },
+ {
+  "program": "C-01",
+  "stage": "ast-initial",
+  "nodes_total": 86,
+  "nodes_visible": 21,
+  "edges_visible": 18,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "tidy-tree",
+  "note": "basics"
+ },
+ {
+  "program": "C-01",
+  "stage": "ir_o0",
+  "nodes_total": 11,
+  "nodes_visible": 11,
+  "edges_visible": 15,
+  "layout_ms": 1,
+  "initial_zoom": 0,
+  "strategy": "layered-cfg",
+  "note": "basics"
+ },
+ {
+  "program": "C-03",
+  "stage": "ast-initial",
+  "nodes_total": 119,
+  "nodes_visible": 23,
+  "edges_visible": 20,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "tidy-tree",
+  "note": "pointers"
+ },
+ {
+  "program": "C-03",
+  "stage": "ir_o0",
+  "nodes_total": 10,
+  "nodes_visible": 10,
+  "edges_visible": 12,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "layered-cfg",
+  "note": "pointers"
+ },
+ {
+  "program": "C-05",
+  "stage": "ast-initial",
+  "nodes_total": 28,
+  "nodes_visible": 6,
+  "edges_visible": 5,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "tidy-tree",
+  "note": "multi-file"
+ },
+ {
+  "program": "C-01",
+  "stage": "ast-fullscreen",
+  "nodes_total": 86,
+  "nodes_visible": 21,
+  "edges_visible": 18,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "tidy-tree",
+  "note": "after expand"
+ },
+ {
+  "program": "C-03",
+  "stage": "ast-initial",
+  "nodes_total": 119,
+  "nodes_visible": 23,
+  "edges_visible": 20,
+  "layout_ms": 0,
+  "initial_zoom": 0,
+  "strategy": "tidy-tree",
+  "note": "1920x1080"
+ }
+]

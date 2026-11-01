@@ -410,11 +410,43 @@ export default function Workspace() {
                         aria-pressed={canvasFull}>
                   {canvasFull ? "✕ exit focus" : "⤢ focus"}
                 </button>
+                {canvasFull && (() => {
+                  const order = (job?.stages ?? [])
+                    .filter((s) => s.availability !== "ERROR")
+                    .map((s) => s.stage);
+                  const i = order.indexOf(stageName ?? "");
+                  const lineText = highlightLine != null
+                    ? (sourceText.split("\n")[highlightLine - 1] ?? "").trim() : null;
+                  return (
+                    <>
+                      <div className="fs-bar">
+                        <button className="btn ghost" disabled={i <= 0}
+                                onClick={() => i > 0 && setStageName(order[i - 1])} aria-label="previous stage">←</button>
+                        <b>{stageName}</b>
+                        <button className="btn ghost" disabled={i < 0 || i >= order.length - 1}
+                                onClick={() => i >= 0 && i < order.length - 1 && setStageName(order[i + 1])} aria-label="next stage">→</button>
+                        {lineText != null && (
+                          <span className="fs-srcline muted">
+                            line {highlightLine}: <code>{lineText.slice(0, 80) || "—"}</code>
+                          </span>
+                        )}
+                      </div>
+                      {selection && (
+                        <div className="fs-inspector">
+                          <Inspector selection={selection} onClose={() => setSelection(null)}
+                                     onShowSource={(l) => showLine(l, true)} />
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
                 <StageCanvas analysisId={analysisId!} stageData={stageData} sourceText={sourceText}
                              language={lang} onSelect={setSelection}
                              onSelectLine={(l) => showLine(l, true)} activeLine={highlightLine}
                              onHoverSpan={setHoverSpan} guided={guided}
-                             onNavigateStage={(st) => setStageName(st)} />
+                             onNavigateStage={(st) => setStageName(st)}
+                             fullscreen={canvasFull}
+                             sourceFocusLine={linked ? null : highlightLine} />
               </div>
             ) : job?.status === "COMPLETED" ? (
               <div className="obs-canvas panel canvas-loading">
