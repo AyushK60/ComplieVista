@@ -47,3 +47,4 @@ Thumbs.db
 
 # --- M8-G0 one-click launcher state (pid files, logs, ownership state) ---
 .local/
+pv_*.json
