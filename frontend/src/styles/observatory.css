@@ -64,6 +64,10 @@
   .obs-app .obs-grid { flex: none; height: auto; }
   .obs-app .obs-canvas { overflow: visible; min-height: 420px; height: 540px; }
   .dock-handle { display: none; }
+  /* the persisted desktop dock width must not clip mobile */
+  .obs-app .obs-left { width: 100% !important; flex: none !important; }
+  .obs-app .obs-right { width: 100%; }
+  .obs-viewtabs { flex-wrap: wrap; width: 100%; border-radius: var(--r-m); }
 }
 
 .obs { max-width: 1600px; margin: 0 auto; padding: 20px 24px 80px; }
