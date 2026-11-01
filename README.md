@@ -5,9 +5,9 @@
 
 **Document type:** Master product specification + proposed engineering architecture + milestone acceptance contract  
 **Specification version:** 1.0 — 31 October 2026  
-**Status:** Proposed architecture for review; **application not yet implemented or audited**  
+**Status:** Specification v1.0 unchanged. **Implementation status (1 November 2026):** M0–M7 implemented and passing their internal gates — 20 real programs, static pipelines (Clang 18.1.3 / CPython 3.12.3), restricted-container execution with recorded traces, MemoryScope/ProcessScope, OptimizationLab and pair comparisons. **M8 (premium polish) and M9 (independent audit/release) are NOT started**; this remains the developer agent's self-assessment, not an independent audit.  
 **Primary development environment:** ZCode/Jet **Windows desktop local project** using available promotional GLM models  
-**Canonical repository:** `E:\CompileVista` (Windows)  
+**Canonical repository:** `E:\ComplieVista` (Windows)  
 **Linux tool environment:** Ubuntu 24.04 LTS, WSL2; exposed to ZCode via `wsl.exe`  
 **Initial languages:** **C and Python** — both are mandatory  
 **Cost constraint:** No paid API or mandatory cloud dependency for the core application  

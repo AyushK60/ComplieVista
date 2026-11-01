@@ -42,6 +42,13 @@ def journey_catalog(page: Page) -> None:
     cards = page.locator(".democard")
     expect(cards.first).to_be_visible()
     ok(cards.count() == 20, f"20 demo cards rendered (got {cards.count()})")
+    # M7QA: viewport matrix screenshots (1920 / 1366 / 390)
+    for w, h, name in ((1920, 1080, "m7_catalog_1920.png"),
+                       (1366, 768, "m7_catalog_1366.png"),
+                       (390, 844, "m7_catalog_390.png")):
+        page.set_viewport_size({"width": w, "height": h})
+        shot(page, name)
+    page.set_viewport_size({"width": 1440, "height": 900})
     page.get_by_label("search demos").fill("recursion")
     ok(page.locator(".democard").count() >= 2, "search filters by concept")
     page.get_by_label("search demos").fill("")

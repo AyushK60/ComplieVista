@@ -1,19 +1,19 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M7)
+Updated: 1 November 2026 (M7QA)
 
-## Current milestone: **M7 — exactly 20 real programs, guided journeys & integration**
+## Current milestone: **M7QA — whole-product self-audit complete**
 
-Status: **M7 PASS on all exit gates G0–G8** (`docs/TEST_EVIDENCE/M7.md`,
-`docs/milestones/M7.json`, handoff `docs/HANDOFF_AFTER_M7.md`,
-`docs/DEMO_CATALOG.md`). Exactly 20 curated real programs (5 Python-only,
-5 C-only incl. a genuine multi-file linked project, 5 matched C/Python pairs)
-with guided Simple/Detailed/Technical stories, honest capability matrices, real
-sandbox runs with recorded replay, OptimizationLab and pair comparisons; Error
-Microscope with 4 genuine diagnostic fixtures outside the count; sanitized
-report export. Backend **191/0/0**; browser E2E journeyed **all 20 demos
-(20/20 run+replay)** plus all prior suites; TSC clean; vite build OK.
-**M7QA authorized; M8 NOT STARTED.**
+Status: **M7QA PASS on all exit gates Q1–Q6** (`docs/TEST_EVIDENCE/M7QA.md`,
+`docs/milestones/M7QA.json`, handoff `docs/HANDOFF_AFTER_M7QA.md`).
+**M0–M7 FUNCTIONAL PASS (internal evidence only)** — fresh clean boot from an
+isolated store verified; security/adversarial suites green (191 backend tests,
+0 failures); 20/20 demos journeyed in the browser with real runs and recorded
+replay; viewport matrix inspected (1920/1366/390); five-pair comparison table
+regenerated with matching outputs and hashes; repo hygiene clean (275 tracked
+files, zero secrets/caches). README status now truthful (M0–M7 done, M8/M9 NOT
+started). Deviations: docs/REMAINING_M8_M9.md. This remains the developer
+agent's self-assessment — the independent external audit is M9.
 
 ## What exists now (cumulative)
 
@@ -38,8 +38,8 @@ report export. Backend **191/0/0**; browser E2E journeyed **all 20 demos
 
 ## Next
 
-**M8 NOT STARTED.** M7QA authorized by M7 PASS (docs/milestones/M7.json); begin
-any later stage only with a fresh entry-gate check of git ancestry and manifests.
+**M8 NOT STARTED.** M7QA PASS (docs/milestones/M7QA.json) authorizes M8; HARD
+STOP at end of M7QA per contract — no M8/M9 work has begun.
 
 ## Active risks / quirks
 

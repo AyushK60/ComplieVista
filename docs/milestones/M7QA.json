@@ -1,0 +1,32 @@
+{
+  "milestone": "M7QA",
+  "title": "Whole-product self-audit, repair & M8/M9 handoff",
+  "verdict": "PASS",
+  "date": "2026-11-01",
+  "project_root_verified": "E:\\ComplieVista",
+  "audit_type": "SAME-AGENT whole-product self-audit of M0-M7 — NOT an independent external review, NOT an M9 release audit",
+  "prior_checkpoints": {"M4QA": "d0a557c", "M5": "6428a76", "M5QA": "60cf3db", "M6": "6f9deb9", "M6QA": "29e6f48", "M7": "8feaf62"},
+  "gates": [
+    {"id": "Q1", "result": "PASS", "evidence": ["20/20 demo matrix re-ran green (awaited+asserted)", "C-05 linked target with cross-TU trace evidence", "no placeholders; error fixtures outside the count"]},
+    {"id": "Q2", "result": "PASS", "evidence": ["oracle suites green (trace parity, host-clang fingerprints, dis, side-effect-free tracer)", "memory/process/optimization/compare genuine; unavailable states declared"]},
+    {"id": "Q3", "result": "PASS", "evidence": ["adversarial negatives green in final run (ghost/flood/pids/network/canary)", "demo-link 403 gate probe, chunked-body probe, report sanitization", "GitHub origin still never executes"]},
+    {"id": "Q4", "result": "PASS", "evidence": ["backend 191/0/0", "E2E M7 20/20 + M6 2/2 + M5 4/4 + M3 6/6 + M2 3/3 + M1 5/5", "TSC clean, vite build OK", "no silent skips"]},
+    {"id": "Q5", "result": "PASS", "evidence": ["viewport matrix screenshots inspected (1920/1366/390): no empty views, no clipping, enabled CTAs", "coherent source/graph/trace/status labels", "no page JS exceptions"]},
+    {"id": "Q6", "result": "PASS", "evidence": ["README status updated truthfully (M0-M7 done, M8/M9 NOT started, self-assessment)", "docs/REMAINING_M8_M9.md explicit deviations", "Git clean at commit"]}
+  ],
+  "tests": {"backend": {"passed": 191, "failed": 0, "skipped": 0},
+            "e2e": {"m7": "20/20 journeyed + microscope 4/4", "m6": "2/2", "m5": "4/4", "m3_incl_m4": "6/6", "m2": "3/3", "m1": "5/5 (real GitHub import)"}},
+  "fresh_boot": "isolated data dir: health ok, pasted C executed, demo C-01 + PY-04 matched, report sanitized",
+  "five_pair_verification": {
+    "add": {"output": "sum=299995", "c_source_sha256_prefix": "34551b8287b5"},
+    "conditional": {"output": "c0=16 c1=8 c2=4 c3=2", "c_source_sha256_prefix": "f812fa95d2bf"},
+    "recursion": {"output": "fib20=6765", "c_source_sha256_prefix": "12bf8615984e"},
+    "arraysum": {"output": "total=50010", "c_source_sha256_prefix": "d49e224ba6c6"},
+    "sort": {"output": "sorted=471613008", "c_source_sha256_prefix": "1235947f318e"}
+  },
+  "repo_hygiene": {"tracked_files": 275, "secrets_or_caches_tracked": 0, "tree_hash_at_commit": "see git rev-parse HEAD^{tree} in the M7QA commit"},
+  "repairs": ["README stale status header replaced with truthful M0-M7 note", "README canonical path corrected to E:\\ComplieVista"],
+  "final_statement": "M0\u2013M7 FUNCTIONAL PASS (internal evidence only)",
+  "not_achieved": ["M8", "M9", "independent external audit", "authenticated/remote deployment"],
+  "next_milestone": "M8 authorized on this PASS per contract; M8 NOT STARTED — HARD STOP at end of M7QA per instructions"
+}
