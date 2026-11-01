@@ -6,7 +6,7 @@
   "nodes_visible": 22,
   "edges_visible": 21,
   "layout_ms": 0,
-  "initial_zoom": 0,
+  "initial_zoom": 0.9999512131492357,
   "strategy": "tidy-tree",
   "note": "fundamentals"
  },
@@ -17,7 +17,7 @@
   "nodes_visible": 18,
   "edges_visible": 17,
   "layout_ms": 0,
-  "initial_zoom": 0,
+  "initial_zoom": 0.9975014374855233,
   "strategy": "tidy-tree",
   "note": "recursion"
  },
@@ -28,7 +28,7 @@
   "nodes_visible": 24,
   "edges_visible": 23,
   "layout_ms": 0,
-  "initial_zoom": 0,
+  "initial_zoom": 0.9999563657183257,
   "strategy": "tidy-tree",
   "note": "advanced"
  },
@@ -39,7 +39,7 @@
   "nodes_visible": 21,
   "edges_visible": 18,
   "layout_ms": 0,
-  "initial_zoom": 0,
+  "initial_zoom": 0.9999404473710437,
   "strategy": "tidy-tree",
   "note": "basics"
  },
@@ -49,8 +49,8 @@
   "nodes_total": 11,
   "nodes_visible": 11,
   "edges_visible": 15,
-  "layout_ms": 1,
-  "initial_zoom": 0,
+  "layout_ms": 0,
+  "initial_zoom": 0.9999772363091931,
   "strategy": "layered-cfg",
   "note": "basics"
  },
@@ -60,8 +60,8 @@
   "nodes_total": 119,
   "nodes_visible": 23,
   "edges_visible": 20,
-  "layout_ms": 1,
-  "initial_zoom": 0,
+  "layout_ms": 0,
+  "initial_zoom": 0.9997334990369902,
   "strategy": "tidy-tree",
   "note": "pointers"
  },
@@ -72,7 +72,7 @@
   "nodes_visible": 10,
   "edges_visible": 12,
   "layout_ms": 0,
-  "initial_zoom": 0,
+  "initial_zoom": 0.9999552522475247,
   "strategy": "layered-cfg",
   "note": "pointers"
  },
@@ -83,7 +83,7 @@
   "nodes_visible": 6,
   "edges_visible": 5,
   "layout_ms": 0,
-  "initial_zoom": 0,
+  "initial_zoom": 0.9998171685716459,
   "strategy": "tidy-tree",
   "note": "multi-file"
  },
@@ -94,7 +94,7 @@
   "nodes_visible": 21,
   "edges_visible": 18,
   "layout_ms": 0,
-  "initial_zoom": 0,
+  "initial_zoom": 0.999884077096738,
   "strategy": "tidy-tree",
   "note": "after expand"
  },
@@ -105,7 +105,7 @@
   "nodes_visible": 23,
   "edges_visible": 20,
   "layout_ms": 0,
-  "initial_zoom": 0,
+  "initial_zoom": 0.9997129586526451,
   "strategy": "tidy-tree",
   "note": "1920x1080"
  }

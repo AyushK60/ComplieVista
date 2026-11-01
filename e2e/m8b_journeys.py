@@ -98,7 +98,8 @@ def journey_ast(page: Page, demo: str, label: str, fs: str) -> None:
     }""")
     page.locator(".graphtoolbar .tab").filter(has_text="Search").click()
     page.wait_for_timeout(1200)
-    ok(page.locator(".inspector .insp-title h3").is_visible(), f"{demo}: node selection opens inspector")
+    ok(page.locator(".fs-inspector .inspector, .obs-right .inspector").first.is_visible(),
+       f"{demo}: node selection opens inspector")
     ok(page.locator(".sourceline.hl, .sourceline.hl-linked").count() >= 0
        and page.locator(".fs-inspector, .obs-right .inspector").count() >= 0,
        f"{demo}: source/inspector channels wired")
@@ -140,7 +141,7 @@ def journey_ir(page: Page, demo: str, label: str, fs: str) -> None:
       if (bb) bb.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     }""")
     page.wait_for_timeout(800)
-    insp = page.locator(".inspector").inner_text()
+    insp = page.locator(".fs-inspector .inspector, .obs-right .inspector").first.inner_text()
     ok("basic block" in insp.lower(), f"{demo}: block selection explains the basic block")
     shot(page, f"ir_{fs}_{label}.png")
 
@@ -156,7 +157,8 @@ def journey_bytecode(page: Page, fs: str) -> None:
     # instruction selection → inspector + source line
     page.locator(".bc-row").nth(3).click()
     page.wait_for_timeout(600)
-    ok(page.locator(".inspector .insp-title h3").is_visible(), "instruction opens inspector")
+    ok(page.locator(".fs-inspector .inspector, .obs-right .inspector").first.is_visible(),
+       "instruction opens inspector")
     # source → bytecode: click a source line, instructions highlight
     page.evaluate("""() => {
       const line = [...document.querySelectorAll('.sourceline')]
@@ -173,6 +175,12 @@ def journey_guided_ast(page: Page) -> None:
     open_demo(page, "PY-03")
     click_stage(page, "Syntax Tree")
     expect(page.locator(".graphwrap")).to_be_visible(timeout=30_000)
+    # AST auto-focus covers the journey rail; leave focus to reach the button
+    page.evaluate("""() => {
+      [...document.querySelectorAll('button')]
+        .find((b) => b.textContent.trim() === '✕ exit focus')?.click();
+    }""")
+    page.wait_for_timeout(500)
     page.get_by_role("button", name="Guided journey").click()
     page.wait_for_timeout(1200)
     ok(page.locator(".graph-guided").is_visible(), "guided script overlays the canvas")

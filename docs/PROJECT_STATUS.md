@@ -1,6 +1,46 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (M8 Part 3 — execution, systems, comparison; whole-product verification)
+Updated: 1 November 2026 (post-M8 usability repair: Watch It Work + AST viewing)
+
+## Repair pass: Watch It Work usability + AST edges/auto-focus/contrast (frontend only)
+
+User-visible symptoms fixed with verified root causes (evidence:
+`docs/TEST_EVIDENCE/repair_watch_ast/REPORT.md` + before/after screenshots,
+acceptance suite `e2e/repair_watch_ast_suite.py` ALL PASSED, zero console
+errors; m8/m8b/m8c/m8d regression suites green):
+
+- **AST edges were invisible, not faint**: xyflow v12 renders every edge as
+  its own absolutely-positioned `<svg>` inside a 0×0 `.react-flow__edges`
+  div; the global `svg { max-width: 100% }` reset capped their used width at
+  0 and Chromium paints nothing in a zero-width SVG root (hit-testing still
+  worked, which is why DOM-only checks passed). The edge layer now has a real
+  paint box; containment strokes raised to ≈6:1 contrast, 2 px. Painted-pixel
+  proof recorded for C and Python ASTs.
+- **Watch It Work rebuilt as a flowing scene**: the duplicate cramped source
+  card was removed (the full-height left SourceDock is the single source, all
+  lines reachable), the four event panels flow in a 2×2 grid in a naturally
+  scrolling center (no fixed-height shell, no overlap — asserted for zero
+  overlapping/clipped rectangles at 1920/1366/390), the transport bar is
+  sticky with universally-rendered glyphs, and playback/step/seek/first/last
+  were verified against real PY-02 + PY-03 recordings with source, call
+  stack, variables and narration reflecting the same selected event.
+- **AST auto-focus**: entering the Syntax Tree stage opens the existing
+  canvas focus once per navigation; manual Exit Focus persists (no re-force
+  on rerender/selection); leaving and returning re-arms it.
+- **Light theme contrast to WCAG AA**: `--ink-3` 4.0→5.4:1+, `--clay/--plum/
+  --moss` ≥4.5:1 on badge backgrounds, `--c-ink-3` up on ink screens, panel
+  lines slightly stronger — same palette identity, no redesign.
+- **Layout integrity fixes found on the way**: collapsed-inspector rail
+  wrapped to a second grid row (shrank the whole workspace to content
+  height); dock resize handle anchored to the page edge (5 px page-wide
+  overflow); mobile grid was inheriting desktop 3-column tracks (0-width
+  center) — all fixed and covered by the suites.
+
+No backend, toolchain, demo, API, route or engine changes.
+
+---
+
+## Previous status (1 November 2026 — M8 Part 3 — execution, systems, comparison; whole-product verification)
 
 ## Current milestone: **M8 complete — awaiting M9 independent audit**
 

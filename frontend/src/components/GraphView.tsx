@@ -390,6 +390,7 @@ export default function GraphView({
         frameInitial();
         requestAnimationFrame(() => {
           initialZoomRef.current = flowRef.current?.getZoom() ?? 0;
+          setMetrics((m) => (m ? { ...m, initialZoom: initialZoomRef.current } : m));
         });
       } catch (err) {
         ((window as unknown as Record<string, unknown>).__fitErr = String(err));
@@ -453,8 +454,8 @@ export default function GraphView({
             </button>
           )}
           {data.collapsedCount > 0 && <span className="cvnode-badge">+{data.collapsedCount}</span>}
-          <Handle type="target" position={Position.Top} style={{ width: 6, height: 6, background: "rgba(216,230,230,0.5)", border: "none" }} isConnectable={false} />
-          <Handle type="source" position={Position.Bottom} style={{ width: 6, height: 6, background: "rgba(216,230,230,0.5)", border: "none" }} isConnectable={false} />
+          <Handle type="target" position={Position.Top} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />
+          <Handle type="source" position={Position.Bottom} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />
         </div>
       );
     },

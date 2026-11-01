@@ -162,6 +162,11 @@ def journey_tokens(page: Page) -> None:
 
 def journey_modes_and_persistence(page: Page) -> None:
     print("[journey] modes + reload persistence")
+    # entering the Syntax Tree stage auto-opens the canvas focus overlay;
+    # leave it explicitly before using the journey stage rail
+    if page.locator(".obs-canvas.fullscreen").count():
+        page.get_by_role("button", name="✕ exit focus").click()
+        page.wait_for_timeout(500)
     page.get_by_role("button", name="Token Formation").click()
     expect(page.locator(".tokenformation")).to_be_visible(timeout=30_000)
     tech = page.get_by_role("button", name="Technical")

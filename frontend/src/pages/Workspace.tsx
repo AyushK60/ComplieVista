@@ -109,6 +109,31 @@ export default function Workspace() {
     return () => document.body.classList.remove("fs-lock");
   }, [canvasFull]);
 
+  // Entering the Syntax Tree stage opens the existing canvas focus once per
+  // navigation into AST view. A manual exit stays respected while the user
+  // remains on the stage; leaving the stage re-arms it for the next visit.
+  const astFocusArmedRef = useRef(true);
+  useEffect(() => {
+    if (stageName === "ast") {
+      if (astFocusArmedRef.current) {
+        astFocusArmedRef.current = false;
+        setCanvasFull(true);
+      }
+    } else {
+      astFocusArmedRef.current = true;
+    }
+  }, [stageName]);
+
+  // The watch scene produces no inspector selections and needs the width;
+  // collapse the inspector when the user enters it (the rail can reopen it).
+  useEffect(() => {
+    if (view === "walkthrough" && inspectorOpen) {
+      setInspectorOpen(false);
+      localStorage.setItem("cv.inspector", "collapsed");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
+
   const showLine = useCallback((line: number | null, isLinked = true) => {
     setHighlightLine(line);
     setLinked(isLinked);
@@ -447,7 +472,7 @@ export default function Workspace() {
                  aria-label="resize source dock" onMouseDown={startDockDrag} />
           </div>
 
-          <div className="obs-center">
+          <div className={"obs-center" + (view === "walkthrough" ? " obs-center-flow" : "")}>
             {view === "compile" && job?.status === "COMPLETED" && (
               <JourneyNavigator job={job} stageName={stageName} language={lang}
                                 guided={guided} onToggleGuided={setGuided}

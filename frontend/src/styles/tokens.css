@@ -7,11 +7,11 @@
   --bg-raised: #fcfbf8;
   --bg-panel: #fcfbf8;
   --bg-inset: #efeee7;
-  --line: rgba(29, 41, 47, 0.13);
-  --line-strong: rgba(29, 41, 47, 0.26);
+  --line: rgba(29, 41, 47, 0.17);
+  --line-strong: rgba(29, 41, 47, 0.34);
   --ink: #1d292f;
   --ink-2: #45535b;
-  --ink-3: #6f7f88;
+  --ink-3: #57676f;
 
   /* ——— ink canvas (the screens set into the instrument) ——— */
   --canvas: #1d292f;
@@ -21,13 +21,13 @@
   --canvas-line-strong: rgba(216, 230, 230, 0.3);
   --c-ink: #e9efed;
   --c-ink-2: #b1c3c3;
-  --c-ink-3: #84989e;
+  --c-ink-3: #94a8ae;
 
   /* ——— semantic accents (porcelain context) ——— */
   --teal: #166d68;       /* primary · interactive · identifiers */
-  --clay: #c77950;       /* warm · runtime/execution · numbers · DERIVED */
-  --plum: #84719b;       /* structural · AST/keywords/code objects */
-  --moss: #56794f;       /* verified · strings/literals · EXACT */
+  --clay: #9c562e;       /* warm · runtime/execution · numbers · DERIVED */
+  --plum: #6a5b80;       /* structural · AST/keywords/code objects */
+  --moss: #4d6f47;       /* verified · strings/literals · EXACT */
   --crimson: #b0453b;    /* alert · errors · BLOCKED */
   --teal-dim: rgba(22, 109, 104, 0.1);
   --clay-dim: rgba(199, 121, 80, 0.12);

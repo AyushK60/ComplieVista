@@ -122,7 +122,7 @@ def journey_runtime(page: Page) -> None:
     open_demo_detail(page, "PY-03")
     page.evaluate("""() => {
       const btn = [...document.querySelectorAll('button')]
-        .find((b) => b.textContent.includes('Run & replay execution'));
+        .find((b) => b.textContent.includes('Run (observatory)'));
       btn.click();
     }""")
     page.wait_for_url("**/workspace?*execution=*", timeout=120_000)
@@ -242,7 +242,7 @@ def journey_screenshots(page: Page) -> None:
     open_demo_detail(page, "C-03")
     page.evaluate("""() => {
       const btn = [...document.querySelectorAll('button')]
-        .find((b) => b.textContent.includes('Run & replay execution'));
+        .find((b) => b.textContent.includes('Run (observatory)'));
       btn.click();
     }""")
     page.wait_for_timeout(60_000)

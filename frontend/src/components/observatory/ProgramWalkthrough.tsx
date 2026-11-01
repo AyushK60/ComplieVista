@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ExecutionEvent, executions } from "../../api";
 
 /** Recorded-run cache: view switches remount the walkthrough; without this the
@@ -46,7 +46,6 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
   const [speed, setSpeed] = useState(1);    // 0.5 | 1 | 1.5 | 2 (explanatory pacing)
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const srcRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -228,11 +227,12 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
     return () => clearTimeout(t);
   }, [playing, mi, tick, speed, meaningful.length]);
 
-  // scroll the active line into view in the source card
+  // scroll the active line into view in the source dock (rendered by the
+  // workspace next to this scene — the single, full-height source view)
   useEffect(() => {
     const ln = cur?.kind === "line" ? Number(cur.payload.line) : active?.line;
-    if (ln == null || !srcRef.current) return;
-    const el = srcRef.current.querySelector(`[data-ln="${ln}"]`);
+    if (ln == null) return;
+    const el = document.querySelector(`.sourcedock [data-line="${ln}"]`);
     el?.scrollIntoView({ block: "nearest" });
   }, [cur, active]);
 
@@ -257,33 +257,16 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
     : cur.kind === "exception" ? `An exception (${String(cur.payload.exc ?? "?")}) unwinds the stack.`
     : `Line ${cur.payload.line} of ${cur.payload.fn} runs.`;
 
-  const curLine = cur?.kind === "line" ? Number(cur.payload.line) : null;
-
   return (
     <div className="walkthrough" role="region" aria-label="visual program walkthrough">
       <div className="wt-head">
         <span className="badge exact">recorded replay</span>
-        <span className="muted">Watch This Program Work — every value and line below comes from the recorded run.</span>
+        <span className="muted">Watch This Program Work — the highlighted source line and every value below come from the recorded run.</span>
         <span className="spacer" />
         <span className="muted tech-only">meaningful event {Math.min(mi + 1, meaningful.length)}/{meaningful.length} · seq {curIdx + 1}</span>
       </div>
 
       <div className="wt-grid">
-        {/* active source */}
-        <div className="wt-src panel">
-          <div className="theater-pane-h">Source <span className="muted">(current line highlighted)</span></div>
-          <div className="wt-src-body" ref={srcRef}>
-            {sourceLines.map((l, i) => (
-              <div key={i} data-ln={i + 1}
-                   className={"wt-srcline" + (curLine === i + 1 ? " active" : "")}>
-                <span className="wt-no">{i + 1}</span>
-                <code>{l || "\u200b"}</code>
-              </div>
-            ))}
-            {!sourceText && <p className="muted" style={{ padding: 10 }}>source unavailable</p>}
-          </div>
-        </div>
-
         {/* flow + call/stack */}
         <div className="wt-flow panel">
             <div className="theater-pane-h">
@@ -299,7 +282,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
               <div className="wt-flowlines">
                 {flowLines.map((f, i) => (
                   <div key={i} className={"wt-flowline " + f.state}>
-                    <code>{(sourceLines[f.line - 1] ?? "").slice(0, 46) || " "}</code>
+                    <code>{(sourceLines[f.line - 1] ?? "").slice(0, 64) || " "}</code>
                     <span className="muted">:{f.line}</span>
                   </div>
                 ))}
@@ -312,19 +295,6 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
               </p>
             )}
           </div>
-
-        <div className="wt-stack panel">
-          <div className="theater-pane-h">Call stack <span className="muted">(top = active)</span></div>
-          <div className="wt-stackbody">
-            {framesAt.length === 0 && <p className="muted" style={{ padding: "6px 14px" }}>— program starting —</p>}
-            {[...framesAt].reverse().map((f, i) => (
-              <div key={`${f.callIdx}-${i}`} className={"wt-frame" + (i === 0 ? " top" : "")}>
-                <code>{f.fn}</code>
-                {i === 0 && <span className="chip ok">active</span>}
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* variables */}
         <div className="wt-vars panel">
@@ -351,22 +321,36 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
               : "Values were recorded when this frame was created; mid-call changes are not captured by this profile."}
           </p>
         </div>
+
+        <div className="wt-stack panel">
+          <div className="theater-pane-h">Call stack <span className="muted">(top = active)</span></div>
+          <div className="wt-stackbody">
+            {framesAt.length === 0 && <p className="muted" style={{ padding: "6px 14px" }}>— program starting —</p>}
+            {[...framesAt].reverse().map((f, i) => (
+              <div key={`${f.callIdx}-${i}`} className={"wt-frame" + (i === 0 ? " top" : "")}>
+                <code>{f.fn}</code>
+                {i === 0 && <span className="chip ok">active</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* output */}
+        <div className="wt-out panel">
+          <div className="theater-pane-h">Recorded output <span className="muted">(whole run — per-print timing is not recorded)</span></div>
+          <pre className="wt-outbody">{output ?? "(none)"}</pre>
+        </div>
       </div>
 
-      {/* output + controls */}
-      <div className="wt-out panel">
-        <div className="theater-pane-h">Recorded output <span className="muted">(whole run — per-print timing is not recorded)</span></div>
-        <pre className="wt-outbody">{output ?? "(none)"}</pre>
-      </div>
-
-      <div className="theater-controls" role="toolbar" aria-label="walkthrough controls">
-        <button className="btn ghost" onClick={() => { setPlaying(false); setMi(0); }} aria-label="restart">⏮</button>
-        <button className="btn ghost" onClick={() => step(-1)} aria-label="previous meaningful event">◀</button>
-        <button className="btn primary" onClick={() => setPlaying(!playing)} aria-label={playing ? "pause" : "play"}>
-          {playing ? "⏸" : "▶"}
+      <div className="theater-controls wt-controls" role="toolbar" aria-label="walkthrough controls">
+        <button className="btn ghost" onClick={() => { setPlaying(false); setMi(0); }} aria-label="restart" title="back to the first event">«</button>
+        <button className="btn ghost" onClick={() => step(-1)} aria-label="previous meaningful event" title="previous meaningful event">‹</button>
+        <button className="btn primary" onClick={() => setPlaying(!playing)} aria-label={playing ? "pause" : "play"}
+                title={playing ? "pause" : "play the recorded events"}>
+          {playing ? "❚❚" : "▶"}
         </button>
-        <button className="btn ghost" onClick={() => step(1)} aria-label="next meaningful event">▶</button>
-        <button className="btn ghost" onClick={() => { setPlaying(false); setMi(meaningful.length - 1); }} aria-label="jump to end">⏭</button>
+        <button className="btn ghost" onClick={() => step(1)} aria-label="next meaningful event" title="next meaningful event">›</button>
+        <button className="btn ghost" onClick={() => { setPlaying(false); setMi(meaningful.length - 1); }} aria-label="jump to end" title="jump to the last event">»</button>
         <input type="range" min={0} max={Math.max(meaningful.length - 1, 0)} value={Math.min(mi, meaningful.length - 1)}
                aria-label="walkthrough position" style={{ flex: 1 }}
                onChange={(e) => { setPlaying(false); setMi(Number(e.target.value)); }} />
