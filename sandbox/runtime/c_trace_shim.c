@@ -31,6 +31,19 @@ static FILE *trace_file = NULL;
 static unsigned long events_written = 0;
 static int cap_marker_written = 0;
 
+/* M8-G0: authoritative final record written at process exit so the orchestrator
+   can verify the file stream it reads is complete (event count + truncation).
+   The traced program shares the container and could in principle write to the
+   same file; the orchestrator treats count mismatches as integrity SUSPECT. */
+static void trace_meta_atexit(void) {
+    if (!trace_file) return;
+    fprintf(trace_file,
+            "{\"kind\":\"trace_meta\",\"events\":%lu,\"truncated\":%s,"
+            "\"observer\":\"c_trace_shim\"}\n",
+            events_written, cap_marker_written ? "true" : "false");
+    fflush(trace_file);
+}
+
 static void trace_write(const char *kind, void *fn) {
     if (!trace_file) {
         const char *path = getenv("CV_TRACE_OUT");
@@ -343,6 +356,7 @@ static void m5_shim_init(void) {
                 pthread_detach(th);
         }
     }
+    atexit(trace_meta_atexit);
     atexit(mem_meta_atexit);
     atexit(proc_atexit);
 }

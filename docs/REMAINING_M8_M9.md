@@ -1,9 +1,11 @@
 # REMAINING M8/M9 — explicit outstanding work (deviations, not hidden)
 
-Status: 1 November 2026, end of M7QA. **M8 and M9 are NOT started.** This file is
-the authoritative deviations list required by the M7QA contract.
+Status: 1 November 2026, end of M8-G0. **M8 visual polish and M9 are NOT
+started.** M8-G0 (technical integrity repairs + one-click launcher,
+ADR-0010..0012) is COMPLETE — see `docs/TEST_EVIDENCE/M8G0.md`; the repairs
+below marked ~~struck~~ are done.
 
-## M8 — Premium product polish (NOT STARTED)
+## M8 — Premium product polish (NOT STARTED — visual only)
 
 1. Monaco editor (line-numbered, syntax-highlighted) — the workspace currently
    uses a plain text code view.
@@ -32,6 +34,16 @@ the authoritative deviations list required by the M7QA contract.
 
 ## Known residual defects / limitations (accepted, documented)
 
+- ~~Trace channel: untrusted pasted Python shared a writable /out mount and
+  could forge artifacts~~ **FIXED M8-G0** (protected framed channel + trust
+  labels); residual: target shares the pid/uid domain, a /proc/self/fd scan
+  could in principle reach the observer fd — labeled UNTRUSTED_TARGET per run.
+- ~~`docker run` argvs used mutable image tags~~ **FIXED M8-G0** (resolved
+  sha256 IDs in argv, fail-closed IMAGE_ID_CHANGED/UNAVAILABLE).
+- ~~Python benchmark checksums ignored stdout/exceptions~~ **FIXED M8-G0**.
+- ~~Trace previews could invoke user-defined `__len__`~~ **FIXED M8-G0**.
+- ~~Demo Library API errors blanked the page~~ **FIXED M8-G0** (Retry +
+  recovery E2E).
 - C-05 analysis covers the primary TU only (second TU compiled+linked, not
   independently analyzed — declared in capabilities).
 - Python worker threads are not traced (settrace is thread-local — declared).
@@ -43,3 +55,5 @@ the authoritative deviations list required by the M7QA contract.
   in E2E on exhausted windows (real import verified on reset windows).
 - Docker/WSL2 shares one kernel: not an unconditional sandbox; local-only
   execution until M9.
+- Clean-Windows-login launcher behavior (reboot-level test) was not exercised;
+  manual verification step: log out/in (or reboot) and double-click Start.cmd.

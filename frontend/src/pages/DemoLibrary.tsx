@@ -14,8 +14,17 @@ import {
  */
 type Story = "simple" | "detailed" | "technical";
 
+/** Load-state per API surface: an error must never replace the whole page —
+ * navigation, previously loaded data and the Retry control stay available. */
+interface LoadState<T> { data: T | null; error: string | null; loading: boolean }
+
+function initial<T>(): LoadState<T> { return { data: null, error: null, loading: true }; }
+
 export default function DemoLibrary() {
-  const [all, setAll] = useState<DemoEntry[] | null>(null);
+  const [catalog, setCatalog] = useState<LoadState<DemoEntry[]>>(initial);
+  const [fixtures, setFixtures] = useState<LoadState<Array<{
+    id: string; file: string; language: string; kind: string }>>>(initial);
+  const [reloadTick, setReloadTick] = useState(0);
   const [query, setQuery] = useState("");
   const [langFilter, setLangFilter] = useState<"all" | "python" | "c">("all");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -24,21 +33,35 @@ export default function DemoLibrary() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [errFixtures, setErrFixtures] = useState<Array<{
-    id: string; file: string; language: string; kind: string }> | null>(null);
   const [errDiag, setErrDiag] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    demos.list().then((m) => setAll(m.demos)).catch((e) => setError(String(e)));
-    errorFixtures.list().then((f) => setErrFixtures(f.fixtures))
-      .catch((e) => setError(String(e)));
-  }, []);
+    let alive = true;
+    setCatalog((c) => ({ ...c, loading: true, error: null }));
+    setFixtures((f) => ({ ...f, loading: true, error: null }));
+    demos.list()
+      .then((m) => { if (alive) setCatalog({ data: m.demos, error: null, loading: false }); })
+      .catch((e) => {
+        if (!alive) return;
+        // Keep previously loaded catalog data when a retry fails.
+        setCatalog((c) => ({ ...c, loading: false, error: String(e) }));
+      });
+    errorFixtures.list()
+      .then((f) => { if (alive) setFixtures({ data: f.fixtures, error: null, loading: false }); })
+      .catch((e) => {
+        if (!alive) return;
+        setFixtures((f) => ({ ...f, loading: false, error: String(e) }));
+      });
+    return () => { alive = false; };
+  }, [reloadTick]);
 
-  if (error) return <p className="err">{error}</p>;
-  if (!all || !errFixtures) return <p className="muted">Loading demo library…</p>;
+  const retry = () => setReloadTick((t) => t + 1);
 
-  const open = all.find((d) => d.id === openId);
-  const filtered = all.filter((d) => {
+  const all = catalog.data;
+  const errFixtures = fixtures.data;
+
+  const open = all?.find((d) => d.id === openId) ?? null;
+  const filtered = (all ?? []).filter((d) => {
     const lang = (d.id.startsWith("PY-") || d.id.endsWith("-PY")) ? "python" : "c";
     if (langFilter !== "all" && lang !== langFilter) return false;
     const q = query.trim().toLowerCase();
@@ -95,6 +118,24 @@ export default function DemoLibrary() {
 
       {!open && (
         <div className="demogrid" role="list">
+          {catalog.loading && !all && <p className="muted" role="status">Loading demo catalog…</p>}
+          {!catalog.loading && catalog.error && !all && (
+            <p className="err" role="alert">
+              The demo catalog could not be loaded: {catalog.error}{" "}
+              <button onClick={retry} aria-label="Retry loading the demo catalog">
+                Retry
+              </button>
+            </p>
+          )}
+          {catalog.error && all && (
+            <p className="err" role="alert">
+              Demo catalog refresh failed (showing the previously loaded catalog):{" "}
+              {catalog.error}{" "}
+              <button onClick={retry} aria-label="Retry refreshing the demo catalog">
+                Retry
+              </button>
+            </p>
+          )}
           {filtered.map((d) => (
             <div className="democard" role="listitem" key={d.id}>
               <p><code>{d.id}</code> <span className="muted">{d.group}</span>{" "}
@@ -180,7 +221,18 @@ export default function DemoLibrary() {
 
       <h3>Error Microscope (diagnostic fixtures — not counted in the 20)</h3>
       <div className="errfixtures">
-        {errFixtures.map((f) => (
+        {fixtures.loading && !errFixtures && (
+          <p className="muted" role="status">Loading error fixtures…</p>
+        )}
+        {!fixtures.loading && fixtures.error && !errFixtures && (
+          <p className="err" role="alert">
+            Error fixtures could not be loaded: {fixtures.error}{" "}
+            <button onClick={retry} aria-label="Retry loading error fixtures">
+              Retry
+            </button>
+          </p>
+        )}
+        {(errFixtures ?? []).map((f) => (
           <div className="errfixture" key={f.id}>
             <p><code>{f.id}</code> ({f.kind}, {f.language}){" "}
               <button disabled={busy} onClick={() => runErr(f.id)}>Run</button></p>

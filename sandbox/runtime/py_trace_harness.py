@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M4-D/M5 Python trace harness — runs INSIDE the pinned restricted runtime container.
+"""M4-D/M5/M8-G0 Python trace harness — runs INSIDE the pinned restricted runtime container.
 
 Executes the target ONCE under sys.settrace, capturing genuine call/line/return/
 exception events with bounded, safe variable snapshots. Never calls user __repr__;
@@ -7,17 +7,40 @@ non-primitive values are summarized by type/identity. Caps: 5000 events, 64 fram
 deep, 200 locals/frame, 120 bytes/string, 1 MB stdout (M4QA-02), 3000 memory
 records, 240 process samples, 60-node object graph (M5).
 
+M8-G0 protected trace channel (F-M7-01):
+  The container runs WITHOUT any writable host mount (no /out). The harness is the
+  privileged observer; the target is untrusted code running in the SAME interpreter
+  and could previously forge artifacts by writing to /out. Now every artifact is
+  multiplexed by the observer over the container's stdout pipe as framed JSONL:
+    {"c":"t","j":<trace event>}          (call/line/return/exception/termination/exit)
+    {"c":"m","j":<memory record>}
+    {"c":"p","j":<process record>}
+    {"c":"out","b64":<user stdout, base64, capped>}
+    {"c":"meta", ...}                    (authoritative final record, written LAST)
+  User-level stdout (fd 1) is redirected to an internal capture pipe, so target
+  `print` output cannot inject frames into the channel. The orchestrator parses,
+  validates (meta last, event-count consistency, foreign-frame detection) and
+  writes all artifacts host-side. Residual risk (documented, not hidden): the
+  untrusted target shares the pid/uid domain, so a target that inspects
+  /proc/self/fd could in principle reach the observer's channel fd; trust is
+  additionally labeled per-run (CURATED_COOPERATIVE vs UNTRUSTED_TARGET) by the
+  backend and full channel separation is future work (ADR-0011).
+
+  The harness also reports `trace_disabled_by_target` when the target replaced or
+  removed the installed tracer (sys.settrace(None) or a custom tracer): the
+  affected portion of the run is honestly absent, never silently promoted.
+
 M5 additions (all OBSERVED inside this run; nothing inferred or fabricated):
-- memory.jsonl: per-call frame snapshots with stable in-run frame ids and
+- memory.jsonl records: per-call frame snapshots with stable in-run frame ids and
   id()-based object identity (aliasing grounded in observed identity), a bounded
   object-reference graph, tracemalloc snapshot statistics, gc activity.
-- process.jsonl: container-side process evidence — pid namespace identity,
+- process.jsonl records: container-side process evidence — pid namespace identity,
   /proc RSS/VM/thread/fd samples at a stated interval, observed child pids.
 Value previews use name-based secret redaction and never execute user code.
-Writes /out/trace.jsonl, stdout.txt (capped), memory.jsonl, process.jsonl.
 """
 from __future__ import annotations
 
+import base64
 import gc
 import json
 import os
@@ -42,7 +65,10 @@ GRAPH_DEPTH = 2
 # never previewed; this is a documented heuristic, not content inspection.
 SECRET_NAME_PARTS = ("pass", "secret", "token", "key", "pwd", "credential")
 
-out_dir = sys.argv[sys.argv.index("--out") + 1]
+# M8-G0 F-M7-04: len() must never reach user code. Only EXACT built-in container
+# types are measured; subclasses may override __len__ (raise or side effects).
+_EXACT_LEN_TYPES = (list, tuple, dict, set, frozenset, str, bytes, bytearray)
+
 target = os.path.join("/work", sys.argv[sys.argv.index("--file") + 1])
 events = 0
 truncated = False
@@ -51,6 +77,46 @@ mem_records = 0
 mem_truncated = False
 
 _SECRET_FLAGS = tuple(part.encode() for part in SECRET_NAME_PARTS)
+
+# The protected channel: dup of the real stdout pipe to the orchestrator.
+CHANNEL_FD = os.dup(1)
+try:
+    os.set_blocking(CHANNEL_FD, False)  # never deadlock the tracer on a stall
+except OSError:
+    pass
+_CHANNEL_LOCK = threading.Lock()
+_CHANNEL_DROPPED = 0
+
+
+def _write_frame(s: str) -> None:
+    """Write one framed record to the protected channel.
+
+    Non-blocking: if the orchestrator-side reader stalls long enough that the
+    pipe stays full, the frame is DROPPED and counted (reported in meta; the
+    orchestrator marks the trace integrity SUSPECT) instead of deadlocking the
+    tracer. Under normal operation the pipe drains continuously and nothing is
+    dropped (verified by the count-consistency check)."""
+    global _CHANNEL_DROPPED
+    data = (s + "\n").encode()
+    view = memoryview(data)
+    stalls = 0
+    with _CHANNEL_LOCK:
+        while view:
+            try:
+                n = os.write(CHANNEL_FD, view)
+            except BlockingIOError:
+                stalls += 1
+                if stalls > 100:  # ~1s of continuous stalls: drop honestly
+                    _CHANNEL_DROPPED += 1
+                    return
+                time.sleep(0.01)
+                continue
+            view = view[n:]
+
+
+def frame(ch: str, obj) -> None:
+    _write_frame('{"c":"' + ch + '","j":' +
+                 json.dumps(obj, separators=(",", ":")) + "}")
 
 
 def _is_secret_name(name: str) -> bool:
@@ -63,20 +129,27 @@ _PREVIEWABLE = (str, bytes, bytearray)
 
 
 def safe_value(v):
-    # M5QA: EXACT type checks. Subclasses of primitives may override __repr__/
-    # __str__ — calling repr() on them executes user code inside the tracer
-    # (side-effect channel, reproduced live). Subclasses get identity treatment.
-    if type(v) in (int, float, bool, type(None)):
-        return {"type": type(v).__name__, "repr": repr(v)[:MAX_STR]}
-    if type(v) is str:
+    # M5QA/M8-G0: EXACT type checks. Subclasses of primitives/containers may
+    # override __repr__/__str__/__len__ — calling them executes user code inside
+    # the tracer (side-effect channel, reproduced live). Subclasses of containers
+    # get identity treatment WITHOUT len().
+    t = type(v)
+    if t in (int, float, bool, type(None)):
+        return {"type": t.__name__, "repr": repr(v)[:MAX_STR]}
+    if t is str:
         return {"type": "str", "repr": repr(v)[:MAX_STR],
                 "truncated": len(v) > MAX_STR}
     if isinstance(v, _PRIMITIVE_TYPES + _PREVIEWABLE):
-        return {"type": type(v).__name__, "identity": id(v) % 10**8}
-    if isinstance(v, (list, tuple, set, frozenset, dict)):
-        return {"type": type(v).__name__, "len": len(v)}
+        return {"type": t.__name__, "identity": id(v) % 10**8}
+    if t in (list, tuple, set, frozenset, dict):
+        return {"type": t.__name__, "len": len(v)}
     # Never call user __repr__ (M4-D): identity summary only.
-    return {"type": type(v).__module__ + "." + type(v).__qualname__, "identity": id(v) % 10**8}
+    return {"type": t.__module__ + "." + t.__qualname__, "identity": id(v) % 10**8}
+
+
+def safe_len(v):
+    """len() ONLY on exact built-in types (M8-G0 F-M7-04)."""
+    return len(v) if type(v) in _EXACT_LEN_TYPES else None
 
 
 def safe_exc_record(arg):
@@ -119,11 +192,6 @@ def safe_locals(frame):
     return out
 
 
-trace_path = os.path.join(out_dir, "trace.jsonl")
-trace_f = open(trace_path, "w")
-mem_path = os.path.join(out_dir, "memory.jsonl")
-mem_f = open(mem_path, "w")
-
 frame_ids: dict[int, int] = {}
 next_frame_id = 0
 
@@ -143,7 +211,7 @@ def mem_emit(rec) -> None:
         mem_truncated = True
         return
     mem_records += 1
-    mem_f.write(json.dumps(rec) + "\n")
+    frame("m", rec)
 
 
 def emit(rec):
@@ -152,14 +220,14 @@ def emit(rec):
         truncated = True
         return
     events += 1
-    trace_f.write(json.dumps(rec) + "\n")
+    frame("t", rec)
 
 
-def emit_frame_snapshot(frame, event_seq: int) -> None:
-    fid = frame_id_for(frame)
+def emit_frame_snapshot(frame_obj, event_seq: int) -> None:
+    fid = frame_id_for(frame_obj)
     locals_out = []
     alias_names: dict[int, list[str]] = {}
-    for i, (k, v) in enumerate(frame.f_locals.items()):
+    for i, (k, v) in enumerate(frame_obj.f_locals.items()):
         if i >= MAX_LOCALS:
             break
         if isinstance(v, (int, float, bool, type(None), str, bytes, bytearray)):
@@ -172,20 +240,16 @@ def emit_frame_snapshot(frame, event_seq: int) -> None:
             locals_out.append(entry)
             continue
         oid = id(v) % 10**8
-        # len() only on builtins we know are safe: arbitrary objects/classes may
-        # define __len__ that raises or misbehaves (observed: classes in the
-        # import machinery during heavy imports).
+        # safe_len: exact built-in types only — a subclassed list whose __len__
+        # raises or counts side effects must never be invoked here (M8-G0).
         entry = {"name": k, "kind": "object", "type": type(v).__name__,
-                 "obj_id": oid,
-                 "len": len(v) if isinstance(v, (list, tuple, dict, set,
-                                                 frozenset, str, bytes,
-                                                 bytearray)) else None}
+                 "obj_id": oid, "len": safe_len(v)}
         if _is_secret_name(k):
             entry["redacted"] = True
         locals_out.append(entry)
         alias_names.setdefault(oid, []).append(k)
     mem_emit({"kind": "frame_snapshot", "event_seq": event_seq, "frame_id": fid,
-              "fn": frame.f_code.co_name, "line": frame.f_lineno, "locals": locals_out})
+              "fn": frame_obj.f_code.co_name, "line": frame_obj.f_lineno, "locals": locals_out})
     # Alias links: two names bound to the same object identity in this snapshot.
     emitted_alias = 0
     for oid, names in alias_names.items():
@@ -197,44 +261,62 @@ def emit_frame_snapshot(frame, event_seq: int) -> None:
 
 t0 = time.monotonic()
 
+# Re-entrancy guard: CPython fires trace events for frames created WHILE the
+# tracer itself runs (emit -> json.dumps -> encoder frames -> ...). Tracing
+# those amplifies every event and deadlocked the framed channel writer
+# (reproduced with a module-level ZeroDivisionError). While the guard is on,
+# every new frame is left untraced; user-code events always arrive with the
+# guard off.
+_tracer_guard = threading.local()
 
-def tracer(frame, event, arg):
+
+def tracer(frame_obj, event, arg):
+    if getattr(_tracer_guard, "on", False):
+        return None
+    if frame_obj.f_globals is globals():
+        return None  # never trace harness-internal frames
+    _tracer_guard.on = True
+    try:
+        return _tracer_event(frame_obj, event, arg)
+    finally:
+        _tracer_guard.on = False
+
+
+def _tracer_event(frame_obj, event, arg):
     # Only trace frames BELOW the harness (user code).
     depth = 0
-    f = frame
+    f = frame_obj
     while f is not None:
         depth += 1
         f = f.f_back
     if depth > MAX_DEPTH:
         return None
     if event == "call":
-        emit({"kind": "call", "fn": frame.f_code.co_name, "line": frame.f_lineno,
-              "depth": depth, "locals": safe_locals(frame)})
-        emit_frame_snapshot(frame, events)  # seq of the call event just written
+        emit({"kind": "call", "fn": frame_obj.f_code.co_name, "line": frame_obj.f_lineno,
+              "depth": depth, "locals": safe_locals(frame_obj)})
+        emit_frame_snapshot(frame_obj, events)  # seq of the call event just written
         return tracer
     if event == "line":
-        emit({"kind": "line", "fn": frame.f_code.co_name, "line": frame.f_lineno,
+        emit({"kind": "line", "fn": frame_obj.f_code.co_name, "line": frame_obj.f_lineno,
               "depth": depth})
         return tracer
     if event == "return":
-        emit({"kind": "return", "fn": frame.f_code.co_name, "line": frame.f_lineno,
+        emit({"kind": "return", "fn": frame_obj.f_code.co_name, "line": frame_obj.f_lineno,
               "depth": depth, "arg": safe_value(arg)})
-        if frame.f_code.co_flags & 0x20:  # CO_GENERATOR: yield suspension, not exit
+        if frame_obj.f_code.co_flags & 0x20:  # CO_GENERATOR: yield suspension, not exit
             return tracer  # frame stays alive; frame_id must stay stable (M5QA)
-        emit_frame_snapshot(frame, events)  # exit-time locals: aliasing/lifetime here
-        frame_ids.pop(id(frame), None)  # frame lifetime ends here (observed)
+        emit_frame_snapshot(frame_obj, events)  # exit-time locals: aliasing/lifetime here
+        frame_ids.pop(id(frame_obj), None)  # frame lifetime ends here (observed)
         return tracer
     if event == "exception":
         exc_rec = safe_exc_record(arg)
-        emit({"kind": "exception", "fn": frame.f_code.co_name, "line": frame.f_lineno,
+        emit({"kind": "exception", "fn": frame_obj.f_code.co_name, "line": frame_obj.f_lineno,
               "depth": depth, **exc_rec})
         return tracer
     return None
 
 
 # ---------------- process sampler (container-side, M5-D) ----------------
-proc_path = os.path.join(out_dir, "process.jsonl")
-proc_f = open(proc_path, "w")
 proc_samples = 0
 proc_truncated = False
 
@@ -246,7 +328,7 @@ def proc_emit(rec) -> None:
             proc_truncated = True
             return
         proc_samples += 1
-    proc_f.write(json.dumps(rec) + "\n")
+    frame("p", rec)
 
 
 def read_status_fields() -> dict | None:
@@ -329,18 +411,16 @@ code = compile(open(target, "rb").read(), os.path.basename(target), "exec",
                dont_inherit=True)
 g = {"__name__": "__main__", "__file__": target}
 exit_code = 0
-stdout_path = os.path.join(out_dir, "stdout.txt")
+trace_disabled_by_target = False
 # fd-level redirect (captures C-level and Python-level stdout) through a draining
 # pump thread that stops persisting after STDOUT_CAP bytes but keeps consuming, so
-# the writer never blocks and the bind-mount file stays bounded (M4QA-02).
-saved_fd = os.dup(1)
+# the writer never blocks (M4QA-02). The observer channel (CHANNEL_FD) is separate.
 pipe_r, pipe_w = os.pipe()
-out_f = open(stdout_path, "wb")
+kept = bytearray()
 
 
 def _pump() -> None:
     global stdout_truncated
-    kept = 0
     while True:
         try:
             chunk = os.read(pipe_r, 65536)
@@ -348,10 +428,11 @@ def _pump() -> None:
             break
         if not chunk:
             break
-        if kept < STDOUT_CAP:
-            keep = chunk[: STDOUT_CAP - kept]
-            out_f.write(keep)
-            kept += len(keep)
+        if len(kept) < STDOUT_CAP:
+            keep = chunk[: STDOUT_CAP - len(kept)]
+            kept.extend(keep)
+            if len(keep) < len(chunk):
+                stdout_truncated = True
         else:
             stdout_truncated = True
 
@@ -366,8 +447,13 @@ sampler.start()
 try:
     sys.settrace(tracer)
     exec(code, g)  # M4-D: genuine in-container execution, bounded by harness
-    sys.settrace(None)
 except BaseException as e:
+    trace_disabled_by_target = sys.gettrace() is not tracer
+    # Tracing ENDS here: the harness's own bookkeeping (emit framing,
+    # traceback/linecache/re machinery) must never be traced — tracing it
+    # flooded the event stream (reproduced: a module-level ZeroDivisionError
+    # produced 5000+ amplified events).
+    sys.settrace(None)
     exit_code = 1
     term = {"kind": "termination", "exc": type(e).__name__}
     if type(e).__module__ == "builtins":
@@ -380,14 +466,13 @@ except BaseException as e:
     emit(term)
     traceback.print_exc(file=sys.stderr)
 finally:
+    trace_disabled_by_target = trace_disabled_by_target or \
+        (sys.gettrace() is not tracer)
     sys.settrace(None)
     sys.stdout.flush()
     sys.stderr.flush()
-    os.dup2(saved_fd, 1)
-    os.close(saved_fd)
     os.close(pipe_r)  # writer is gone; pump drains whatever remains and exits
     pump.join(timeout=5)
-    out_f.close()
     sampler_stop.set()
     sampler.join(timeout=2)
 
@@ -424,10 +509,7 @@ finally:
         oid = id(v) % 10**8
         if oid not in nodes:
             nodes[oid] = {"obj_id": oid, "type": type(v).__name__,
-                          "preview": safe_value(v), "len":
-                          len(v) if isinstance(v, (list, tuple, dict, set,
-                                                   frozenset, str, bytes,
-                                                   bytearray)) else None}
+                          "preview": safe_value(v), "len": safe_len(v)}
         return oid
 
     def walk(v, depth: int) -> None:
@@ -466,15 +548,20 @@ finally:
     proc_emit({"kind": "proc_exit", "exit_code": exit_code,
                "duration_ms": int((time.monotonic() - t0) * 1000),
                "samples": proc_samples, "samples_truncated": proc_truncated})
-    mem_f.close()
-    proc_f.close()
 
 emit({"kind": "exit", "exit_code": exit_code,
       "duration_ms": int((time.monotonic() - t0) * 1000)})
-trace_f.write(json.dumps({
+# User stdout over the protected channel (base64, capped) — then meta LAST.
+frame("out", {"b64": base64.b64encode(bytes(kept)).decode("ascii")})
+frame("meta", {
     "kind": "meta", "python": sys.version.split()[0], "events": events,
     "truncated": truncated, "stdout_truncated": stdout_truncated,
-    "max_events": MAX_EVENTS, "schema": "m5",
-    "memory_records": mem_records, "memory_truncated": mem_truncated}) + "\n")
-trace_f.close()
+    "max_events": MAX_EVENTS, "schema": "m8g0",
+    "memory_records": mem_records, "memory_truncated": mem_truncated,
+    "trace_disabled_by_target": trace_disabled_by_target,
+    "observer_pid": os.getpid(),
+    "channel_frames_dropped": _CHANNEL_DROPPED,
+    "channel": "framed_stdout_pipe_no_writable_mount",
+    "residual_risk": "target shares the pid/uid domain; /proc/self/fd scan "
+                     "could in principle reach the observer channel fd"})
 sys.exit(exit_code)

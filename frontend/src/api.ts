@@ -220,6 +220,11 @@ export interface ExecutionJob {
   duration_ms: number | null;
   profile?: string; host_pid?: number | null;
   memory_count?: number | null; process_count?: number | null;
+  /* M8-G0 trace trust (F-M7-01/02): honest labeling, never a green default. */
+  trace_trust?: "CURATED_COOPERATIVE" | "UNTRUSTED_TARGET" | null;
+  trace_channel?: string | null;
+  trace_integrity?: "CONSISTENT" | "SUSPECT" | null;
+  build_image_id?: string | null;
   ready_for_controlled_execution: boolean; note: string;
 }
 export interface ExecutionEvent {

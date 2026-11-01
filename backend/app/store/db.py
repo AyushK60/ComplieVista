@@ -169,10 +169,23 @@ class Store:
                 "ALTER TABLE executions ADD COLUMN process_sha256 TEXT",
                 "ALTER TABLE executions ADD COLUMN memory_count INTEGER",
                 "ALTER TABLE executions ADD COLUMN process_count INTEGER",
+                # m8g0.v1: image pinning + trace trust (F-M7-01/02, additive).
+                "ALTER TABLE executions ADD COLUMN requested_image_ids TEXT",
+                "ALTER TABLE executions ADD COLUMN build_image_id TEXT",
+                "ALTER TABLE executions ADD COLUMN trace_trust TEXT",
+                "ALTER TABLE executions ADD COLUMN trace_channel TEXT",
+                "ALTER TABLE executions ADD COLUMN trace_integrity TEXT",
+                "ALTER TABLE executions ADD COLUMN trace_meta_json TEXT",
             ):
                 name = stmt.split("ADD COLUMN ")[1].split()[0]
                 if name not in ecols:
                     self._conn.execute(stmt)
+            for table in ("analyses", "experiments"):
+                tcols = {r["name"] for r in self._conn.execute(
+                    f"PRAGMA table_info({table})").fetchall()}
+                if "requested_image_ids" not in tcols:
+                    self._conn.execute(
+                        f"ALTER TABLE {table} ADD COLUMN requested_image_ids TEXT")
             self._conn.commit()
 
     # --- content-addressed artifacts -------------------------------------

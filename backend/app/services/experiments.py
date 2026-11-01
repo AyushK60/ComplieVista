@@ -24,7 +24,7 @@ from app.core.config import ANALYZER_IMAGE
 from app.services.analyzer import docker_status
 from app.services.execution import (_read_capped, _BASE_FLAGS, RUNTIME_IMAGE,
                                     ExecutionError, create_execution,
-                                    get_execution_runner)
+                                    get_execution_runner, resolve_image_id)
 from app.services.staging import jobs_root, remove_disposable_dir
 from app.store.db import Store, new_id, now_utc
 
@@ -112,15 +112,37 @@ class _ExperimentRunner:
                           " error_code='DOCKER_UNAVAILABLE', finished_utc=? WHERE id=?",
                           (now_utc(), eid))
             return
+        # F-M7-02: launch OptimizationLab/benchmark containers with the IMMUTABLE
+        # image IDs resolved right now, never the mutable tags; fail closed when
+        # resolution fails or the tag no longer matches the submission-time ID.
+        build_ref = resolve_image_id(ANALYZER_IMAGE)
+        exec_ref = resolve_image_id(RUNTIME_IMAGE)
+        if build_ref is None or exec_ref is None:
+            store.execute("UPDATE experiments SET status='BLOCKED',"
+                          " error_code='IMAGE_ID_UNAVAILABLE', finished_utc=?"
+                          " WHERE id=?", (now_utc(), eid))
+            return
+        try:
+            requested = json.loads(job["requested_image_ids"]) \
+                if job["requested_image_ids"] else {}
+        except ValueError:
+            requested = {}
+        if (requested.get("build") and build_ref != requested["build"]) or \
+                (requested.get("exec") and exec_ref != requested["exec"]):
+            store.execute("UPDATE experiments SET status='BLOCKED',"
+                          " error_code='IMAGE_ID_CHANGED', finished_utc=?"
+                          " WHERE id=?", (now_utc(), eid))
+            return
         store.execute("UPDATE experiments SET status='RUNNING', started_utc=? WHERE id=?",
                       (now_utc(), eid))
         job_dir = jobs_root() / f"experiment-{eid[:12]}"
         try:
             config = json.loads(job["config_json"])
             if job["kind"] == "opt":
-                self._run_opt(store, eid, job, config, job_dir)
+                self._run_opt(store, eid, job, config, job_dir, build_ref)
             elif job["kind"] == "bench":
-                self._run_bench(store, eid, job, config, job_dir)
+                self._run_bench(store, eid, job, config, job_dir, build_ref,
+                                exec_ref)
             elif job["kind"] == "compare":
                 self._run_compare(store, eid, job, config)
         finally:
@@ -128,14 +150,14 @@ class _ExperimentRunner:
 
     # ---------------- M6-A: optimization builds ----------------
     def _run_opt(self, store: Store, eid: str, job, config: dict,
-                 job_dir: Path) -> None:
+                 job_dir: Path, build_ref: str) -> None:
         src = self._materialize(store, job["snapshot_id"], job_dir)
         out = job_dir / "out"
         out.mkdir(exist_ok=True)
         cname = f"cv-exp-{eid[:12]}"
         argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
                 "-v", f"{src}:/work:ro", "-v", f"{out}:/out",
-                ANALYZER_IMAGE, "python3", "/opt/analyzer/c_opt_worker.py",
+                build_ref, "python3", "/opt/analyzer/c_opt_worker.py",
                 "--file", self._primary(store, job), "--out", "/out"]
         r = self._run_capped_or_timeout(argv, cname, eid)
         if r is None:
@@ -174,7 +196,7 @@ class _ExperimentRunner:
 
     # ---------------- M6-D: benchmarks ----------------
     def _run_bench(self, store: Store, eid: str, job, config: dict,
-                   job_dir: Path) -> None:
+                   job_dir: Path, build_ref: str, exec_ref: str) -> None:
         src = self._materialize(store, job["snapshot_id"], job_dir)
         out = job_dir / "out"
         out.mkdir(exist_ok=True)
@@ -186,7 +208,7 @@ class _ExperimentRunner:
             cname = f"cv-exp-{eid[:12]}"
             argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
                     "-v", f"{src}:/work:ro", "-v", f"{out}:/out",
-                    ANALYZER_IMAGE, "python3", "/opt/analyzer/c_opt_worker.py",
+                    build_ref, "python3", "/opt/analyzer/c_opt_worker.py",
                     "--file", primary, "--out", "/out"]
             r = self._run_capped_or_timeout(argv, cname, eid)
             if r is None:
@@ -206,14 +228,14 @@ class _ExperimentRunner:
             cname = f"cv-exp-{eid[:12]}"
             argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
                     "-v", f"{bin_dir}:/app:ro", "-v", f"{out}:/out",
-                    RUNTIME_IMAGE, "python3", "/opt/runtime/bench_worker.py",
+                    exec_ref, "python3", "/opt/runtime/bench_worker.py",
                     "--mode", "c", "--bin-dir", "/app", "--out", "/out",
                     "--repeats", str(repeats)]
         else:
             cname = f"cv-exp-{eid[:12]}"
             argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
                     "-v", f"{src}:/work:ro", "-v", f"{out}:/out",
-                    RUNTIME_IMAGE, "python3", "/opt/runtime/bench_worker.py",
+                    exec_ref, "python3", "/opt/runtime/bench_worker.py",
                     "--mode", "python", "--file", primary, "--out", "/out",
                     "--repeats", str(repeats)]
         r = self._run_capped_or_timeout(argv, cname, eid)
@@ -372,12 +394,26 @@ def create_experiment(store: Store, kind: str, snapshot_id: str | None,
     if existing:
         return {"experiment_id": existing["id"], "status": existing["status"],
                 "existed": True}
+    requested_ids = None
+    if kind != "compare":
+        # F-M7-02: pin the immutable image identities at submission; the runner
+        # fails closed if the tags no longer match them at run time.
+        build_ref = resolve_image_id(ANALYZER_IMAGE)
+        exec_ref = resolve_image_id(RUNTIME_IMAGE)
+        if build_ref is None or exec_ref is None:
+            raise ExperimentError(
+                "IMAGE_ID_UNAVAILABLE",
+                "pinned experiment images could not be resolved (docker daemon "
+                "down or image missing); refusing to run with mutable tags", 503)
+        requested_ids = json.dumps({"build": build_ref, "exec": exec_ref})
     eid = new_id()
     store.execute(
         "INSERT INTO experiments (id, kind, snapshot_id, target_id, config_json,"
-        " status, fingerprint, source_combined_sha256, created_utc)"
-        " VALUES (?,?,?,?,?,?,?,?,?)",
+        " status, fingerprint, source_combined_sha256, created_utc,"
+        " requested_image_ids)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?)",
         (eid, kind, snapshot_id, target_id, json.dumps(config), "QUEUED", fp,
-         snap["combined_sha256"] if kind != "compare" else None, now_utc()))
+         snap["combined_sha256"] if kind != "compare" else None, now_utc(),
+         requested_ids))
     get_experiment_runner(store).enqueue(eid)
     return {"experiment_id": eid, "status": "QUEUED", "existed": False}

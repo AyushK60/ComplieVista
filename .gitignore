@@ -44,3 +44,6 @@ docker-credentials/
 # --- Editor / OS noise ---
 .DS_Store
 Thumbs.db
+
+# --- M8-G0 one-click launcher state (pid files, logs, ownership state) ---
+.local/

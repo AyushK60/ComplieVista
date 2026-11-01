@@ -5,7 +5,7 @@
 
 **Document type:** Master product specification + proposed engineering architecture + milestone acceptance contract  
 **Specification version:** 1.0 — 31 October 2026  
-**Status:** Specification v1.0 unchanged. **Implementation status (1 November 2026):** M0–M7 implemented and passing their internal gates — 20 real programs, static pipelines (Clang 18.1.3 / CPython 3.12.3), restricted-container execution with recorded traces, MemoryScope/ProcessScope, OptimizationLab and pair comparisons. **M8 (premium polish) and M9 (independent audit/release) are NOT started**; this remains the developer agent's self-assessment, not an independent audit.  
+**Status:** Specification v1.0 unchanged. **Implementation status (1 November 2026, M8-G0):** M0–M7 implemented and passing their internal gates — 20 real programs, static pipelines (Clang 18.1.3 / CPython 3.12.3), restricted-container execution with recorded traces, MemoryScope/ProcessScope, OptimizationLab and pair comparisons. **M8-G0 (technical integrity repairs + one-click local launcher) DONE**: trace trust/channel hardening, immutable image-ID pinning, benchmark checksum correctness, Demo Library error recovery (ADR-0010..0012, `docs/TEST_EVIDENCE/M8G0.md`). **M8 visual polish and M9 (independent audit/release) are NOT started**; this remains the developer agent's self-assessment, not an independent audit. Local run: double-click `Start.cmd` (`docs/LOCAL_RUN_GUIDE.md`).  
 **Primary development environment:** ZCode/Jet **Windows desktop local project** using available promotional GLM models  
 **Canonical repository:** `E:\ComplieVista` (Windows)  
 **Linux tool environment:** Ubuntu 24.04 LTS, WSL2; exposed to ZCode via `wsl.exe`  

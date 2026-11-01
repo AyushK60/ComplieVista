@@ -25,9 +25,11 @@ DEFAULT_DATA_DIR = os.environ.get(
     os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data"),
 )
 
-SCHEMA_VERSION = "m6.v1"
+SCHEMA_VERSION = "m8g0.v1"
 IMPORT_POLICY_VERSION = "m1.github.v1"
 ANALYSIS_POLICY_VERSION = "m2.analyzer.v1"
 ANALYZER_IMAGE = os.environ.get("COMPILEVISTA_ANALYZER_IMAGE", "compilevista/analyzer:m2")
+RUNTIME_IMAGE = os.environ.get("COMPILEVISTA_RUNTIME_IMAGE", "compilevista/runtime:m4")
+DEBUG_IMAGE = os.environ.get("COMPILEVISTA_DEBUG_IMAGE", "compilevista/debug:m5")
 ANALYSIS_TIMEOUT_S = int(os.environ.get("COMPILEVISTA_ANALYSIS_TIMEOUT_S", "180"))
 ANALYSIS_MAX_CONCURRENT = 1          # single bounded worker for local M2

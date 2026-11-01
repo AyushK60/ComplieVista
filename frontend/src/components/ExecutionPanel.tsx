@@ -123,6 +123,25 @@ export default function ExecutionPanel({
         exit={job.exit_code} · {job.duration_ms}ms · {events.length} events
         {job.events_truncated ? " · TRUNCATED" : ""}
       </p>
+      {job.trace_trust === "UNTRUSTED_TARGET" && (
+        <p className="notice" role="note" aria-label="trace trust warning">
+          ⚠ Trace trust: UNTRUSTED_TARGET — this program ran untrusted in the same
+          container as the observer; it could attempt to alter or disable
+          instrumentation, so these events are NOT guaranteed genuine.
+          {job.trace_integrity === "SUSPECT" ? " Channel integrity: SUSPECT." :
+            " Channel integrity: consistent, channel: protected observer pipe."}
+        </p>
+      )}
+      {job.trace_trust === "CURATED_COOPERATIVE" && (
+        <p className="muted" role="note" aria-label="trace trust">
+          Trace trust: CURATED_COOPERATIVE ({job.trace_channel ?? "recorded channel"} ·
+          integrity {job.trace_integrity ?? "unrecorded"}).
+        </p>
+      )}
+      {job.trace_integrity === "SUSPECT" && job.trace_trust !== "UNTRUSTED_TARGET" && (
+        <p className="err" role="alert">Trace channel integrity SUSPECT — events may
+          be incomplete or altered; treat this trace as unreliable.</p>
+      )}
       <div className="timeline-controls" role="toolbar" aria-label="replay controls">
         <button onClick={() => setCursor(0)} aria-label="jump to start">⏮</button>
         <button onClick={() => { setPlaying(false); setCursor((c) => Math.max(0, c - 1)); }}

@@ -14,6 +14,7 @@ fail-closed policy).
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import queue
@@ -25,18 +26,20 @@ import time
 import uuid
 from pathlib import Path
 
-from app.core.config import ANALYSIS_TIMEOUT_S, ANALYZER_IMAGE
-from app.services.analyzer import image_id as analyzer_image_id
+from app.core.config import (ANALYSIS_TIMEOUT_S, ANALYZER_IMAGE, DEBUG_IMAGE,
+                             RUNTIME_IMAGE)
 from app.services.staging import jobs_root
 from app.store.db import Store, new_id, now_utc
 
-RUNTIME_IMAGE = "compilevista/runtime:m4"
-DEBUG_IMAGE = "compilevista/debug:m5"
 RUN_TIMEOUT_S = 30
 BUILD_TIMEOUT_S = 90
 STDOUT_CAP = 1024 * 1024
 STDERR_CAP = 1024 * 1024
 EVENTS_CAP = 5000
+# M8-G0: the Python trace harness multiplexes trace/memory/process/stdout over
+# the container stdout pipe (protected channel, no writable /out mount); the
+# framed stream needs a larger pipe cap than a plain stdout capture.
+FRAMED_STDOUT_CAP = 32 * 1024 * 1024
 # Defensive read cap for container-written files: the shim/harness cap their own
 # output in-band, but the orchestrator never trusts a file's size (M4QA-02/03).
 TRACE_FILE_CAP = 8 * 1024 * 1024
@@ -46,6 +49,16 @@ OBS_FILE_CAP = 4 * 1024 * 1024
 MEMORY_ROW_CAP = 2000
 PROCESS_ROW_CAP = 2000
 MAX_CONCURRENT = 1
+
+# Trace trust contract (M8-G0, ADR-0011): a trace is CURATED_COOPERATIVE only
+# when the snapshot origin is the curated demo/fixture manifests (regression-
+# tested not to tamper with instrumentation). Everything else — pasted, uploaded
+# — is UNTRUSTED_TARGET: the traced program could attempt to alter or disable
+# observation, so its events are never labeled guaranteed-genuine.
+TRUST_CURATED = "CURATED_COOPERATIVE"
+TRUST_UNTRUSTED = "UNTRUSTED_TARGET"
+CHANNEL_FRAMED = "framed_stdout_pipe_no_writable_mount"
+CHANNEL_FILE = "container_file"
 
 _BASE_FLAGS = [
     "--rm", "--network", "none", "--read-only",
@@ -68,13 +81,73 @@ class ExecutionError(Exception):
         self.status = status
 
 
-def runtime_image_id() -> str:
+def resolve_image_id(tag: str) -> str | None:
+    """Immutable identity of `tag` RIGHT NOW (F-M7-02). Returns the sha256 image
+    ID, or None when the daemon is unreachable or the tag does not resolve.
+    Callers MUST fail closed on None and launch argv with the returned ID —
+    never with the mutable tag."""
     try:
-        out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", RUNTIME_IMAGE],
+        out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", tag],
                              capture_output=True, timeout=30)
-        return out.stdout.decode().strip() or "unavailable"
+        line = out.stdout.decode().strip()
+        if out.returncode == 0 and line.startswith("sha256:"):
+            return line
     except (OSError, subprocess.TimeoutExpired):
-        return "unavailable"
+        pass
+    return None
+
+
+def trace_trust_for(origin: str | None) -> str:
+    """Honest per-run trust label (F-M7-01): only curated manifests are
+    regression-tested cooperative targets; pasted/uploaded code is untrusted."""
+    return TRUST_CURATED if origin == "curated" else TRUST_UNTRUSTED
+
+
+def parse_framed_stream(data: bytes) -> dict:
+    """Parse the M8-G0 protected trace channel (harness stdout frames).
+
+    Returns per-channel record lists plus integrity verdict. Integrity is
+    CONSISTENT only when: a meta frame exists, it is the LAST frame, no foreign
+    frames appeared, the stdout cap was not hit, and the meta's authoritative
+    event count equals the number of trace frames received. Anything else is
+    SUSPECT and never silently promoted (F-M7-01)."""
+    res: dict = {"trace": [], "memory": [], "process": [], "stdout": b"",
+                 "meta": None, "meta_last": False, "foreign": 0,
+                 "integrity": "SUSPECT"}
+    lines = data.splitlines()
+    for i, raw in enumerate(lines):
+        try:
+            fr = json.loads(raw)
+            ch = fr.get("c")
+        except (ValueError, UnicodeDecodeError):
+            res["foreign"] += 1
+            continue
+        try:
+            if ch == "t":
+                res["trace"].append(
+                    json.dumps(fr["j"], separators=(",", ":")).encode())
+            elif ch == "m":
+                res["memory"].append(
+                    json.dumps(fr["j"], separators=(",", ":")).encode())
+            elif ch == "p":
+                res["process"].append(
+                    json.dumps(fr["j"], separators=(",", ":")).encode())
+            elif ch == "out":
+                res["stdout"] = base64.b64decode(fr["j"]["b64"], validate=True)
+            elif ch == "meta":
+                res["meta"] = fr.get("j") if isinstance(fr.get("j"), dict) else fr
+                res["meta_last"] = i == len(lines) - 1
+            else:
+                res["foreign"] += 1
+        except (KeyError, TypeError, ValueError):
+            res["foreign"] += 1
+    meta = res["meta"] or {}
+    counts_ok = isinstance(meta.get("events"), int) and \
+        meta["events"] == len(res["trace"])
+    if (res["meta"] is not None and res["meta_last"] and res["foreign"] == 0
+            and counts_ok):
+        res["integrity"] = "CONSISTENT"
+    return res
 
 
 
@@ -127,26 +200,43 @@ def _store_observations(store: Store, eid: str, kind: str, path: Path,
     return min(len(lines), row_cap), artifact, truncated
 
 
-def _store_memory_bytes(store: Store, eid: str,
-                        data: bytes) -> tuple[int, str | None, bool]:
-    """Store a merged in-memory memory-observation stream (bounded rows)."""
+def _store_stream_rows(store: Store, eid: str, kind: str, data: bytes,
+                       row_cap: int) -> tuple[int, str | None, bool]:
+    """Store a merged in-memory observation stream (bounded rows, checksummed)."""
+    if not data:
+        return 0, None, False
     artifact = store.put_artifact(data)
     lines = data.splitlines()
-    truncated = len(lines) > MEMORY_ROW_CAP
+    truncated = len(lines) > row_cap
     seq = 0
-    for raw in lines[:MEMORY_ROW_CAP]:
+    for raw in lines[:row_cap]:
         seq += 1
         try:
             payload = json.loads(raw)
-        except ValueError:
+        except ValueError:  # JSONDecodeError and UnicodeDecodeError (M5: never
+            # let one malformed container line abort the whole execution)
             payload = {"kind": "unparsed",
                        "raw": raw[:300].decode("utf-8", "replace")}
         store.execute(
             "INSERT OR REPLACE INTO execution_observations"
             " (execution_id, kind, seq, payload_json, sha256) VALUES (?,?,?,?,?)",
-            (eid, "memory", seq, json.dumps(payload),
-             hashlib.sha256(raw).hexdigest()))
-    return min(len(lines), MEMORY_ROW_CAP), artifact, truncated
+            (eid, kind, seq, json.dumps(payload), hashlib.sha256(raw).hexdigest()))
+    return min(len(lines), row_cap), artifact, truncated
+
+
+def _store_memory_bytes(store: Store, eid: str,
+                        data: bytes) -> tuple[int, str | None, bool]:
+    """Store a merged in-memory memory-observation stream (bounded rows)."""
+    return _store_stream_rows(store, eid, "memory", data, MEMORY_ROW_CAP)
+
+
+def _is_event_line(raw: bytes) -> bool:
+    """A C-shim trace EVENT line: everything except the meta/trace_meta records."""
+    try:
+        rec = json.loads(raw)
+    except (ValueError, UnicodeDecodeError):
+        return False
+    return rec.get("kind") not in ("meta", "trace_meta")
 
 
 def _host_pid_sampler(cname: str, stop: threading.Event) -> list[int]:
@@ -179,7 +269,8 @@ def _resolve_c_addr(raw: bytes, symbols: list[tuple[int, int, str]]) -> bytes:
     return json.dumps(rec).encode()
 
 
-def run_capped(argv: list[str], timeout: int) -> dict:
+def run_capped(argv: list[str], timeout: int,
+               stdout_cap: int = STDOUT_CAP) -> dict:
     """Run argv, streaming stdout/stderr with byte caps (flood-safe): reads at most
     cap+1 bytes from each pipe, discards the remainder, writes sinks to files."""
     result: dict = {"stdout": b"", "stderr": b"", "stdout_truncated": False,
@@ -204,7 +295,9 @@ def run_capped(argv: list[str], timeout: int) -> dict:
 
     proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     threads = [
-        threading.Thread(target=lambda: pump(proc.stdout, sink_out, STDOUT_CAP,
+        # pass the effective caps (run_capped's stdout_cap param wires through
+        # here — the framed trace channel needs the larger cap)
+        threading.Thread(target=lambda: pump(proc.stdout, sink_out, stdout_cap,
                                              "stdout_truncated")),
         threading.Thread(target=lambda: pump(proc.stderr, sink_err, STDERR_CAP,
                                              "stderr_truncated")),
@@ -290,13 +383,36 @@ class _ExecRunner:
                           " error_code='DOCKER_UNAVAILABLE', finished_utc=? WHERE id=?",
                           (now_utc(), eid))
             return
-        job_image = DEBUG_IMAGE if (job["profile"] or "standard") == "debug" \
-            else RUNTIME_IMAGE
-        out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", job_image],
-                             capture_output=True, timeout=30)
-        running_image = out.stdout.decode().strip() or "unavailable"
-        store.execute("UPDATE executions SET status='RUNNING', started_utc=?, image_id=?"
-                      " WHERE id=?", (now_utc(), running_image, eid))
+        # F-M7-02: resolve the IMMUTABLE image IDs immediately before use and
+        # launch argv with those IDs, never the mutable tags. Fail closed when
+        # resolution fails or the tag no longer matches the identity recorded at
+        # submission (TOCTOU: tag mutated/repainted between request and run).
+        profile = job["profile"] or "standard"
+        exec_tag = DEBUG_IMAGE if profile == "debug" else RUNTIME_IMAGE
+        build_needed = profile in ("standard", "demo-link")
+        exec_ref = resolve_image_id(exec_tag)
+        build_ref = resolve_image_id(ANALYZER_IMAGE) if build_needed else exec_ref
+        if exec_ref is None or build_ref is None:
+            store.execute("UPDATE executions SET status='BLOCKED',"
+                          " error_code='IMAGE_ID_UNAVAILABLE', finished_utc=?"
+                          " WHERE id=?", (now_utc(), eid))
+            return
+        try:
+            requested = json.loads(job["requested_image_ids"]) \
+                if job["requested_image_ids"] else {}
+        except ValueError:
+            requested = {}
+        if (requested.get("exec") and exec_ref != requested["exec"]) or \
+                (build_needed and requested.get("build")
+                 and build_ref != requested["build"]):
+            store.execute("UPDATE executions SET status='BLOCKED',"
+                          " error_code='IMAGE_ID_CHANGED', finished_utc=?"
+                          " WHERE id=?", (now_utc(), eid))
+            return
+        store.execute("UPDATE executions SET status='RUNNING', started_utc=?,"
+                      " image_id=?, build_image_id=? WHERE id=?",
+                      (now_utc(), exec_ref, build_ref if build_needed else None,
+                       eid))
 
         job_dir = jobs_root() / f"execution-{eid[:12]}"
         src = job_dir / "src"
@@ -321,15 +437,16 @@ class _ExecRunner:
                                (eid,))["cancel_requested"]:
                 self._finish(store, eid, "CANCELLED", None)
                 return
-            profile = job["profile"] or "standard"
             if profile == "debug":
-                self._run_debug(store, eid, job, src, run_out, cname)
+                self._run_debug(store, eid, job, src, run_out, cname, exec_ref)
             elif profile == "demo-link":
-                self._run_demo_link(store, eid, job, src, build_out, run_out, cname)
+                self._run_demo_link(store, eid, job, src, build_out, run_out,
+                                    cname, build_ref, exec_ref)
             elif job["language"] == "c":
-                self._run_c(store, eid, job, src, build_out, run_out, cname)
+                self._run_c(store, eid, job, src, build_out, run_out, cname,
+                            build_ref, exec_ref)
             else:
-                self._run_python(store, eid, job, src, run_out, cname)
+                self._run_python(store, eid, job, src, run_out, cname, exec_ref)
             store.execute("UPDATE executions SET duration_ms=? WHERE id=?",
                           (int((time.monotonic() - t0) * 1000), eid))
         finally:
@@ -358,16 +475,18 @@ class _ExecRunner:
                       (status, error, now_utc(), eid))
 
     def _run_c(self, store: Store, eid: str, job, src: Path,
-               build_out: Path, run_out: Path, cname: str) -> None:
+               build_out: Path, run_out: Path, cname: str,
+               build_ref: str, exec_ref: str) -> None:
         # Build in the analyzer container (clang-18 + instrumentation shim).
         # Output bind mount: Docker Desktop chowns the dir after container writes,
         # so the orchestrator ONLY READS from it (never writes) — audit F05 lesson.
+        # F-M7-02: immutable image IDs resolved by the runner, not tags.
         build_argv = ["docker", "run", "--rm", "--name", f"cv-build-{eid[:12]}",
                       "--network", "none", "--read-only", "--tmpfs", "/tmp:rw,size=16m",
                       "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
                       "--user", "1000:1000", "--memory", "256m", "--pids-limit", "64",
                       "-v", f"{src}:/work:ro", "-v", f"{build_out}:/out",
-                      ANALYZER_IMAGE, "python3", "/opt/analyzer/c_build_worker.py",
+                      build_ref, "python3", "/opt/analyzer/c_build_worker.py",
                       "--file", job["primary_file"], "--out", "/out"]
         b = run_capped(build_argv, BUILD_TIMEOUT_S)
         if b["killed"]:
@@ -412,13 +531,14 @@ class _ExecRunner:
                     "-e", "CV_MEM_OUT=/out/memory.jsonl",
                     "-e", "CV_PROC_OUT=/out/process.jsonl",
                     "-v", f"{bin_dir}:/app:ro", "-v", f"{run_out}:/out",
-                    RUNTIME_IMAGE, "/app/app"]
+                    exec_ref, "/app/app"]
         symbol_map = _parse_symbols(build_out / "symbols.txt")
         self._execute_and_record(store, eid, run_argv, run_out, cname,
                                  symbol_map=symbol_map)
 
     def _run_demo_link(self, store: Store, eid: str, job, src: Path,
-                       build_out: Path, run_out: Path, cname: str) -> None:
+                       build_out: Path, run_out: Path, cname: str,
+                       build_ref: str, exec_ref: str) -> None:
         """M7 C-05: compile ALL curated TUs, link with the shim, then run the
         linked binary exactly like the standard C path (instrumented trace)."""
         from app.services.demos import _demo_link_tus
@@ -432,7 +552,7 @@ class _ExecRunner:
                  "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
                  "--user", "1000:1000", "--memory", "256m", "--pids-limit", "64",
                  "-v", f"{src}:/work:ro", "-v", f"{build_out}:/out",
-                 ANALYZER_IMAGE, "python3", "/opt/analyzer/c_link_worker.py",
+                 build_ref, "python3", "/opt/analyzer/c_link_worker.py",
                  "--primary", entry["primary_file"], "--tus", tus, "--out", "/out"]
         b = run_capped(bargv, BUILD_TIMEOUT_S)
         if b["killed"]:
@@ -462,7 +582,7 @@ class _ExecRunner:
                     "-e", "CV_MEM_OUT=/out/memory.jsonl",
                     "-e", "CV_PROC_OUT=/out/process.jsonl",
                     "-v", f"{bin_dir}:/app:ro", "-v", f"{run_out}:/out",
-                    RUNTIME_IMAGE, "/app/app"]
+                    exec_ref, "/app/app"]
         symbol_map = _parse_symbols(build_out / "symbols.txt")
         self._execute_and_record(store, eid, run_argv, run_out, cname,
                                  symbol_map=symbol_map)
@@ -473,7 +593,7 @@ class _ExecRunner:
                      prefix + ": " + b["stderr"].decode("utf-8", "replace")[:300])
 
     def _run_debug(self, store: Store, eid: str, job, src: Path,
-                   run_out: Path, cname: str) -> None:
+                   run_out: Path, cname: str, exec_ref: str) -> None:
         """M5-B curated debug profile: gdb frame/variable/pointer observations for
         allowlisted curated C fixtures only (ADR-0008). One container, no privilege
         expansion (gdb traces its own child under cap-drop ALL / no-new-privileges)."""
@@ -486,7 +606,7 @@ class _ExecRunner:
             return
         run_argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
                     "-v", f"{src}:/work:ro", "-v", f"{run_out}:/out",
-                    DEBUG_IMAGE, "python3", "/opt/debug/c_debug_worker.py",
+                    exec_ref, "python3", "/opt/debug/c_debug_worker.py",
                     "--file", job["primary_file"], "--out", "/out",
                     "--bp", json.dumps(entry["breakpoints"])]
         self._execute_and_record(store, eid, run_argv, run_out, cname,
@@ -496,11 +616,15 @@ class _ExecRunner:
                             run_out: Path, cname: str,
                             symbol_map: list | None = None,
                             stdout_from_file: bool = False,
-                            profile: str = "standard") -> None:
+                            profile: str = "standard",
+                            framed: bool = False) -> None:
         if store.query_one("SELECT cancel_requested FROM executions WHERE id=?",
                            (eid,))["cancel_requested"]:
             self._finish(store, eid, "CANCELLED", None)
             return
+        trace_channel = CHANNEL_FRAMED if framed else CHANNEL_FILE
+        store.execute("UPDATE executions SET trace_channel=? WHERE id=?",
+                      (trace_channel, eid))
         # M5-D: best-effort host-side PID of the container while it exists.
         pid_stop = threading.Event()
         pid_result: list[int] = []
@@ -508,7 +632,8 @@ class _ExecRunner:
             _host_pid_sampler(cname, pid_stop)), daemon=True)
         pid_thread.start()
         try:
-            r = run_capped(argv, RUN_TIMEOUT_S)
+            r = run_capped(argv, RUN_TIMEOUT_S,
+                           stdout_cap=FRAMED_STDOUT_CAP if framed else STDOUT_CAP)
         finally:
             pid_stop.set()
             pid_thread.join(timeout=20)
@@ -523,32 +648,97 @@ class _ExecRunner:
             subprocess.run(["docker", "rm", "-f", cname], capture_output=True, timeout=60)
             self._finish(store, eid, "TIMEOUT", "run timeout")
             return
-        trace_p = run_out / "trace.jsonl"
-        trace_bytes, trace_file_truncated = _read_capped(trace_p, TRACE_FILE_CAP)
-        lines = trace_bytes.splitlines()
-        meta_payloads: list[dict] = []
-        if symbol_map:
-            lines = [_resolve_c_addr(ln, symbol_map) for ln in lines]
-        for ln in lines:
-            try:
-                rec = json.loads(ln)
-            except json.JSONDecodeError:
-                continue
-            if rec.get("kind") == "meta":
-                meta_payloads.append(rec)
-        n_events = self._record_events(store, eid, lines)
-        trace_ref = store.put_artifact(trace_bytes) if trace_p.is_file() else None
 
-        # M5-F: bounded observation capture (memory + process streams).
-        mem_rows, mem_art, mem_trunc = self._capture_memory(
-            store, eid, run_out, profile)
-        proc_rows, proc_art, proc_trunc = _store_observations(
-            store, eid, "process", run_out / "process.jsonl", PROCESS_ROW_CAP)
+        if framed:
+            # Protected channel (F-M7-01): artifacts arrive as harness frames.
+            frames = parse_framed_stream(r["stdout"])
+            meta_fr = frames["meta"] or {}
+            meta_record = {"kind": "meta",
+                           "python": meta_fr.get("python"),
+                           "events": meta_fr.get("events"),
+                           "truncated": meta_fr.get("truncated"),
+                           "stdout_truncated": meta_fr.get("stdout_truncated"),
+                           "max_events": meta_fr.get("max_events"),
+                           "schema": "m8g0",
+                           "memory_records": meta_fr.get("memory_records"),
+                           "memory_truncated": meta_fr.get("memory_truncated"),
+                           "trace_disabled_by_target":
+                               meta_fr.get("trace_disabled_by_target"),
+                           "channel_frames_dropped":
+                               meta_fr.get("channel_frames_dropped"),
+                           "channel": CHANNEL_FRAMED,
+                           "foreign_frames": frames["foreign"],
+                           "integrity": frames["integrity"]}
+            lines = frames["trace"] + [json.dumps(meta_record).encode()]
+            trace_bytes = b"\n".join(lines) + (b"\n" if lines else b"")
+            trace_file_truncated = False
+            trace_ref = store.put_artifact(trace_bytes) if trace_bytes.strip() \
+                else None
+            meta_payloads: list[dict] = [meta_record]
+            n_events = self._record_events(store, eid, frames["trace"])
+            mem_rows, mem_art, mem_trunc = _store_stream_rows(
+                store, eid, "memory", b"\n".join(frames["memory"]),
+                MEMORY_ROW_CAP)
+            proc_rows, proc_art, proc_trunc = _store_stream_rows(
+                store, eid, "process", b"\n".join(frames["process"]),
+                PROCESS_ROW_CAP)
+        else:
+            trace_p = run_out / "trace.jsonl"
+            trace_bytes, trace_file_truncated = _read_capped(trace_p, TRACE_FILE_CAP)
+            lines = trace_bytes.splitlines()
+            meta_payloads: list[dict] = []
+            if symbol_map:
+                lines = [_resolve_c_addr(ln, symbol_map) for ln in lines]
+            for ln in lines:
+                try:
+                    rec = json.loads(ln)
+                except json.JSONDecodeError:
+                    continue
+                if rec.get("kind") == "meta":
+                    meta_payloads.append(rec)
+            # C-channel integrity (F-M7-01): verify the shim's final trace_meta
+            # record — count consistency; absence of the record (e.g. an abrupt
+            # kill or tampering) is SUSPECT, never silently promoted.
+            c_integrity = "SUSPECT"
+            c_meta_rec: dict = {"kind": "trace_meta_record", "channel": CHANNEL_FILE}
+            if lines and lines[-1]:
+                try:
+                    last = json.loads(lines[-1])
+                    if last.get("kind") == "trace_meta" and \
+                            isinstance(last.get("events"), int):
+                        n_ev = sum(
+                            1 for ln2 in lines[:-1]
+                            if ln2 and _is_event_line(ln2))
+                        if last["events"] == n_ev:
+                            c_integrity = "CONSISTENT"
+                        c_meta_rec |= {"events": last["events"],
+                                       "observed_event_lines": n_ev,
+                                       "truncated": last.get("truncated"),
+                                       "observer": "c_trace_shim"}
+                except json.JSONDecodeError:
+                    pass
+            meta_payloads.append(c_meta_rec)
+            # Events are recorded from the ORIGINAL shim lines; the meta record is
+            # appended to the stored artifact afterwards (not counted as an event).
+            n_events = self._record_events(store, eid, lines)
+            lines = lines + [json.dumps(
+                c_meta_rec | {"integrity": c_integrity}).encode()]
+            trace_bytes = b"\n".join(lines) + (b"\n" if lines else b"")
+            trace_ref = store.put_artifact(trace_bytes) if trace_p.is_file() else None
 
-        # Python harness redirects fd 1 to a file: read the file for stdout.
-        # C binary writes to the docker pipe: use run_capped's captured bytes.
+            # M5-F: bounded observation capture (memory + process streams).
+            mem_rows, mem_art, mem_trunc = self._capture_memory(
+                store, eid, run_out, profile)
+            proc_rows, proc_art, proc_trunc = _store_observations(
+                store, eid, "process", run_out / "process.jsonl", PROCESS_ROW_CAP)
+
+        # Python harness frames carry stdout; C binary writes to the docker pipe.
         stdout_file_trunc = stderr_file_trunc = False
-        if stdout_from_file:
+        if framed:
+            stdout_bytes, stdout_file_trunc = frames["stdout"], \
+                bool(meta_fr.get("stdout_truncated")) or r["stdout_truncated"]
+            stderr_bytes, stderr_file_trunc = r["stderr"], r["stderr_truncated"]
+        elif stdout_from_file:
             stdout_bytes, stdout_file_trunc = _read_capped(run_out / "stdout.txt",
                                                            STDOUT_CAP)
             stderr_bytes, stderr_file_trunc = _read_capped(run_out / "stderr.txt",
@@ -560,12 +750,13 @@ class _ExecRunner:
         stdout_art = store.put_artifact(stdout_bytes) if stdout_bytes else None
         stderr_art = store.put_artifact(stderr_bytes) if stderr_bytes else None
         meta = _meta_flags(meta_payloads)
+        integrity = frames["integrity"] if framed else c_integrity
         store.execute(
             "UPDATE executions SET status='COMPLETED', exit_code=?, stdout_sha256=?,"
             " stderr_sha256=?, trace_sha256=?, events_count=?, events_truncated=?,"
             " stdout_truncated=?, stderr_truncated=?, finished_utc=?, host_pid=?,"
-            " memory_sha256=?, process_sha256=?, memory_count=?, process_count=?"
-            " WHERE id=?",
+            " memory_sha256=?, process_sha256=?, memory_count=?, process_count=?,"
+            " trace_integrity=?, trace_meta_json=? WHERE id=?",
             (r["exit_code"], stdout_art, stderr_art, trace_ref, n_events,
              int(n_events >= EVENTS_CAP or r["stdout_truncated"] or r["stderr_truncated"]
                  or trace_file_truncated or meta["trace"]),
@@ -573,7 +764,8 @@ class _ExecRunner:
              int(r["stderr_truncated"] or stderr_file_trunc or meta["stderr"]),
              now_utc(),
              pid_result[0] if pid_result else None,
-             mem_art, proc_art, mem_rows, proc_rows, eid))
+             mem_art, proc_art, mem_rows, proc_rows,
+             integrity, json.dumps(meta_record if framed else c_meta_rec), eid))
         _ = (mem_trunc, proc_trunc)  # stored rows are already bounded by row caps
 
     def _capture_memory(self, store: Store, eid: str, run_out: Path,
@@ -598,13 +790,17 @@ class _ExecRunner:
         return _store_observations(store, eid, "memory", p, MEMORY_ROW_CAP)
 
     def _run_python(self, store: Store, eid: str, job, src: Path,
-                    run_out: Path, cname: str) -> None:
+                    run_out: Path, cname: str, exec_ref: str) -> None:
+        # M8-G0 F-M7-01: NO writable /out mount — the untrusted target cannot
+        # write trace artifacts. The harness multiplexes all observations over
+        # the container stdout pipe (protected channel); the orchestrator parses
+        # and stores them host-side.
         run_argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
-                    "-v", f"{src}:/work:ro", "-v", f"{run_out}:/out",
-                    RUNTIME_IMAGE, "python3", "/opt/runtime/py_trace_harness.py",
-                    "--file", job["primary_file"], "--out", "/out"]
+                    "-v", f"{src}:/work:ro",
+                    exec_ref, "python3", "/opt/runtime/py_trace_harness.py",
+                    "--file", job["primary_file"]]
         self._execute_and_record(store, eid, run_argv, run_out, cname,
-                                 stdout_from_file=True)
+                                 stdout_from_file=True, framed=True)
 
     def cancel(self, execution_id: str) -> str:
         job = self.store.query_one("SELECT status FROM executions WHERE id=?",
@@ -678,6 +874,7 @@ def create_execution(store: Store, snapshot_id: str, target_id: str,
     snap = store.query_one("SELECT * FROM source_snapshots WHERE id=?", (snapshot_id,))
     if not snap:
         raise ExecutionError("NOT_FOUND", "unknown snapshot", 404)
+    trust = trace_trust_for(snap["origin"])
     if snap["origin"] == "github":
         # README §10 / M4-A: imported repositories NEVER auto-run. Explicit
         # user-run of imported code needs the M9 deployment review — fail closed.
@@ -721,16 +918,33 @@ def create_execution(store: Store, snapshot_id: str, target_id: str,
         store.execute(
             "INSERT INTO executions (id, snapshot_id, target_id, language, primary_file,"
             " status, fingerprint, source_combined_sha256, error_code, created_utc,"
-            " profile)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            " profile, trace_trust, trace_channel)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (eid, snapshot_id, target_id, language, target["primary_file"], "BLOCKED",
-             "unavailable", snap["combined_sha256"], reason, now_utc(), profile))
+             "unavailable", snap["combined_sha256"], reason, now_utc(), profile,
+             trust, CHANNEL_FRAMED if language == "python" else CHANNEL_FILE))
         return {"execution_id": eid, "status": "BLOCKED", "error": reason, "existed": False}
-    image_ref = DEBUG_IMAGE if profile == "debug" else RUNTIME_IMAGE
-    out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", image_ref],
-                         capture_output=True, timeout=30)
-    image_id = out.stdout.decode().strip() or "unavailable"
-    fp = f"{snap['combined_sha256']}:{target_id}:{image_id}:{profile}"
+    exec_tag = DEBUG_IMAGE if profile == "debug" else RUNTIME_IMAGE
+    exec_ref = resolve_image_id(exec_tag)
+    build_needed = language == "c"  # standard/demo-link C builds use the analyzer image
+    build_ref = resolve_image_id(ANALYZER_IMAGE) if build_needed else None
+    if exec_ref is None or (build_needed and build_ref is None):
+        eid = new_id()
+        store.execute(
+            "INSERT INTO executions (id, snapshot_id, target_id, language, primary_file,"
+            " status, fingerprint, source_combined_sha256, error_code, created_utc,"
+            " profile, trace_trust, trace_channel)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (eid, snapshot_id, target_id, language, target["primary_file"], "BLOCKED",
+             "unavailable", snap["combined_sha256"], "IMAGE_ID_UNAVAILABLE",
+             now_utc(), profile, trust, CHANNEL_FRAMED if language == "python"
+             else CHANNEL_FILE))
+        return {"execution_id": eid, "status": "BLOCKED",
+                "error": "IMAGE_ID_UNAVAILABLE", "existed": False}
+    requested_ids = json.dumps(
+        {"exec": exec_ref, "build": build_ref} if build_needed
+        else {"exec": exec_ref})
+    fp = f"{snap['combined_sha256']}:{target_id}:{exec_ref}:{profile}"
     existing = store.query_one(
         "SELECT id, status FROM executions WHERE fingerprint=? AND status IN"
         " ('COMPLETED','RUNNING','QUEUED') ORDER BY created_utc DESC LIMIT 1", (fp,))
@@ -739,9 +953,11 @@ def create_execution(store: Store, snapshot_id: str, target_id: str,
     eid = new_id()
     store.execute(
         "INSERT INTO executions (id, snapshot_id, target_id, language, primary_file,"
-        " status, fingerprint, source_combined_sha256, created_utc, profile)"
-        " VALUES (?,?,?,?,?,?,?,?,?,?)",
+        " status, fingerprint, source_combined_sha256, created_utc, profile,"
+        " requested_image_ids, trace_trust, trace_channel)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
         (eid, snapshot_id, target_id, language, target["primary_file"], "QUEUED", fp,
-         snap["combined_sha256"], now_utc(), profile))
+         snap["combined_sha256"], now_utc(), profile, requested_ids, trust,
+         CHANNEL_FRAMED if language == "python" else CHANNEL_FILE))
     get_execution_runner(store).enqueue(eid)
     return {"execution_id": eid, "status": "QUEUED", "existed": False}

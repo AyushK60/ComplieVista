@@ -25,6 +25,7 @@ from pathlib import Path
 
 from app.core.config import (ANALYSIS_POLICY_VERSION, ANALYSIS_TIMEOUT_S,
                              ANALYZER_IMAGE, ANALYSIS_MAX_CONCURRENT)
+from app.services.execution import resolve_image_id
 from app.services.staging import jobs_root
 from app.store.db import Store, new_id, now_utc
 
@@ -143,9 +144,30 @@ class _JobRunner:
                 "UPDATE analyses SET status='BLOCKED', error_code='DOCKER_UNAVAILABLE',"
                 " finished_utc=? WHERE id=?", (now_utc(), analysis_id))
             return
-        ref = image_id()
+        # F-M7-02: launch with the IMMUTABLE image ID resolved immediately before
+        # use (never the mutable tag); fail closed when resolution fails or the
+        # tag no longer matches the identity recorded at submission (TOCTOU).
+        ref = resolve_image_id(ANALYZER_IMAGE)
+        if ref is None:
+            store.execute(
+                "UPDATE analyses SET status='BLOCKED', error_code='IMAGE_ID_UNAVAILABLE',"
+                " finished_utc=? WHERE id=?", (now_utc(), analysis_id))
+            return
+        try:
+            requested = json.loads(job["requested_image_ids"]) \
+                if job["requested_image_ids"] else {}
+        except ValueError:
+            requested = {}
+        if requested.get("exec") and ref != requested["exec"]:
+            store.execute(
+                "UPDATE analyses SET status='BLOCKED', error_code='IMAGE_ID_CHANGED',"
+                " finished_utc=? WHERE id=?", (now_utc(), analysis_id))
+            return
+        tool_fp = hashlib.sha256(
+            f"{ANALYZER_IMAGE}:{ref}:{ANALYSIS_POLICY_VERSION}".encode()
+        ).hexdigest()[:32]
         store.execute("UPDATE analyses SET status='RUNNING', started_utc=?, tool_fingerprint=?,"
-                      " image_id=? WHERE id=?", (now_utc(), tool_fingerprint(), ref,
+                      " image_id=? WHERE id=?", (now_utc(), tool_fp, ref,
                                                  analysis_id))
 
         # Materialize the immutable snapshot into disposable native job space.
@@ -278,11 +300,16 @@ def create_analysis(store: Store, snapshot_id: str, target_id: str) -> dict:
         " ORDER BY created_utc DESC LIMIT 1", (fp,))
     if existing:
         return {"analysis_id": existing["id"], "status": existing["status"], "existed": True}
+    # F-M7-02: pin the immutable image ID at submission; the runner fails closed
+    # if the tag no longer resolves to it when the job starts.
+    requested_ref = resolve_image_id(ANALYZER_IMAGE)
     aid = new_id()
     store.execute(
         "INSERT INTO analyses (id, snapshot_id, target_id, language, primary_file, status,"
-        " fingerprint, source_combined_sha256, created_utc) VALUES (?,?,?,?,?,?,?,?,?)",
+        " fingerprint, source_combined_sha256, created_utc, requested_image_ids)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?)",
         (aid, snapshot_id, target_id, language, target["primary_file"], "QUEUED", fp,
-         snap["combined_sha256"], now_utc()))
+         snap["combined_sha256"], now_utc(),
+         json.dumps({"exec": requested_ref}) if requested_ref else None))
     get_runner(store).enqueue(aid)
     return {"analysis_id": aid, "status": "QUEUED", "existed": False}
