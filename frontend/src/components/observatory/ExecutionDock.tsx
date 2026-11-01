@@ -20,7 +20,7 @@ interface Frame {
 
 type Locals = Record<string, Record<string, unknown>>;
 
-interface TreeNode {
+export interface TreeNode {
   idx: number;              // index of the call event
   fn: string;
   line: number | null;
@@ -57,7 +57,7 @@ function localsRepr(v: Record<string, unknown> | undefined): string {
   return String(v.type ?? "—");
 }
 
-function buildTree(events: ExecutionEvent[]): TreeNode[] {
+export function buildTree(events: ExecutionEvent[]): TreeNode[] {
   const roots: TreeNode[] = [];
   const stack: TreeNode[] = [];
   for (let i = 0; i < events.length; i++) {
@@ -120,7 +120,7 @@ function aggArgSummary(nodes: TreeNode[]): string | null {
   return null;
 }
 
-function stackAt(events: ExecutionEvent[], cursor: number): Frame[] {
+export function stackAt(events: ExecutionEvent[], cursor: number): Frame[] {
   const frames: Frame[] = [];
   for (let i = 0; i < cursor; i++) {
     const e = events[i];
@@ -137,6 +137,9 @@ function stackAt(events: ExecutionEvent[], cursor: number): Frame[] {
 }
 
 const EVENT_KINDS = ["call", "line", "return", "exception"] as const;
+
+export interface TraceFrame { fn: string; line: number | null; callIdx: number; locals: Record<string, unknown> | null }
+export interface TreeNodeInfo extends TreeNode {}
 
 export default function ExecutionDock({ executionId, onSelectLine, activeLine }: {
   executionId: string;

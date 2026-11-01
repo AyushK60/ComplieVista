@@ -9,6 +9,7 @@ import JourneyNavigator from "../components/observatory/JourneyNavigator";
 import StageCanvas from "../components/observatory/StageCanvas";
 import Inspector from "../components/observatory/Inspector";
 import ExecutionDock from "../components/observatory/ExecutionDock";
+import ProgramWalkthrough from "../components/observatory/ProgramWalkthrough";
 import OptimizationExplorer from "../components/observatory/OptimizationExplorer";
 import { SourceSpan } from "../components/observatory/TokenFormation";
 import { Selection } from "../components/observatory/types";
@@ -79,8 +80,9 @@ export default function Workspace() {
   const [canvasFull, setCanvasFull] = useState(false);
   // view switch: compilation stages, the recorded run, or the optimization lab —
   // siblings in one viewport-oriented workspace instead of a scrolling page
-  const [view, setView] = useState<"compile" | "execution" | "optimization">(
-    () => (new URLSearchParams(window.location.search).get("execution") ? "execution" : "compile"));
+  const [view, setView] = useState<"compile" | "execution" | "walkthrough" | "optimization">(
+    () => (new URLSearchParams(window.location.search).get("walkthrough") ? "walkthrough"
+      : new URLSearchParams(window.location.search).get("execution") ? "execution" : "compile"));
   const dragRef = useRef<{ startX: number; startW: number } | null>(null);
   const stageSeqRef = useRef(0);
 
@@ -422,6 +424,10 @@ export default function Workspace() {
             <button role="tab" aria-selected={view === "execution"} className={view === "execution" ? "active" : ""}
                     onClick={() => setView("execution")}>Execution observatory</button>
           )}
+          {executionId && (
+            <button role="tab" aria-selected={view === "walkthrough"} className={view === "walkthrough" ? "active" : ""}
+                    onClick={() => setView("walkthrough")}>Watch it work</button>
+          )}
           {optPair && (
             <button role="tab" aria-selected={view === "optimization"} className={view === "optimization" ? "active" : ""}
                     onClick={() => setView("optimization")}>Optimization lab</button>
@@ -510,6 +516,10 @@ export default function Workspace() {
             {view === "execution" && executionId && (
               <ExecutionDock executionId={executionId} onSelectLine={(l) => showLine(l, true)}
                              activeLine={highlightLine} />
+            )}
+            {view === "walkthrough" && executionId && (
+              <ProgramWalkthrough executionId={executionId} sourceText={sourceText}
+                                  onSelectLine={(l) => showLine(l, true)} />
             )}
             {view === "optimization" && optPair && (
               <OptimizationExplorer snapshotId={optPair.snapshotId} targetId={optPair.targetId} language={lang} />

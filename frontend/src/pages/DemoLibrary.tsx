@@ -180,7 +180,7 @@ export default function DemoLibrary() {
     ["Compare both languages", "Matched pairs: the same problem taken down both pipelines, each stage synchronized by concept — never pretended equivalent.", filtered.filter((d) => d.group === "C")],
   ];
 
-  const launch = async (d: DemoEntry, mode: "analyze" | "run") => {
+  const launch = async (d: DemoEntry, mode: "analyze" | "run" | "watch") => {
     setBusy(d.id + mode);
     try {
       if (mode === "analyze") {
@@ -189,8 +189,7 @@ export default function DemoLibrary() {
         navigate(`/workspace?demo=${d.id}&analysis=${r.analysis_id}${snapPart}&file=${encodeURIComponent(d.primary_file)}`);
       } else {
         const r: DemoRunResult = await demos.run(d.id);
-        // run first; the student can click Analyze afterwards in the observatory
-        navigate(`/workspace?demo=${d.id}&execution=${r.execution_id}&snapshot=${r.snapshot_id}&project=demo-library&target=${r.target_id}&file=${encodeURIComponent(d.primary_file)}`);
+        navigate(`/workspace?demo=${d.id}&execution=${r.execution_id}&snapshot=${r.snapshot_id}&project=demo-library&target=${r.target_id}&file=${encodeURIComponent(d.primary_file)}${mode === "run" ? "&walkthrough=1" : ""}`);
       }
     } catch (e) {
       setCatalog((c) => ({ ...c, error: e instanceof Error ? e.message : String(e) }));
@@ -227,8 +226,12 @@ export default function DemoLibrary() {
               {busy === open.id + "analyze" ? <><span className="spinner" /> analyzing…</> : "Explore this program →"}
             </button>
             <button className="btn run big" disabled={!!busy}
+                    onClick={() => launch(open, "watch")}>
+              {busy === open.id + "watch" ? <><span className="spinner" /> running…</> : "▶ Watch This Program Work"}
+            </button>
+            <button className="btn big" disabled={!!busy}
                     onClick={() => launch(open, "run")}>
-              {busy === open.id + "run" ? <><span className="spinner" /> running…</> : "Run & replay execution"}
+              {busy === open.id + "run" ? <><span className="spinner" /> running…</> : "Run (observatory)"}
             </button>
             <a className="btn ghost" href={demos.reportUrl(open.id)} target="_blank" rel="noreferrer">
               sanitized report (JSON)
