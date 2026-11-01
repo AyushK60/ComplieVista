@@ -48,6 +48,21 @@ sweep (§16 below) and remains recommended as a separate audit.
   read-only GitHub import (never executed), framed trace channel with trust
   labels, no new backend endpoints.
 
+## Part-4 repair addendum (same day, evening)
+
+After the user rejected the workspace experience, Phase-0 browser reproduction
+proved two root causes behind most complaints: (1) the custom xyflow nodes had
+no Handle components, so the edge renderer silently drew zero edges on EVERY
+graph — fixed and now asserted in E2E; (2) the workspace was a scrolling page
+that cut the canvas at the fold — replaced by a viewport-oriented app frame
+with Compilation/Execution/Walkthrough/Optimization view tabs, a resizable and
+persistent source dock, and a collapsed-by-default inspector. The new Visual
+Program Walkthrough ("Watch This Program Work") plays the recorded run as a
+beginner scene: active source line, executed-flow panel with a derived
+labeled loop-pass counter, call stack, snapshot-diff variables, recorded
+output, meaningful-event playback at 0.5–2×. `e2e/m8d_journeys.py`: ALL
+CHECKS PASSED, zero console errors; `docs/TEST_EVIDENCE/m8d/`.
+
 ## Verification
 
 - Backend: `backend/.venv/bin/python -m pytest backend/tests -q` → **208
