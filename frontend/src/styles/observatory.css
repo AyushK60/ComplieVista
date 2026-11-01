@@ -1,5 +1,60 @@
 /* CompileVista — observatory workspace (porcelain revision) */
 
+/* Viewport-oriented app frame: the workspace occupies the screen below the
+ * top navigation; panels scroll internally, the page itself does not scroll.
+ * Below 1180px the frame reverts to the stacked, page-scrolling layout. */
+.obs-app {
+  max-width: none; margin: 0; padding: 14px 20px 16px;
+  height: calc(100vh - 51px);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.obs-app .obs-head { flex-shrink: 0; margin-bottom: 8px; }
+.obs-app .obs-title h1 { font-size: 19px; }
+.obs-app .obs-filebar { flex-shrink: 0; margin-bottom: 10px; padding-bottom: 10px; }
+.obs-app .obs-grid {
+  flex: 1; min-height: 0;
+  align-items: stretch;
+}
+.obs-app .obs-left, .obs-app .obs-right { position: static; max-height: none; height: 100%; }
+.obs-app .obs-center { height: 100%; min-height: 0; overflow: hidden; }
+.obs-app .obs-viewtabs { flex-shrink: 0; }
+.obs-app .obs-canvas { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
+.obs-app .obs-canvas > .stagecanvas { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.obs-app .obs-canvas > .stagecanvas > .graphwrap { flex: 1; min-height: 320px; height: auto; }
+.obs-app .dock-handle {
+  position: absolute; top: 0; bottom: 0; right: -5px; width: 9px;
+  cursor: col-resize; border-radius: 3px; z-index: 5;
+  background: transparent;
+}
+.obs-left { position: relative; }
+.obs-app .dock-handle:hover, .obs-app .dock-handle:active { background: var(--teal-dim); }
+
+/* view tabs */
+.obs-viewtabs {
+  display: flex; gap: 2px; margin: 0 0 10px;
+  background: var(--bg-inset); border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px; width: fit-content;
+}
+.obs-viewtabs button {
+  background: none; border: 1px solid transparent; color: var(--ink-3);
+  font-size: 12.5px; font-weight: 600; padding: 5px 16px; border-radius: 999px; cursor: pointer;
+}
+.obs-viewtabs button.active {
+  background: var(--bg-raised); color: var(--ink); border-color: var(--line-strong);
+  box-shadow: var(--shadow-1);
+}
+.obs-app .execdock { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
+.obs-app .execdock > .theater { flex: 1; min-height: 0; }
+
+@media (max-width: 1180px) {
+  .obs-app {
+    height: auto; overflow: visible; padding: 14px 16px 60px;
+  }
+  .obs-app .obs-grid { flex: none; height: auto; }
+  .obs-app .obs-canvas { overflow: visible; min-height: 420px; height: 540px; }
+  .dock-handle { display: none; }
+}
+
 .obs { max-width: 1600px; margin: 0 auto; padding: 20px 24px 80px; }
 
 /* ——— empty state / ingest ——— */
@@ -429,7 +484,7 @@ button.jstage.active .jstage-dot { background: var(--teal); }
 .react-flow__node.hit .cvnode { border-color: var(--teal-l); box-shadow: 0 0 0 2px rgba(111, 195, 184, 0.4); }
 
 /* edges: containment = quiet slate, branch/flow = teal, ancestry path = bright */
-.react-flow__edge.edge-containment path { stroke: rgba(216, 230, 230, 0.3); stroke-width: 1.2; }
+.react-flow__edge.edge-containment path { stroke: rgba(216, 230, 230, 0.45); stroke-width: 1.5; }
 .react-flow__edge.edge-branch path { stroke: rgba(111, 195, 184, 0.6); stroke-width: 1.4; }
 .react-flow__edge.on-path path { stroke: var(--teal-l); stroke-width: 2; stroke-opacity: 1; }
 .react-flow__edge-path { stroke-opacity: 0.8; }

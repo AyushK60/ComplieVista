@@ -137,6 +137,7 @@ export default function GraphView({
   const [metrics, setMetrics] = useState<{ total: number; visible: number; edges: number; layoutMs: number; initialZoom: number } | null>(null);
   const [layoutTick, setLayoutTick] = useState(0);
   const nodesRef = useRef<Node[]>([]);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const pendingFitRef = useRef(false);
   const initialFrameDoneRef = useRef(false);
   const payloadRef = useRef<GraphPayload | null>(null);
@@ -403,6 +404,20 @@ export default function GraphView({
     return () => cancelAnimationFrame(id);
   }, [fullscreen, applyFrame]);
 
+  // re-frame when the container is resized (dock drag, window resize) so the
+  // graph never disappears or misframes after layout changes
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    let t: number | undefined;
+    const ro = new ResizeObserver(() => {
+      window.clearTimeout(t);
+      t = window.setTimeout(() => applyFrame(), 180);
+    });
+    ro.observe(el);
+    return () => { ro.disconnect(); window.clearTimeout(t); };
+  }, [applyFrame]);
+
   // ---- collapse: mark root; its descendants (excluding the root) are hidden ----
   const toggleCollapse = useCallback((nodeId: string) => {
     setHiddenSubtrees((prev) => {
@@ -575,7 +590,7 @@ export default function GraphView({
   ];
 
   return (
-    <div className={"graphwrap" + (fullscreen ? " graphwrap-fs" : "")}
+    <div ref={wrapRef} className={"graphwrap" + (fullscreen ? " graphwrap-fs" : "")}
          data-metrics={JSON.stringify({
            nodes_total: metrics?.total ?? payload.nodes.length,
            nodes_visible: metrics?.visible ?? visible.nodes.length,

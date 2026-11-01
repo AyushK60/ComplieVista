@@ -69,9 +69,37 @@ export default function Workspace() {
   const [demoMeta, setDemoMeta] = useState<string | null>(null);
   const [optPair, setOptPair] = useState<{ snapshotId: string; targetId: string } | null>(null);
   const [hoverSpan, setHoverSpan] = useState<SourceSpan | null>(null);
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  // starts collapsed; opens automatically when something is selected (1.3)
+  const [inspectorOpen, setInspectorOpen] = useState(() =>
+    localStorage.getItem("cv.inspector") === "open");
+  const [sourceW, setSourceW] = useState(() => {
+    const v = Number(localStorage.getItem("cv.sourceW"));
+    return v >= 260 && v <= 560 ? v : 340;
+  });
   const [canvasFull, setCanvasFull] = useState(false);
+  // view switch: compilation stages, the recorded run, or the optimization lab —
+  // siblings in one viewport-oriented workspace instead of a scrolling page
+  const [view, setView] = useState<"compile" | "execution" | "optimization">(
+    () => (new URLSearchParams(window.location.search).get("execution") ? "execution" : "compile"));
+  const dragRef = useRef<{ startX: number; startW: number } | null>(null);
   const stageSeqRef = useRef(0);
+
+  const startDockDrag = (e: React.MouseEvent) => {
+    dragRef.current = { startX: e.clientX, startW: sourceW };
+    const move = (ev: MouseEvent) => {
+      if (!dragRef.current) return;
+      const w = Math.max(260, Math.min(560, dragRef.current.startW + ev.clientX - dragRef.current.startX));
+      setSourceW(w);
+    };
+    const up = () => {
+      dragRef.current = null;
+      setSourceW((w) => { localStorage.setItem("cv.sourceW", String(w)); return w; });
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
 
   // full-screen exploration locks page scroll
   useEffect(() => {
@@ -330,9 +358,9 @@ export default function Workspace() {
     );
   }
 
-  /* ——— observatory ——— */
+  /* ——— observatory (viewport-oriented app) ——— */
   return (
-    <main className="obs">
+    <main className="obs obs-app">
       {header}
       <div className="obs-filebar" role="list" aria-label="snapshot files">
         {[...snapshot.files]
@@ -386,23 +414,38 @@ export default function Workspace() {
       )}
 
       {(job?.status === "COMPLETED" || (executionId && !analysisId)) && (
+        <>
+        <div className="obs-viewtabs" role="tablist" aria-label="workspace views">
+          <button role="tab" aria-selected={view === "compile"} className={view === "compile" ? "active" : ""}
+                  onClick={() => setView("compile")}>Compilation journey</button>
+          {executionId && (
+            <button role="tab" aria-selected={view === "execution"} className={view === "execution" ? "active" : ""}
+                    onClick={() => setView("execution")}>Execution observatory</button>
+          )}
+          {optPair && (
+            <button role="tab" aria-selected={view === "optimization"} className={view === "optimization" ? "active" : ""}
+                    onClick={() => setView("optimization")}>Optimization lab</button>
+          )}
+        </div>
         <div className={"obs-grid" + (inspectorOpen ? "" : " insp-collapsed")}>
-          <div className="obs-left">
+          <div className="obs-left" style={{ width: sourceW, flex: `0 0 ${sourceW}px` }}>
             <SourceDock text={sourceText} path={selected?.rel_path ?? "?"} language={lang}
                         activeLine={highlightLine} linked={linked} activeSpan={hoverSpan}
                         onSelectLine={(l) => showLine(l, false)} />
             <div className="obs-filemeta muted tech-only">
               sha256 <code>{selected?.content_sha256.slice(0, 32)}…</code> · encoding <code>{selected?.encoding}</code>
             </div>
+            <div className="dock-handle" role="separator" aria-orientation="vertical"
+                 aria-label="resize source dock" onMouseDown={startDockDrag} />
           </div>
 
           <div className="obs-center">
-            {job?.status === "COMPLETED" && (
+            {view === "compile" && job?.status === "COMPLETED" && (
               <JourneyNavigator job={job} stageName={stageName} language={lang}
                                 guided={guided} onToggleGuided={setGuided}
                                 onSelectStage={(s) => setStageName(s)} />
             )}
-            {stageData ? (
+            {view === "compile" && stageData ? (
               <div className={"obs-canvas panel" + (canvasFull ? " fullscreen" : "")}>
                 <button className={"btn ghost fs-toggle" + (canvasFull ? " fs-exit" : "")}
                         onClick={() => setCanvasFull((v) => !v)}
@@ -441,37 +484,41 @@ export default function Workspace() {
                   );
                 })()}
                 <StageCanvas analysisId={analysisId!} stageData={stageData} sourceText={sourceText}
-                             language={lang} onSelect={setSelection}
+                             language={lang} onSelect={(sel) => {
+                               setSelection(sel);
+                               if (sel) { setInspectorOpen(true); localStorage.setItem("cv.inspector", "open"); }
+                             }}
                              onSelectLine={(l) => showLine(l, true)} activeLine={highlightLine}
                              onHoverSpan={setHoverSpan} guided={guided}
                              onNavigateStage={(st) => setStageName(st)}
                              fullscreen={canvasFull}
                              sourceFocusLine={linked ? null : highlightLine} />
               </div>
-            ) : job?.status === "COMPLETED" ? (
+            ) : view === "compile" && job?.status === "COMPLETED" ? (
               <div className="obs-canvas panel canvas-loading">
                 <p className="muted"><span className="spinner" /> loading stage…</p>
               </div>
-            ) : (
+            ) : view === "compile" ? (
               <div className="obs-canvas panel canvas-loading">
                 <p className="muted">
-                  Execution replay is loaded below. Click <b>Analyze</b> in the file bar to open
-                  the static compilation journey (tokens → AST → {lang === "c" ? "IR → assembly" : "bytecode"}) alongside it.
+                  This run is loaded in the <b>Execution observatory</b> view (tab above).
+                  Click <b>Analyze</b> in the header to open the static compilation journey
+                  (tokens → AST → {lang === "c" ? "IR → assembly" : "bytecode"}).
                 </p>
               </div>
-            )}
-            {executionId && (
+            ) : null}
+            {view === "execution" && executionId && (
               <ExecutionDock executionId={executionId} onSelectLine={(l) => showLine(l, true)}
                              activeLine={highlightLine} />
             )}
-            {optPair && (
+            {view === "optimization" && optPair && (
               <OptimizationExplorer snapshotId={optPair.snapshotId} targetId={optPair.targetId} language={lang} />
             )}
           </div>
 
           {inspectorOpen ? (
             <div className="obs-right">
-              <Inspector selection={selection} onClose={() => setInspectorOpen(false)}
+              <Inspector selection={selection} onClose={() => { setInspectorOpen(false); localStorage.setItem("cv.inspector", "collapsed"); }}
                          onShowSource={(l) => showLine(l, true)} />
             </div>
           ) : (
@@ -480,6 +527,7 @@ export default function Workspace() {
             </div>
           )}
         </div>
+        </>
       )}
     </main>
   );
