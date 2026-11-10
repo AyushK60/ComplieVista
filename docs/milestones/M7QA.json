@@ -19,7 +19,7 @@
   "fresh_boot": "isolated data dir: health ok, pasted C executed, demo C-01 + PY-04 matched, report sanitized",
   "five_pair_verification": {
     "add": {"output": "sum=299995", "c_source_sha256_prefix": "34551b8287b5"},
-    "conditional": {"output": "c0=16 c1=8 c2=4 c3=2", "c_source_sha256_prefix": "f812fa95d2bf"},
+    "conditional": {"output": "c0=16 c1=8 c2=4 c3=2", "c_source_sha256_prefix": "3439927c676f"},
     "recursion": {"output": "fib20=6765", "c_source_sha256_prefix": "12bf8615984e"},
     "arraysum": {"output": "total=50010", "c_source_sha256_prefix": "d49e224ba6c6"},
     "sort": {"output": "sorted=471613008", "c_source_sha256_prefix": "1235947f318e"}
