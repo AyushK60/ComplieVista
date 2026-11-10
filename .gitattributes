@@ -1,6 +1,8 @@
-# Normalize text files to LF in the repository; keep Windows shell scripts CRLF.
-* text=auto
-*.bat eol=crlf
-*.cmd eol=crlf
-*.ps1 eol=crlf
-*.sh eol=lf
+# Keep line endings identical on every platform: several fixtures and manifests pin
+# SHA-256 hashes of file bytes, so a Windows checkout must not rewrite them to CRLF.
+* text=auto eol=lf
+# Windows shell scripts keep CRLF; shell scripts keep LF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.sh  text eol=lf
