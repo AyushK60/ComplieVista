@@ -108,7 +108,7 @@ export default function SourceLinkView({ experimentId }: { experimentId: string 
       <div className="slv-grid">
         <section aria-label="source">
           <h5>Source</h5>
-          <div className="slv-pane">
+          <div className="slv-pane" tabIndex={0} role="region" aria-label="source lines">
             {srcLines.map((t, i) => {
               const n = i + 1;
               const b = lm.by_source[String(n)];
@@ -128,11 +128,11 @@ export default function SourceLinkView({ experimentId }: { experimentId: string 
         </section>
         <section aria-label="LLVM IR">
           <h5>LLVM IR <span className="muted">{linked ? `${linked.ir.length} linked` : ""}</span></h5>
-          <div className="slv-pane" ref={irRef}>{paneLines(ir, lm.ir_to_source, irSet)}</div>
+          <div className="slv-pane" ref={irRef} tabIndex={0} role="region" aria-label="LLVM IR lines">{paneLines(ir, lm.ir_to_source, irSet)}</div>
         </section>
         <section aria-label="assembly">
           <h5>Assembly <span className="muted">{linked ? `${linked.asm.length} linked` : ""}</span></h5>
-          <div className="slv-pane" ref={asmRef}>{paneLines(asm, lm.asm_to_source, asmSet)}</div>
+          <div className="slv-pane" ref={asmRef} tabIndex={0} role="region" aria-label="assembly lines">{paneLines(asm, lm.asm_to_source, asmSet)}</div>
         </section>
       </div>
       <p className="muted">

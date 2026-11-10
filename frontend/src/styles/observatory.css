@@ -1022,3 +1022,6 @@ button.jstage.active .jstage-dot { background: var(--teal); }
 .recent ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .recent li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
 .cm-host { width: 100%; min-width: 0; }
+
+/* file chips: wrappers must not change the file bar layout */
+.obs-filebar .filechips, .obs-filebar .filechip-item { display: contents; }

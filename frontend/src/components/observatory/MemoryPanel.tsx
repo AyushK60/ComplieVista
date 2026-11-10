@@ -158,7 +158,7 @@ export default function MemoryPanel({ executionId, onSelectLine }: {
           {debugStops.slice(0, 6).map((s, i) => (
             <details key={i} open={i === 0}>
               <summary><code>{String(s.fn)}</code></summary>
-              <pre className="excerpt">{[
+              <pre className="excerpt" tabIndex={0}>{[
                 ...((s.gdb_text as string[]) ?? []),
                 ...((s.inspect_raw as string[]) ?? []),
               ].join("\n").slice(0, 1200)}</pre>

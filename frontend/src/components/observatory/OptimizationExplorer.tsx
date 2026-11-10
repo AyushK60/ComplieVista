@@ -193,7 +193,7 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
                   <span className="badge ok">added ×{nAdd}</span>
                   <span className="muted">row alignment is a reading aid — an IR/asm line never maps 1:1 to a source line or to one machine instruction</span>
                 </div>
-                <div className="optdiff-side" role="table" aria-label={`${levelA} vs ${levelB} side-by-side`}>
+                <div className="optdiff-side" role="region" tabIndex={0} aria-label={`${levelA} vs ${levelB} side-by-side`}>
                   <div className="optdiff-head"><b>{levelA}</b><b>{levelB}</b></div>
                   {rows.slice(0, 400).map((r, i) => (
                     <div key={i} className={`optdiff-row s-${r.s}`}>

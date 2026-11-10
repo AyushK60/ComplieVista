@@ -64,7 +64,7 @@ export default function SourceDock({ text, path, language, activeLine, onSelectL
         <span className="spacer" />
         <span className="muted" style={{ fontSize: 11 }}>{lines.length} lines · read-only snapshot</span>
       </div>
-      <div className="sourcedock-body" ref={bodyRef}>
+      <div className="sourcedock-body" ref={bodyRef} tabIndex={0} role="region" aria-label="source code">
         {lines.map((l, i) => {
           const n = i + 1;
           const isActive = activeLine === n;

@@ -28,6 +28,9 @@
   --clay: #9c562e;       /* warm · runtime/execution · numbers · DERIVED */
   --plum: #6a5b80;       /* structural · AST/keywords/code objects */
   --moss: #4d6f47;       /* verified · strings/literals · EXACT */
+  /* darker text variants for small badges on tinted backgrounds (WCAG AA 4.5:1) */
+  --clay-text: #8c4c28;
+  --moss-text: #426040;
   --crimson: #b0453b;    /* alert · errors · BLOCKED */
   --teal-dim: rgba(22, 109, 104, 0.1);
   --clay-dim: rgba(199, 121, 80, 0.12);

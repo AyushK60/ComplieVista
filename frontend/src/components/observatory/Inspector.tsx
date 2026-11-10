@@ -70,7 +70,7 @@ export default function Inspector({ selection, onClose, onShowSource }: {
               <ul>{r.items.slice(0, 10).map((it, i) => <li key={i}><code>{it}</code></li>)}</ul>
             </div>
           ))}
-          {selection.excerpt && <pre className="excerpt">{selection.excerpt}</pre>}
+          {selection.excerpt && <pre className="excerpt" tabIndex={0}>{selection.excerpt}</pre>}
         </div>
       )}
       {level === "fields" && (
@@ -83,7 +83,7 @@ export default function Inspector({ selection, onClose, onShowSource }: {
         </table>
       )}
       {level === "raw" && (
-        <pre className="excerpt">{JSON.stringify(selection.raw ?? {}, null, 2).slice(0, 3000)}</pre>
+        <pre className="excerpt" tabIndex={0}>{JSON.stringify(selection.raw ?? {}, null, 2).slice(0, 3000)}</pre>
       )}
     </div>
   );

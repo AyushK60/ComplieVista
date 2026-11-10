@@ -440,20 +440,25 @@ export default function Workspace() {
   return (
     <main className="obs obs-app">
       {header}
-      <div className="obs-filebar" role="list" aria-label="snapshot files">
-        {[...snapshot.files]
-          .sort((a, b) => a.rel_path.localeCompare(b.rel_path))
-          .map((f) => {
-            const st = fileTargets(f.rel_path)[0]?.status;
-            return (
-              <button key={f.id} role="listitem"
-                      className={"filechip" + (selected?.id === f.id ? " active" : "")}
-                      onClick={() => selectFile(f.id)}>
-                <code>{f.rel_path}</code>
-                {st && <StatusChip status={st} />}
-              </button>
-            );
-          })}
+      <div className="obs-filebar">
+        {/* the list holds only the file chips; the action buttons sit beside it */}
+        <div role="list" aria-label="snapshot files" className="filechips">
+          {[...snapshot.files]
+            .sort((a, b) => a.rel_path.localeCompare(b.rel_path))
+            .map((f) => {
+              const st = fileTargets(f.rel_path)[0]?.status;
+              return (
+                <div role="listitem" key={f.id} className="filechip-item">
+                  <button className={"filechip" + (selected?.id === f.id ? " active" : "")}
+                          aria-pressed={selected?.id === f.id}
+                          onClick={() => selectFile(f.id)}>
+                    <code>{f.rel_path}</code>
+                    {st && <StatusChip status={st} />}
+                  </button>
+                </div>
+              );
+            })}
+        </div>
         <span className="spacer" />
         {analyzableTarget && (
           <button className="btn primary" onClick={startAnalysis} disabled={!!analysisId && ["QUEUED", "RUNNING"].includes(job?.status ?? "")}>

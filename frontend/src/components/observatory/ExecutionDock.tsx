@@ -130,7 +130,7 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
           {tab === "process" && <ProcessPanel executionId={executionId} />}
           {tab === "output" && (
             <div className="execoutput">
-              <pre className="excerpt">{output ?? "(none)"}</pre>
+              <pre className="excerpt" tabIndex={0} aria-label="program output">{output ?? "(none)"}</pre>
               <p className="muted tech-only">digests — stdout <code>{job.stdout_sha256?.slice(0, 20) ?? "—"}…</code> ·
                 stderr <code>{job.stderr_sha256?.slice(0, 20) ?? "—"}…</code> ·
                 trace <code>{job.trace_sha256?.slice(0, 20) ?? "—"}…</code></p>

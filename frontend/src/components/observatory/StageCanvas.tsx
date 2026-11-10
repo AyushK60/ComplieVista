@@ -136,7 +136,7 @@ function RawExcerpt({ analysisId, stage, intro }: { analysisId: string; stage: s
   return (
     <>
       {intro && <p className="muted">{intro}</p>}
-      <pre className="excerpt">{text}</pre>
+      <pre className="excerpt" tabIndex={0} aria-label="raw tool output">{text}</pre>
     </>
   );
 }

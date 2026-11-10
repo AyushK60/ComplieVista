@@ -384,11 +384,11 @@ export default function GraphView({
           {value && <span className="cvnode-value">{value}</span>}
           {line != null && <span className="cvnode-line">:{line}</span>}
           {data.childCount > 0 && (
-            <button className="cvnode-toggle" tabIndex={-1}
-                    title="collapse / expand subtree"
-                    onClick={(ev) => { ev.stopPropagation(); toggleCollapse(raw.id as string); }}>
+            <span className="cvnode-toggle" aria-hidden="true"
+                  title="collapse / expand subtree"
+                  onClick={(ev) => { ev.stopPropagation(); toggleCollapse(raw.id as string); }}>
               ⌄
-            </button>
+            </span>
           )}
           {data.collapsedCount > 0 && <span className="cvnode-badge">+{data.collapsedCount}</span>}
           <Handle type="target" position={Position.Top} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />

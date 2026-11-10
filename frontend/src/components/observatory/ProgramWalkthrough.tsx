@@ -326,7 +326,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
         {/* output */}
         <div className="wt-out panel">
           <div className="theater-pane-h">Recorded output <span className="muted">(whole run — per-print timing is not recorded)</span></div>
-          <pre className="wt-outbody">{output ?? "(none)"}</pre>
+          <pre className="wt-outbody" tabIndex={0} aria-label="program output">{output ?? "(none)"}</pre>
         </div>
       </div>
 
