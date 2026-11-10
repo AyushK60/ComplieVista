@@ -1,6 +1,6 @@
 """Stage C: source/IR/asm line linking, checked against REAL clang-18 output.
 
-Fixtures in tests/data/linemap were produced by `clang-18 -g -O0|-O2 -S [-emit-llvm]`
+Fixtures in tests/fixtures/linemap were produced by `clang-18 -g -O0|-O2 -S [-emit-llvm]`
 inside the pinned analyzer image from demo.c (see that file). The assertions are anchored
 on facts about demo.c's own lines, not on the parser's output.
 """
@@ -8,7 +8,7 @@ from pathlib import Path
 
 from app.services.linemap import build_linemap, compare_levels, parse_asm, parse_ir
 
-D = Path(__file__).parent / "data" / "linemap"
+D = Path(__file__).parent / "fixtures" / "linemap"
 SRC = (D / "demo.c").read_text()
 
 

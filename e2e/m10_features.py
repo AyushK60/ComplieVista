@@ -17,7 +17,7 @@ REPO = Path(__file__).resolve().parents[1]
 SHOTS = REPO / "docs" / "TEST_EVIDENCE" / "m10"
 BASE = "http://127.0.0.1:5173"
 FAILED: list[str] = []
-C_SRC = (REPO / "backend" / "tests" / "data" / "linemap" / "demo.c").read_text()
+C_SRC = (REPO / "backend" / "tests" / "fixtures" / "linemap" / "demo.c").read_text()
 DEAD_LINE = 16  # `int unused = 42;` in demo.c
 
 
