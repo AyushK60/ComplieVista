@@ -1,0 +1,198 @@
+/* CompileVista — design rework layer (loaded last).
+ * Goals: one rhythm (spacing/type tokens), flat sections instead of boxes in boxes,
+ * a compact two-layer header, aligned columns, a readable stepper, quiet data strips.
+ * Everything here overrides earlier files on purpose; selectors and aria are unchanged. */
+
+/* ——— buttons: one size, four roles ——— */
+.btn {
+  min-height: 32px; padding: 0 14px; font-size: var(--fs-label); border-radius: var(--r-s);
+  gap: 6px; letter-spacing: 0.005em;
+}
+.btn.primary { box-shadow: none; }
+.btn.primary:hover { box-shadow: none; }
+.btn:hover { box-shadow: none; border-color: var(--teal); color: var(--ink); }
+.btn.primary:hover { color: #f4faf8; }
+.btn.run { border-color: var(--line-strong); color: var(--clay-text); background: var(--surface); }
+.btn.run:hover { border-color: var(--clay); background: var(--clay-dim); }
+.btn.ghost { min-height: 28px; padding: 0 10px; }
+.btn.ghost:hover { border-color: transparent; background: rgba(29, 41, 47, 0.06); }
+
+/* ——— chips: quiet metadata, not buttons ——— */
+.chip { font-size: var(--fs-micro); padding: 1px 8px; background: transparent; }
+
+/* ——— surfaces: flatten nesting ——— */
+.panel { box-shadow: none; border-radius: var(--r-m); }
+.panel .panel, .bezel .panel {
+  border: 0; border-radius: 0; box-shadow: none; background: transparent;
+}
+.panel-h, .theater-pane-h { background: transparent; }
+.panel-h { padding: 10px 16px; font-size: var(--fs-label); }
+
+/* ——— top navigation: slim, one line ——— */
+.topnav { height: var(--bar-h); padding: 0 24px; gap: 4px; }
+.topnav .brand { margin-right: 20px; }
+.topnav a.navlink { padding: 0 12px; height: var(--bar-h); display: inline-flex; align-items: center; border-radius: 0; font-size: var(--fs-label); }
+.topnav a.navlink:hover { background: transparent; color: var(--teal); }
+.topnav a.navlink.active { background: transparent; box-shadow: inset 0 -2px 0 var(--teal); }
+.modeswitch button { font-size: var(--fs-micro); padding: 3px 12px; }
+
+/* ——— program header: title + actions on one row ——— */
+.obs-app { padding: 12px 20px 14px; gap: 0; height: calc(100vh - var(--bar-h)); }
+.obs-top {
+  display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
+  flex-shrink: 0; padding-bottom: var(--sp-3);
+}
+.obs-top .obs-head { flex: 1 1 320px; margin: 0; min-width: 0; }
+.obs-app .obs-title { gap: var(--sp-2); }
+.obs-app .obs-title h1 { font-size: var(--fs-page); line-height: 1.2; }
+.obs-app .obs-title .chip { color: var(--ink-3); }
+.obs-actions { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.obs-actions .btn.primary { min-height: 36px; padding: 0 18px; }
+
+/* ——— tool row: view tabs (left) + file list (right) ——— */
+.obs-app .obs-toolrow {
+  display: flex; align-items: flex-end; gap: var(--sp-4); flex-wrap: wrap;
+  flex-shrink: 0; margin: 0 0 var(--sp-3); padding: 0; border-bottom: var(--hairline);
+}
+.obs-toolrow .spacer { flex: 1; }
+.obs-toolrow:not(:has(.obs-viewtabs)) .spacer { display: none; }
+.obs-app .obs-viewtabs {
+  background: none; border: 0; border-radius: 0; padding: 0; margin: 0; gap: var(--sp-1);
+  width: auto; flex-wrap: wrap;
+}
+.obs-app .obs-viewtabs button {
+  border: 0; border-bottom: 2px solid transparent; border-radius: 0; margin-bottom: -1px;
+  padding: 9px 14px; font-size: var(--fs-label); color: var(--ink-3); background: none; box-shadow: none;
+}
+.obs-app .obs-viewtabs button:hover { color: var(--ink); }
+.obs-app .obs-viewtabs button.active { color: var(--ink); border-bottom-color: var(--teal); background: none; box-shadow: none; }
+.obs-toolrow .filechips { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 6px; }
+.obs-toolrow .filechip { border-radius: var(--r-s); padding: 3px 10px; font-size: var(--fs-micro); }
+
+/* ——— workspace grid: three aligned columns ——— */
+.obs-app .obs-grid { gap: var(--sp-3); align-items: stretch; }
+.obs-app .obs-left, .obs-app .obs-right { align-self: stretch; top: 0; }
+.obs-app .obs-left .sourcedock, .obs-app .obs-right .inspector { margin: 0; flex: 1; min-height: 0; }
+.obs-app .obs-center { gap: var(--sp-3); }
+.obs-app .obs-right { width: 320px; }
+.obs-app .obs-right-rail { width: 36px; align-self: start; }
+.obs-right-rail button {
+  writing-mode: horizontal-tb; letter-spacing: 0; text-transform: none;
+  font-family: var(--font-ui); font-size: 0; font-weight: 600;
+  width: 36px; height: 36px; padding: 0; border-radius: var(--r-s);
+  display: grid; place-items: center;
+}
+.obs-right-rail button::before { content: "‹"; font-size: 20px; line-height: 1; color: var(--ink-2); }
+
+/* source dock */
+.sourcedock .panel-h { padding: 9px 14px; }
+.sourcedock-body { font-size: var(--fs-code); line-height: 1.7; }
+
+/* ——— compilation journey: numbered stepper ——— */
+.journey-rail {
+  gap: 0; padding: 0; border-radius: var(--r-m); align-items: stretch; background: var(--surface);
+}
+.journey-cap { display: none; }
+.journey-phase { padding: 10px 18px; border-left: var(--hairline); gap: 6px; }
+.journey-rail > .journey-phase:first-of-type { border-left: 0; }
+.journey-phase-label { font-size: var(--fs-micro); letter-spacing: 0.08em; color: var(--ink-3); }
+.journey-rail { counter-reset: stg; }
+.journey-stages li { counter-increment: stg; }
+button.jstage {
+  padding: 3px 10px 3px 4px; gap: 8px; border-radius: 999px; font-size: var(--fs-label);
+  color: var(--ink-2);
+}
+.jstage-dot {
+  width: 20px; height: 20px; display: inline-grid; place-items: center;
+  border: 1.5px solid var(--line-strong); background: var(--surface);
+  font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); font-weight: 600;
+}
+.jstage-dot::before { content: counter(stg); }
+button.jstage.ok .jstage-dot { background: var(--moss-dim); border-color: var(--moss); color: var(--moss-text); }
+button.jstage.partial .jstage-dot { background: var(--clay-dim); border-color: var(--clay); color: var(--clay-text); }
+button.jstage.active { background: var(--teal-dim); border-color: transparent; color: var(--ink); }
+button.jstage.active .jstage-dot { background: var(--teal); border-color: var(--teal); color: #f4faf8; }
+.jstage-link { margin: 0 4px; }
+.jstage-link::after { content: ""; display: block; width: 14px; height: 1px; background: var(--line-strong); }
+.journey-actions { padding: 0 14px; align-self: stretch; display: flex; align-items: center; margin-left: auto; }
+.guided-narration { border-radius: var(--r-m); }
+
+/* ——— stage canvas ——— */
+.obs-canvas.panel { background: var(--surface); border: var(--hairline); }
+.obs-app .sc-head, .sc-head { padding: 14px 110px 8px 20px; }
+.sc-title h2 { font-size: var(--fs-title); }
+.sc-what { font-size: var(--fs-body); color: var(--ink-2); }
+.fs-toggle { top: 10px; right: 12px; border: var(--hairline); background: var(--surface); }
+.fs-toggle:hover { border-color: var(--teal); }
+.sc-viewtoggle { background: var(--surface-sunk); }
+.stagecanvas > .limits { margin: 4px 20px 8px; font-size: var(--fs-micro); }
+/* focus mode keeps its bar, but the exit control now sits inside the bar row */
+.fs-exit { top: 22px; right: 24px; }
+
+/* ——— inspector ——— */
+.inspector.panel { border: var(--hairline); background: var(--surface); }
+.inspector .panel-h { text-transform: uppercase; font-size: var(--fs-micro); letter-spacing: 0.08em; color: var(--ink-3); }
+.insp-empty { padding: 16px; font-size: var(--fs-body); }
+
+/* ——— execution observatory + watch: flat, aligned, quiet data ——— */
+.execdock.panel { border: var(--hairline); background: var(--surface); }
+.execdock-h { padding: 8px 14px; gap: var(--sp-2); border-bottom: var(--hairline); }
+.execdock-h > .btn.ghost:first-child { font-weight: 650; font-size: var(--fs-body); padding-left: 0; }
+.exectabs { padding: 0 14px; gap: var(--sp-1); background: transparent; }
+.exectabs button {
+  border: 0 !important; border-bottom: 2px solid transparent !important; border-radius: 0 !important;
+  margin-bottom: -1px; padding: 9px 12px !important; font-size: var(--fs-label) !important;
+  background: none !important; color: var(--ink-3);
+}
+.exectabs button.active { color: var(--ink); border-bottom-color: var(--teal) !important; }
+.theater { padding: 12px 14px 12px; gap: var(--sp-3); }
+.theater-stats {
+  padding-bottom: var(--sp-3); border-bottom: var(--hairline); gap: 6px 14px;
+  font-size: var(--fs-label);
+}
+.theater-stats .chip:not(.kindchip) {
+  border: 0; padding: 0; background: none; color: var(--ink-2); font-size: var(--fs-label);
+}
+.theater-stats .chip:not(.kindchip) .tf-dot { margin-right: 4px; }
+.theater-stats .kindchip { padding: 2px 10px; }
+.theater-grid { gap: 0; }
+.theater-tree { border-right: var(--hairline); padding-right: var(--sp-3); }
+.theater-right { padding-left: var(--sp-3); }
+.theater .theater-pane-h { padding: 4px 0 8px; border-bottom: var(--hairline); margin-bottom: var(--sp-2); }
+.wt-flow .theater-pane-h, .wt-vars .theater-pane-h, .wt-stack .theater-pane-h, .wt-out .theater-pane-h { padding: 10px 14px 8px; margin: 0; }
+.wt-head .muted { font-size: var(--fs-label); }
+.walkthrough { padding: 0 2px 16px; }
+.calldetail { margin-bottom: var(--sp-3); padding-bottom: var(--sp-3); border-bottom: var(--hairline); }
+.cd-body { padding: 0; }
+.tower-body { padding: 4px 2px 8px; }
+.tower-locals .insp-fields { margin: 4px 0 10px; width: 100%; }
+.theater-controls {
+  padding: 8px 0 0; border-top: var(--hairline);
+}
+.trustnote { margin: 8px 14px 0; }
+
+@media (min-width: 1181px) {
+  /* the observatory fills the frame: the trace pane scrolls, the controls stay put */
+  .obs-app .execdock { overflow: hidden; }
+  .obs-app .execdock > .theater { overflow: hidden; }
+  .obs-app .theater-grid { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+  .obs-app .theater-tree { display: flex; flex-direction: column; min-height: 0; }
+  .obs-app .theater-tree-body { flex: 1; max-height: none; min-height: 0; }
+  .obs-app .theater-right { overflow: auto; min-height: 0; }
+  .obs-app .theater-controls { flex-shrink: 0; }
+  .obs-app .execdock > .memscope, .obs-app .execdock > .proscope, .obs-app .execdock > .execoutput { flex: 1; min-height: 0; overflow: auto; }
+}
+
+@media (max-width: 1180px) {
+  .obs-app { height: auto; }
+  .obs-top { align-items: flex-start; }
+  .obs-app .sc-head, .sc-head { padding: 44px 20px 8px; }
+  .theater-tree { border-right: 0; padding-right: 0; }
+  .theater-right { padding-left: 0; padding-top: var(--sp-3); }
+}
+@media (max-width: 720px) {
+  .topnav { height: auto; min-height: var(--bar-h); }
+  .topnav a.navlink { height: var(--bar-h); }
+  .journey-phase { padding: 8px 12px; }
+  .journey-actions { border-left: 0; }
+}

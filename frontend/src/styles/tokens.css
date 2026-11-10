@@ -82,6 +82,25 @@
   --shadow-1: 0 1px 2px rgba(29, 41, 47, 0.05), 0 3px 14px rgba(29, 41, 47, 0.06);
   --shadow-2: 0 2px 6px rgba(29, 41, 47, 0.07), 0 14px 36px rgba(29, 41, 47, 0.1);
 
+
+  /* ——— spacing scale (use these, not ad-hoc pixels) ——— */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+
+  /* ——— type scale: one role per size ——— */
+  --fs-micro: 11px;   /* overlines, badges */
+  --fs-label: 12.5px; /* tabs, buttons, chips, table heads */
+  --fs-body: 14px;    /* running text, panels */
+  --fs-lead: 15px;    /* page intro */
+  --fs-title: 18px;   /* panel / stage titles */
+  --fs-page: 22px;    /* page titles */
+  --fs-code: 12.5px;  /* code and mono data */
+
+  /* ——— surfaces: one border, two elevations ——— */
+  --surface: var(--bg-raised);
+  --surface-sunk: var(--bg-inset);
+  --hairline: 1px solid var(--line);
+  --bar-h: 48px;      /* top navigation height */
+
   /* ——— motion ——— */
   --t-fast: 140ms;
   --t-med: 260ms;

@@ -437,11 +437,51 @@ export default function Workspace() {
   }
 
   /* ——— observatory (viewport-oriented app) ——— */
+  const showTabs = job?.status === "COMPLETED" || (!!executionId && !analysisId);
   return (
     <main className="obs obs-app">
-      {header}
-      <div className="obs-filebar">
-        {/* the list holds only the file chips; the action buttons sit beside it */}
+      <div className="obs-top">
+        {header}
+        <div className="obs-actions">
+          {analyzableTarget && (
+            <button className="btn primary" onClick={startAnalysis} disabled={!!analysisId && ["QUEUED", "RUNNING"].includes(job?.status ?? "")}>
+              {analysisId && job && ["QUEUED", "RUNNING"].includes(job.status)
+                ? <><span className="spinner" /> analyzing…</>
+                : `Analyze with ${lang === "c" ? "Clang/LLVM 18" : "CPython 3.12"}`}
+            </button>
+          )}
+          {runnableTarget && (
+            <>
+              <button className="btn run" onClick={() => startRun()}>Run in restricted container</button>
+              <button className="btn ghost" onClick={() => startRun("debug")}
+                      title="MemoryScope debugger capture — curated allowlisted C fixtures only (ADR-0008); other code is refused with an explanation.">
+                Debug run (curated)
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="obs-toolrow obs-filebar">
+        {showTabs && (
+          <div className="obs-viewtabs" role="tablist" aria-label="workspace views">
+            <button role="tab" aria-selected={view === "compile"} className={view === "compile" ? "active" : ""}
+                    onClick={() => setView("compile")}>Compilation journey</button>
+            {executionId && (
+              <button role="tab" aria-selected={view === "execution"} className={view === "execution" ? "active" : ""}
+                      onClick={() => setView("execution")}>Execution observatory</button>
+            )}
+            {executionId && (
+              <button role="tab" aria-selected={view === "walkthrough"} className={view === "walkthrough" ? "active" : ""}
+                      onClick={() => setView("walkthrough")}>Watch it work</button>
+            )}
+            {optPair && (
+              <button role="tab" aria-selected={view === "optimization"} className={view === "optimization" ? "active" : ""}
+                      onClick={() => setView("optimization")}>Optimization lab</button>
+            )}
+          </div>
+        )}
+        <span className="spacer" />
+        {/* the list holds only the file chips */}
         <div role="list" aria-label="snapshot files" className="filechips">
           {[...snapshot.files]
             .sort((a, b) => a.rel_path.localeCompare(b.rel_path))
@@ -459,23 +499,6 @@ export default function Workspace() {
               );
             })}
         </div>
-        <span className="spacer" />
-        {analyzableTarget && (
-          <button className="btn primary" onClick={startAnalysis} disabled={!!analysisId && ["QUEUED", "RUNNING"].includes(job?.status ?? "")}>
-            {analysisId && job && ["QUEUED", "RUNNING"].includes(job.status)
-              ? <><span className="spinner" /> analyzing…</>
-              : `Analyze with ${lang === "c" ? "Clang/LLVM 18" : "CPython 3.12"}`}
-          </button>
-        )}
-        {runnableTarget && (
-          <>
-            <button className="btn run" onClick={() => startRun()}>Run in restricted container</button>
-            <button className="btn" onClick={() => startRun("debug")}
-                    title="MemoryScope debugger capture — curated allowlisted C fixtures only (ADR-0008); other code is refused with an explanation.">
-              Debug run (curated)
-            </button>
-          </>
-        )}
       </div>
       {analyzableTarget && analyzableTarget !== runnableTarget && analyzableTarget.reasons.length > 0 && (
         <ul className="obs-reasons tech-only">
@@ -532,22 +555,6 @@ export default function Workspace() {
 
       {(job?.status === "COMPLETED" || (executionId && !analysisId)) && (
         <>
-        <div className="obs-viewtabs" role="tablist" aria-label="workspace views">
-          <button role="tab" aria-selected={view === "compile"} className={view === "compile" ? "active" : ""}
-                  onClick={() => setView("compile")}>Compilation journey</button>
-          {executionId && (
-            <button role="tab" aria-selected={view === "execution"} className={view === "execution" ? "active" : ""}
-                    onClick={() => setView("execution")}>Execution observatory</button>
-          )}
-          {executionId && (
-            <button role="tab" aria-selected={view === "walkthrough"} className={view === "walkthrough" ? "active" : ""}
-                    onClick={() => setView("walkthrough")}>Watch it work</button>
-          )}
-          {optPair && (
-            <button role="tab" aria-selected={view === "optimization"} className={view === "optimization" ? "active" : ""}
-                    onClick={() => setView("optimization")}>Optimization lab</button>
-          )}
-        </div>
         <div className={"obs-grid" + (inspectorOpen ? "" : " insp-collapsed")}>
           <div className="obs-left" style={{ width: sourceW, flex: `0 0 ${sourceW}px` }}>
             <SourceDock text={sourceText} path={selected?.rel_path ?? "?"} language={lang}
@@ -650,7 +657,7 @@ export default function Workspace() {
             </div>
           ) : (
             <div className="obs-right-rail">
-              <button onClick={() => setInspectorOpen(true)}>contextual inspector</button>
+              <button onClick={() => setInspectorOpen(true)} aria-label="open contextual inspector" title="open the contextual inspector">Inspector</button>
             </div>
           )}
         </div>

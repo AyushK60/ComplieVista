@@ -282,7 +282,7 @@ def j9_modes_focus_resize_reload(page) -> None:
     ok(page.locator(".obs-app").is_visible(), "journey restored after reload")
     shot(page, "j9_workspace_1440.png")
     # playback controls exist in the walkthrough (needs a run — PY-03 has one via Run)
-    run_btn = page.locator(".obs-filebar button", has_text="Run in restricted container")
+    run_btn = page.locator(".obs-actions button", has_text="Run in restricted container")
     expect(run_btn).to_be_visible(timeout=30_000)
     run_btn.click()
     page.wait_for_url("**/workspace?*execution=*", timeout=120_000)
