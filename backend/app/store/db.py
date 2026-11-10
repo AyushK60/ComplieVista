@@ -186,6 +186,14 @@ class Store:
                 if "requested_image_ids" not in tcols:
                     self._conn.execute(
                         f"ALTER TABLE {table} ADD COLUMN requested_image_ids TEXT")
+            # Lookup indexes (additive, idempotent). Without the events index every
+            # paged /events request scanned the whole table (~1.3 s each).
+            self._conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_exec_events_exec_seq"
+                " ON execution_events (execution_id, seq)")
+            self._conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_analysis_stages_analysis"
+                " ON analysis_stages (analysis_id)")
             self._conn.commit()
 
     # --- content-addressed artifacts -------------------------------------
