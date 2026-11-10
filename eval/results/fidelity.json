@@ -1,0 +1,529 @@
+{
+ "meta": {
+  "clang": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+  "python": "3.12.3",
+  "programs": 19,
+  "mismatches": 0,
+  "skipped": [
+   "C-05 (multi-file program; not covered by this single-file study)"
+  ]
+ },
+ "rows": [
+  {
+   "program": "C-01",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 3074,
+     "oracle": 3074,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 3,
+     "oracle": 3,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 555,
+     "oracle": 555,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "C-02",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 3018,
+     "oracle": 3018,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 358,
+     "oracle": 358,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "C-03",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 3113,
+     "oracle": 3113,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 3,
+     "oracle": 3,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 658,
+     "oracle": 658,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "C-04",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 8000,
+     "oracle": 8000,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 588,
+     "oracle": 588,
+     "match": true
+    }
+   },
+   "error": null,
+   "notes": [
+    "tokens capped at 8000 by design (clang emitted 9169)"
+   ]
+  },
+  {
+   "program": "PY-01",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 125,
+     "oracle": 125,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 117,
+     "oracle": 117,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 87,
+     "oracle": 87,
+     "match": true
+    },
+    "code_objects": {
+     "app": 2,
+     "oracle": 2,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "PY-02",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 166,
+     "oracle": 166,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 141,
+     "oracle": 141,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 117,
+     "oracle": 117,
+     "match": true
+    },
+    "code_objects": {
+     "app": 3,
+     "oracle": 3,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "PY-03",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 93,
+     "oracle": 93,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 79,
+     "oracle": 79,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 63,
+     "oracle": 63,
+     "match": true
+    },
+    "code_objects": {
+     "app": 2,
+     "oracle": 2,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "PY-04",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 263,
+     "oracle": 263,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 213,
+     "oracle": 213,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 223,
+     "oracle": 223,
+     "match": true
+    },
+    "code_objects": {
+     "app": 5,
+     "oracle": 5,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "PY-05",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 237,
+     "oracle": 237,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 183,
+     "oracle": 183,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 179,
+     "oracle": 179,
+     "match": true
+    },
+    "code_objects": {
+     "app": 5,
+     "oracle": 5,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-add.c",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 2997,
+     "oracle": 2997,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 334,
+     "oracle": 334,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-add.py",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 56,
+     "oracle": 56,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 44,
+     "oracle": 44,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 41,
+     "oracle": 41,
+     "match": true
+    },
+    "code_objects": {
+     "app": 2,
+     "oracle": 2,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-arraysum.c",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 3029,
+     "oracle": 3029,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 401,
+     "oracle": 401,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-arraysum.py",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 70,
+     "oracle": 70,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 58,
+     "oracle": 58,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 62,
+     "oracle": 62,
+     "match": true
+    },
+    "code_objects": {
+     "app": 2,
+     "oracle": 2,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-conditional.c",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 3074,
+     "oracle": 3074,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 2,
+     "oracle": 2,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 485,
+     "oracle": 485,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-conditional.py",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 144,
+     "oracle": 144,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 114,
+     "oracle": 114,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 92,
+     "oracle": 92,
+     "match": true
+    },
+    "code_objects": {
+     "app": 3,
+     "oracle": 3,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-recursion.c",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 3006,
+     "oracle": 3006,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 2,
+     "oracle": 2,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 2,
+     "oracle": 2,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 375,
+     "oracle": 375,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-recursion.py",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 74,
+     "oracle": 74,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 57,
+     "oracle": 57,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 49,
+     "oracle": 49,
+     "match": true
+    },
+    "code_objects": {
+     "app": 3,
+     "oracle": 3,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-sort.c",
+   "language": "c",
+   "metrics": {
+    "tokens": {
+     "app": 3110,
+     "oracle": 3110,
+     "match": true
+    },
+    "ir_o0_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "ir_o2_functions": {
+     "app": 1,
+     "oracle": 1,
+     "match": true
+    },
+    "assembly_lines": {
+     "app": 535,
+     "oracle": 535,
+     "match": true
+    }
+   },
+   "error": null
+  },
+  {
+   "program": "pair-sort.py",
+   "language": "python",
+   "metrics": {
+    "tokens": {
+     "app": 146,
+     "oracle": 146,
+     "match": true
+    },
+    "ast_nodes": {
+     "app": 146,
+     "oracle": 146,
+     "match": true
+    },
+    "bytecode_instructions": {
+     "app": 124,
+     "oracle": 124,
+     "match": true
+    },
+    "code_objects": {
+     "app": 2,
+     "oracle": 2,
+     "match": true
+    }
+   },
+   "error": null
+  }
+ ]
+}

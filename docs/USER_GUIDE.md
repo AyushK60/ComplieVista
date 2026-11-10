@@ -64,6 +64,14 @@ across page reloads (state lives in the URL).
   (checksum-guarded, container-throttled). Python has no O-levels — shown
   honestly instead of faked.
 
+## Newer features
+
+- **Code editor.** Pasted code goes in an editor with line numbers, syntax highlighting, undo and bracket matching.
+- **Pick up where you left off.** The Source Workspace remembers the sessions you opened in *this browser only* and lists them when the workspace is empty. "Clear history" removes them.
+- **Source ↔ IR ↔ assembly (C).** Analyze a C program, open **Optimization lab** and build -O0/-O1/-O2. Below the comparison, click a source line to highlight the IR and assembly instructions the compiler attributed to it, or click a highlighted IR/assembly line to find its source line. The table compares -O0 with -O2 line by line (instruction counts only — it shows *what* changed, not *why*). Links come from the compiler's debug info, so a line with no code simply has no link.
+- **Replay file.** After a run, **⬇ Replay file** downloads one HTML file that replays the recorded run (source, call stack, values, output) with no backend and no network. It plays back a recording; it never runs code. C traces record function calls and returns only, and the file says so.
+- **Keyboard.** A "Skip to main content" link appears on the first Tab press.
+
 ## Honesty rules you can rely on
 
 Every view labels its data: EXACT (tool-reported), DERIVED (computed by

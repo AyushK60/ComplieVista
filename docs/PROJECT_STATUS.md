@@ -2,6 +2,25 @@
 
 Updated: 1 November 2026 (post-M8 usability repair: Watch It Work + AST viewing)
 
+## Portfolio pass: foundation, flagship features, research framing
+
+Added (details and evidence in the commit history; fresh verification run recorded below
+once it completes):
+
+- **Foundation:** DB index on `execution_events` (events API 1.3 s → 0.02 s), `Setup.cmd` for a
+  fresh machine, GitHub Actions CI (frontend typecheck/build + backend tests; first run
+  unverified), hard-coded user path removed, layout suite at seven widths, stale e2e suites
+  repaired or retired (m2/m3/m5/m6 replaced by `m9_journeys.py`).
+- **Flagship C features:** source ↔ LLVM IR ↔ assembly linking and an -O0 vs -O2 comparison
+  (`backend/app/services/linemap.py`, `SourceLinkView.tsx`); self-contained one-file replay
+  export (`backend/app/services/replay_export.py`).
+- **Student features:** CodeMirror editor, recent-session history, code-splitting
+  (main bundle 521 kB → 193 kB), skip link.
+- **Research framing:** `docs/REPORT.md` (draft, evidence marked as needed),
+  `eval/fidelity_study.py` (app vs host toolchain), `docs/USABILITY_STUDY.md` (protocol only).
+- **Maintainability:** `main.py` split into `app/routes/*` (39 routes unchanged); new
+  concise `README.md`, original specification kept as `docs/SPECIFICATION.md`.
+
 ## Repair pass: Watch It Work usability + AST edges/auto-focus/contrast (frontend only)
 
 User-visible symptoms fixed with verified root causes (evidence:
