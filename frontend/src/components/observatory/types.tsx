@@ -1,3 +1,4 @@
+import StatusBadge from "../../ui/status";
 /** Shared types for the M8 observatory components. */
 
 /** One normalized token item as returned by the `tokens` stage
@@ -37,9 +38,7 @@ export type Confidence = "EXACT" | "DERIVED" | "APPROXIMATE" | "UNAVAILABLE" | s
 
 export function confBadge(c: Confidence | undefined | null) {
   if (!c) return null;
-  const cls = c === "EXACT" ? "exact" : c === "DERIVED" ? "derived"
-    : c === "APPROXIMATE" ? "derived" : "unavailable";
-  return <span className={`badge ${cls}`}>{c}</span>;
+  return <StatusBadge code={String(c)} />;
 }
 
 /** Educational blurbs per stage (UI copy only — never data claims).

@@ -3,6 +3,9 @@ import { ExecutionEvent, ExecutionJob, executions, loadAllEvents } from "../../a
 import MemoryPanel from "./MemoryPanel";
 import ProcessPanel from "./ProcessPanel";
 import TraceTheater from "./TraceTheater";
+import StatusBadge from "../../ui/status";
+import Tabs from "../../ui/Tabs";
+import { Icon } from "../../ui";
 export { buildTree, stackAt } from "./traceModel";
 export type { TreeNode } from "./traceModel";
 
@@ -87,18 +90,14 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
         <span className="chip ok">exit {String(job.exit_code)}</span>
         <span className="chip">{job.duration_ms ?? "?"} ms</span>
         {job.trace_trust === "CURATED_COOPERATIVE" && (
-          <span className="badge exact" title={`channel ${job.trace_channel ?? "?"}`}>trace: trusted</span>
+          <StatusBadge code="TRACE_TRUSTED" extra={`Channel: ${job.trace_channel ?? "unknown"}.`} />
         )}
-        {job.trace_trust === "UNTRUSTED_TARGET" && (
-          <span className="badge blocked" title="this program ran untrusted beside the observer">
-            trace: UNTRUSTED_TARGET
-          </span>
-        )}
-        {job.trace_integrity === "SUSPECT" && <span className="badge blocked">integrity SUSPECT</span>}
+        {job.trace_trust === "UNTRUSTED_TARGET" && <StatusBadge code="UNTRUSTED_TARGET" />}
+        {job.trace_integrity === "SUSPECT" && <StatusBadge code="INTEGRITY_SUSPECT" />}
         <span className="spacer" />
         <a className="btn ghost" href={`/api/v1/executions/${executionId}/replay.html`} download
            title="one self-contained HTML file that replays this recorded run offline — no backend needed">
-          ⬇ Replay file
+          <Icon name="download" size={14} /> Replay file
         </a>
         <span className="muted tech-only">recorded replay · never re-executes ·
           {" "}{events.length} events{job.events_truncated ? " (TRUNCATED)" : ""}</span>
@@ -112,15 +111,9 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
       )}
       {open && (
         <>
-          <div className="exectabs" role="tablist" aria-label="execution evidence">
-            {([["trace", "Execution observatory"], ["memory", "MemoryScope"], ["process", "ProcessScope"], ["output", "Output"]] as const)
-              .map(([t, label]) => (
-                <button key={t} role="tab" aria-selected={tab === t}
-                        className={tab === t ? "active" : ""} onClick={() => setTab(t)}>
-                  {label}
-                </button>
-              ))}
-          </div>
+          <Tabs className="exectabs" label="execution evidence" value={tab} onChange={setTab}
+                items={[{ id: "trace", label: "Execution observatory" }, { id: "memory", label: "MemoryScope" },
+                        { id: "process", label: "ProcessScope" }, { id: "output", label: "Output" }]} />
           {tab === "trace" && (
             <TraceTheater events={events} job={job} loading={eventsLoading}
                           onSelectLine={onSelectLine} activeLine={activeLine}

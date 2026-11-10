@@ -76,8 +76,8 @@ def j1_landing_to_ast(page) -> None:
     page.wait_for_load_state("domcontentloaded")
     page.wait_for_timeout(1200)
     page.evaluate("""() => {
-      [...document.querySelectorAll('.hero-ctas a')]
-        .find((a) => a.textContent.includes('Explore a Program')).click();
+      [...document.querySelectorAll('.wow-cta a.wow-btn')]
+        .find((a) => a.textContent.includes('Explore live demos')).click();
     }""")
     page.wait_for_url("**/demos", timeout=15_000)
     explore(page, "PY-01")

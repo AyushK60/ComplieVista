@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Background, Controls, Handle, MiniMap, Position, ReactFlow, ReactFlowProvider,
+  Background, BackgroundVariant, Controls, Handle, MiniMap, Position, ReactFlow, ReactFlowProvider,
   useEdgesState, useNodesState, useStore, type Edge, type Node,
   type ReactFlowInstance,
 } from "@xyflow/react";
@@ -48,7 +48,7 @@ export type GraphSelection = {
 } | null;
 
 export default function GraphView({
-  analysisId, stage, onSelectNode, onSelectLine, focusLine, guided, onNavigateStage, fullscreen,
+  analysisId, stage, onSelectNode, onSelectLine, focusLine, guided, onNavigateStage, fullscreen, compact,
 }: {
   analysisId: string;
   stage: string;
@@ -59,6 +59,8 @@ export default function GraphView({
   guided?: boolean;
   onNavigateStage?: (stage: string) => void;
   fullscreen?: boolean;
+  /** embedded preview: no toolbar, legend or controls; frames the whole tree */
+  compact?: boolean;
 }) {
   const [payload, setPayload] = useState<GraphPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +75,10 @@ export default function GraphView({
   const [guidedStep, setGuidedStep] = useState(0);
   const [metrics, setMetrics] = useState<{ total: number; visible: number; edges: number; layoutMs: number; initialZoom: number } | null>(null);
   const [layoutTick, setLayoutTick] = useState(0);
+  // syntax trees are broad and shallow: left-to-right uses a wide canvas far better than top-down
+  const [direction, setDirection] = useState<"LR" | "TB">(() => {
+    try { return localStorage.getItem("cv.graph.dir") === "TB" ? "TB" : "LR"; } catch { return "LR"; }
+  });
   const nodesRef = useRef<Node[]>([]);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const pendingFitRef = useRef(false);
@@ -86,31 +92,40 @@ export default function GraphView({
   // Legibility floor: 11px mono at zoom 0.7 is the smallest readable size.
   // When the framed region needs less, keep it centered; when it needs more,
   // anchor on the region's top (the selected function header stays visible).
-  const MIN_READ_ZOOM = 0.66; // below this, 11px labels blur; near-misses prefer fitting over clipping
+  const MIN_READ_ZOOM = 0.3; // below this, 11px labels blur; near-misses prefer fitting over clipping
+  const lastFrameRef = useRef<{ ids?: Set<string>; anchor?: string } | null>(null);
+  const userMovedRef = useRef(false);
+  const compactRef = useRef(false);
+  compactRef.current = !!compact;
+  const minZoomRef = useRef(MIN_READ_ZOOM);
+  minZoomRef.current = compact ? 0.12 : MIN_READ_ZOOM;
   const applyFrame = useCallback((ids?: Set<string>, anchorId?: string) => {
+    lastFrameRef.current = { ids, anchor: anchorId };
     const flow = flowRef.current;
     const nds = nodesRef.current;
     if (!flow || !nds.length) return;
     const subset = ids ? nds.filter((n) => ids.has(n.id)) : nds;
     if (!subset.length) return;
     const el = document.querySelector<HTMLElement>(".graphwrap");
-    const vw = (el?.clientWidth ?? 900) - 24, vh = (el?.clientHeight ?? 500) - 24;
+    // the toolbar overlays the top of the canvas: frame inside the free area below it
+    const topPad = compactRef.current ? 0 : 58;
+    const vw = (el?.clientWidth ?? 900) - 24, vh = (el?.clientHeight ?? 500) - 24 - topPad;
     const x1 = Math.min(...subset.map((n) => n.position.x));
     const y1 = Math.min(...subset.map((n) => n.position.y));
     const x2 = Math.max(...subset.map((n) => n.position.x)) + NODE_W;
     const y2 = Math.max(...subset.map((n) => n.position.y)) + NODE_H;
     const w = x2 - x1, h = y2 - y1;
     const raw = Math.min(vw / w, vh / h, 1.05);
-    const zoom = Math.max(MIN_READ_ZOOM, raw);
+    const zoom = Math.max(minZoomRef.current, raw);
     // when the region fits, center it; otherwise keep the SELECTED node in
     // view (never clipped) and let the rest pan
     const anchor = anchorId ? nds.find((n) => n.id === anchorId) : undefined;
-    const cx = raw < MIN_READ_ZOOM && anchor ? anchor.position.x + NODE_W / 2 : x1 + w / 2;
-    const cy = raw < MIN_READ_ZOOM && anchor ? anchor.position.y + NODE_H / 2
+    const cx = raw < minZoomRef.current && anchor ? anchor.position.x + NODE_W / 2 : x1 + w / 2;
+    const cy = raw < minZoomRef.current && anchor ? anchor.position.y + NODE_H / 2
       : h * zoom > vh ? y1 + 70 : y1 + h / 2;
     flow.setViewport({
-      x: vw / 2 - cx * zoom,
-      y: vh / 2 - cy * zoom,
+      x: vw / 2 - cx * zoom + 12,
+      y: topPad + vh / 2 - cy * zoom + 12,
       zoom,
     }, { duration: 220 });
   }, []);
@@ -273,10 +288,13 @@ export default function GraphView({
       id: reqId, nodes: visible.nodes, edges: visible.edges,
       options: {
         strategy: isTreeStage ? "tree" : "layered",
+        direction: isTreeStage ? direction : "TB",
         nodeWidth: NODE_W, nodeHeight: NODE_H,
+        siblingGap: isTreeStage && direction === "LR" ? 16 : 14,
+        levelGap: isTreeStage && direction === "LR" ? 76 : 104,
       },
     });
-  }, [payload, hiddenSubtrees, structuralLevel, hideSynthetic, isTreeStage, childCount, descendantCount]);
+  }, [payload, hiddenSubtrees, structuralLevel, hideSynthetic, isTreeStage, childCount, descendantCount, direction]);
 
   // Default framing, run once per payload: frame the program's first function
   // (its source meaning) and select it, or the whole visible graph when the
@@ -290,7 +308,7 @@ export default function GraphView({
     if (!nds.length) { initialFrameDoneRef.current = false; return; }
     const visibleIds = new Set(nds.map((n) => n.id as string));
     const fnRoots = nds.filter((n) => /^(FunctionDecl|FunctionDef)$/.test(String((n.data as { raw?: Record<string, unknown> })?.raw?.kind ?? "")));
-    if ((payloadRef.current?.nodes.length ?? 0) > 20 && fnRoots.length) {
+    if (!compact && (payloadRef.current?.nodes.length ?? 0) > 20 && fnRoots.length) {
       const sorted = [...fnRoots].sort((a, b) =>
         Number(((a.data as { raw?: Record<string, unknown> })?.raw?.line) ?? 0)
         - Number(((b.data as { raw?: Record<string, unknown> })?.raw?.line) ?? 0));
@@ -352,11 +370,15 @@ export default function GraphView({
     let t: number | undefined;
     const ro = new ResizeObserver(() => {
       window.clearTimeout(t);
-      t = window.setTimeout(() => applyFrame(), 180);
+      t = window.setTimeout(() => {
+        if (userMovedRef.current) return; // never undo the visitor's own panning or zooming
+        const last = lastFrameRef.current;
+        applyFrame(last?.ids, last?.anchor);
+      }, 180);
     });
     ro.observe(el);
     return () => { ro.disconnect(); window.clearTimeout(t); };
-  }, [applyFrame]);
+  }, [applyFrame, !!payload]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---- collapse: mark root; its descendants (excluding the root) are hidden ----
   const toggleCollapse = useCallback((nodeId: string) => {
@@ -375,8 +397,7 @@ export default function GraphView({
       const raw = data.raw;
       const { kind, value, line } = semanticLabel(raw);
       const cat = nodeCategory(raw);
-      const collapsed = false; // rendered by outer map via className; badge via data
-      void collapsed;
+      const horiz = isTreeStage && direction === "LR";
       return (
         <div className={`cvnode ${cat} ${selected ? "selected" : ""}`}
              title={`kind=${kind} line=${line ?? "—"} confidence=${raw.confidence ?? "—"}`}>
@@ -391,12 +412,12 @@ export default function GraphView({
             </span>
           )}
           {data.collapsedCount > 0 && <span className="cvnode-badge">+{data.collapsedCount}</span>}
-          <Handle type="target" position={Position.Top} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />
-          <Handle type="source" position={Position.Bottom} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />
+          <Handle type="target" position={horiz ? Position.Left : Position.Top} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />
+          <Handle type="source" position={horiz ? Position.Right : Position.Bottom} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />
         </div>
       );
     },
-  }), [toggleCollapse]);
+  }), [toggleCollapse, direction, isTreeStage]);
 
   // ---- selection ----
   // reads payload/nodes/props through refs: framing helpers are memoized once
@@ -530,7 +551,7 @@ export default function GraphView({
 
   const hitSet = new Set(searchHits);
   const syntheticAvailable = payload.nodes.some((n) => SYNTHETIC_KINDS.test(String(n.kind ?? "")));
-  const showMinimap = visible.nodes.length > 40;
+  const showMinimap = visible.nodes.length > 14;
   const GUIDED_STEPS = [
     "The parser turns the whole token stream into one tree. Each card is a real node the parser built.",
     "Start inside one function — the tree under its declaration is that function's meaning.",
@@ -540,7 +561,7 @@ export default function GraphView({
   ];
 
   return (
-    <div ref={wrapRef} className={"graphwrap" + (fullscreen ? " graphwrap-fs" : "")}
+    <div ref={wrapRef} className={"graphwrap" + (fullscreen ? " graphwrap-fs" : "") + (compact ? " gw-compact" : "") + (zoom < 0.5 ? " lod-far" : "")}
          data-metrics={JSON.stringify({
            nodes_total: metrics?.total ?? payload.nodes.length,
            nodes_visible: metrics?.visible ?? visible.nodes.length,
@@ -549,6 +570,7 @@ export default function GraphView({
            initial_zoom: metrics?.initialZoom ?? null,
            strategy: isTreeStage ? "tidy-tree" : "layered-cfg",
          })}
+         style={{ ["--cv-z" as string]: Math.max(0.12, zoom) }}
          tabIndex={0} onKeyDown={onKeyDown} aria-label={`${stage} graph`}>
       <div className="graphtoolbar">
         <input className="search" placeholder="Search nodes…"
@@ -572,6 +594,18 @@ export default function GraphView({
           </button>
         )}
         {selectedId && <button className="tab" onClick={fitSelectionSubtree}>Fit subtree</button>}
+        <button className="tab" onClick={() => applyFrame()} title="fit the whole visible graph in view">Fit all</button>
+        {isTreeStage && (
+          <button className="tab" aria-pressed={direction === "LR"}
+                  title={direction === "LR" ? "Layout: left to right (click for top-down)" : "Layout: top-down (click for left to right)"}
+                  onClick={() => {
+                    const next = direction === "LR" ? "TB" : "LR";
+                    try { localStorage.setItem("cv.graph.dir", next); } catch { /* ignore */ }
+                    initialFrameDoneRef.current = false;
+                    userMovedRef.current = false;
+                    setDirection(next);
+                  }}>{direction === "LR" ? "→ Left to right" : "↓ Top-down"}</button>
+        )}
         <span className="spacer" />
         <span className="muted">
           {searchHits.length > 0 && `${searchHits.length} hit(s) · `}
@@ -626,13 +660,14 @@ export default function GraphView({
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           onNodeDoubleClick={(_e, node) => toggleCollapse(node.id)}
-          minZoom={0.08}
+          onMoveStart={(e) => { if (e) userMovedRef.current = true; }}
+          minZoom={0.3}
           maxZoom={2.2}
           proOptions={{ hideAttribution: true }}
           nodesDraggable
         >
           <ZoomReporter onZoom={setZoom} />
-          <Background gap={18} color="#172126" />
+          <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} color="rgba(216, 230, 230, 0.12)" />
           <Controls showInteractive={false} position="bottom-left" />
           {showMinimap && (
             <MiniMap pannable zoomable

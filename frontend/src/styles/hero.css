@@ -1,0 +1,171 @@
+/* CompileVista — landing hero. A dark stage regardless of theme.
+ * Decoration (blobs, grid, tree, drifting tokens) is aria-hidden; the window is the product. */
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.wow {
+  --w-teal: #6fe3d2; --w-violet: #a78bfa; --w-amber: #fbbf77; --w-line: rgba(255, 255, 255, 0.1);
+  position: relative; isolation: isolate; overflow: hidden; color: #e7efed;
+  background: #060a0f;
+  min-height: calc(100vh - var(--bar-h));
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 64px 32px 0;
+}
+.wow-bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.wow .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.55; will-change: transform; }
+.wow .b1 { width: 560px; height: 560px; left: -140px; top: -120px; background: radial-gradient(circle, rgba(45, 212, 191, 0.55), transparent 65%); animation: wow-drift1 22s ease-in-out infinite alternate; }
+.wow .b2 { width: 620px; height: 620px; right: -160px; top: 8%; background: radial-gradient(circle, rgba(139, 92, 246, 0.5), transparent 65%); animation: wow-drift2 26s ease-in-out infinite alternate; }
+.wow .b3 { width: 520px; height: 520px; left: 38%; bottom: -260px; background: radial-gradient(circle, rgba(251, 146, 60, 0.38), transparent 65%); animation: wow-drift1 30s ease-in-out infinite alternate-reverse; }
+@keyframes wow-drift1 { to { transform: translate(90px, 60px) scale(1.12); } }
+@keyframes wow-drift2 { to { transform: translate(-80px, 70px) scale(1.08); } }
+.wow-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px); background-size: 56px 56px; -webkit-mask-image: radial-gradient(ellipse 80% 70% at 55% 45%, #000 20%, transparent 75%); mask-image: radial-gradient(ellipse 80% 70% at 55% 45%, #000 20%, transparent 75%); }
+.wow-tree { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.8; -webkit-mask-image: radial-gradient(ellipse 70% 65% at 62% 48%, #000 10%, transparent 72%); mask-image: radial-gradient(ellipse 70% 65% at 62% 48%, #000 10%, transparent 72%); }
+.wt-edge { fill: none; stroke: rgba(111, 227, 210, 0.16); stroke-width: 1.2; }
+.wt-edge.flow { stroke: rgba(111, 227, 210, 0.42); stroke-dasharray: 5 9; animation: wow-flow 3.2s linear infinite; }
+@keyframes wow-flow { to { stroke-dashoffset: -28; } }
+.wt-node { fill: rgba(255, 255, 255, 0.025); stroke: rgba(255, 255, 255, 0.09); }
+.wt-node.hot { stroke: rgba(111, 227, 210, 0.55); fill: rgba(111, 227, 210, 0.08); animation: wow-pulse 3.4s ease-in-out infinite; }
+@keyframes wow-pulse { 50% { fill: rgba(111, 227, 210, 0.2); stroke: rgba(111, 227, 210, 0.9); } }
+.wow-floaters { position: absolute; inset: 0; overflow: hidden; }
+.wow-floaters span { position: absolute; bottom: -8%; font-family: var(--font-mono); color: #b7ece5; white-space: nowrap; animation: wow-rise linear infinite; }
+@keyframes wow-rise { to { transform: translateY(-115vh); } }
+
+.wow-inner { width: 100%; max-width: 1360px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 56px; align-items: center; }
+
+/* copy */
+.wow-pill { display: inline-flex; align-items: center; gap: 9px; padding: 6px 12px 6px 10px; border: 1px solid var(--w-line); border-radius: 999px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); color: #cfe3e1; font-size: 13px; text-decoration: none; }
+.wow-pill:hover { border-color: rgba(111, 227, 210, 0.5); text-decoration: none; color: #fff; }
+.wow-pill .pulse { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); animation: wow-ping 2s infinite; }
+@keyframes wow-ping { 70% { box-shadow: 0 0 0 9px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
+.wow h1 { font-family: var(--font-display); font-weight: 560; font-size: clamp(2.4rem, 4.7vw, 4.2rem); line-height: 1.05; letter-spacing: -0.02em; color: #f4f9f8; margin: 22px 0 18px; }
+.wow-rot { position: relative; display: block; font-style: italic; min-height: 1.1em; }
+.wow-rot-sizer { visibility: hidden; white-space: nowrap; display: inline-block; }
+.wow-word { position: absolute; left: 0; top: 0; white-space: nowrap; opacity: 0; transform: translateY(0.35em); filter: blur(8px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease), filter 0.6s var(--ease);
+  background: linear-gradient(90deg, #6fe3d2, #a78bfa 45%, #fbbf77 80%, #6fe3d2); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: wow-shine 6s linear infinite; }
+.wow-word.on { opacity: 1; transform: none; filter: none; }
+.wow-word.out { transform: translateY(-0.35em); }
+@keyframes wow-shine { to { background-position: -250% 0; } }
+.wow-sub { color: #a9bdbc; font-size: 1.08rem; line-height: 1.65; max-width: 50ch; }
+.wow-cta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+.wow-btn { display: inline-flex; align-items: center; gap: 9px; padding: 14px 24px; border-radius: 12px; font-weight: 650; font-size: 15px; text-decoration: none; transition: transform var(--t-fast) var(--ease), box-shadow var(--t-med) var(--ease), background var(--t-fast) var(--ease); }
+.wow-btn:hover { text-decoration: none; transform: translateY(-2px); }
+.wow-btn.primary { color: #04211e; background: linear-gradient(135deg, #5eead4, #22d3ee); box-shadow: 0 10px 34px rgba(45, 212, 191, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.wow-btn.primary:hover { box-shadow: 0 14px 44px rgba(45, 212, 191, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.wow-btn.ghost { color: #f1f7f6; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(8px); }
+.wow-btn.ghost:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.4); }
+.wow-kbd { color: #7f9695; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+.wow-kbd kbd { font: 500 11px var(--font-mono); padding: 3px 7px; border: 1px solid rgba(255, 255, 255, 0.16); border-bottom-width: 2px; border-radius: 5px; background: rgba(255, 255, 255, 0.05); color: #c8dcda; }
+.wow-stats { display: grid; grid-template-columns: repeat(3, auto); gap: 28px; margin: 44px 0 0; padding: 0; }
+.wow-stats > div { border-left: 1px solid var(--w-line); padding-left: 16px; }
+.wow-stats dt { font-family: var(--font-display); font-size: 1.9rem; line-height: 1.1; color: #f4f9f8; }
+.wow-stats dd { margin: 4px 0 0; font-size: 12.5px; color: #8ea5a4; max-width: 17ch; line-height: 1.4; }
+
+/* the live window */
+.hw-wrap { position: relative; perspective: 1700px; min-width: 0; }
+.hw-window {
+  --ry: -6; --rx: 2;
+  position: relative; border-radius: 18px; overflow: hidden;
+  background: rgba(10, 15, 22, 0.84); backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 50px 110px rgba(0, 0, 0, 0.6), 0 0 90px rgba(45, 212, 191, 0.13);
+  transform: rotateY(calc(var(--ry) * 1deg)) rotateX(calc(var(--rx) * 1deg));
+  transition: transform 0.35s var(--ease);
+  animation: cv-fade 0.8s var(--ease) both;
+}
+@property --ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.hw-window::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: conic-gradient(from var(--ang), transparent 0 58%, rgba(111, 227, 210, 0.95) 72%, rgba(167, 139, 250, 0.85) 86%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: hw-spin 9s linear infinite; }
+@keyframes hw-spin { to { --ang: 360deg; } }
+.hw-glow { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(520px circle at var(--mx, 75%) var(--my, 0%), rgba(111, 227, 210, 0.14), transparent 60%); }
+.hw-window > * { position: relative; z-index: 1; }
+.hw-chrome { display: flex; align-items: center; gap: 7px; padding: 11px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+.hw-chrome i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; }
+.hw-chrome i:nth-child(2) { background: #febc2e; } .hw-chrome i:nth-child(3) { background: #28c840; }
+.hw-chrome .spacer { flex: 1; }
+.hw-title { margin-left: 10px; font: 500 12.5px var(--font-mono); color: #9db3b3; }
+.hw-live { display: inline-flex; align-items: center; gap: 7px; font: 500 11.5px var(--font-ui); color: #b7ece5; padding: 3px 10px; border-radius: 999px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); }
+.hw-live .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: wow-ping 2s infinite; }
+.hw-steps { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px 14px 8px; }
+.hw-steps button { display: inline-flex; align-items: center; gap: 8px; padding: 5px 13px 5px 6px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.12); background: transparent; color: #aebfbe; font: 600 12.5px var(--font-ui); cursor: pointer; transition: all var(--t-fast) var(--ease); }
+.hw-steps button:hover { color: #fff; border-color: rgba(255, 255, 255, 0.3); }
+.hw-steps button.on { background: rgba(111, 227, 210, 0.14); border-color: rgba(111, 227, 210, 0.6); color: #fff; box-shadow: 0 0 20px rgba(111, 227, 210, 0.15); }
+.hw-steps .lh-num { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid currentColor; font: 600 10px var(--font-mono); }
+.hw-steps button.on .lh-num { background: #6fe3d2; border-color: #6fe3d2; color: #04211e; }
+.hw-blurb { margin-left: auto; font-size: 12px; color: #84999a; }
+.hw-body { display: grid; grid-template-columns: minmax(0, 0.92fr) 40px minmax(0, 1.25fr); height: 338px; padding: 4px 14px 12px; }
+.hw-left, .hw-right { min-width: 0; position: relative; border-radius: 12px; overflow: hidden; background: rgba(4, 7, 11, 0.7); border: 1px solid rgba(255, 255, 255, 0.07); }
+.hw-right { padding: 12px; }
+.hw-flow svg { width: 100%; height: 100%; }
+.hw-flow path { fill: none; stroke: rgba(111, 227, 210, 0.55); stroke-width: 1.4; stroke-dasharray: 3 7; animation: wow-flow 1.6s linear infinite; }
+.hw-src { padding: 10px 0; font: 12.5px/1.68 var(--font-mono); height: 100%; overflow: hidden; }
+.hw-line { display: flex; padding: 0 12px 0 0; border-left: 2px solid transparent; transition: background var(--t-med) var(--ease); }
+.hw-line.hot { background: rgba(111, 227, 210, 0.13); border-left-color: #6fe3d2; }
+.hw-n { width: 36px; text-align: right; padding-right: 12px; color: #5d7173; font-size: 11px; flex-shrink: 0; user-select: none; }
+.hw-code { white-space: pre; color: #d7e4e3; }
+.c-kw { color: #c4a7ff; } .c-str { color: #9be28f; } .c-num { color: #f2b27f; } .c-com { color: #647a7d; font-style: italic; }
+.hw-right .lh-tokens { gap: 5px; font-size: 12px; } .hw-right .lh-tokline { padding: 2px 4px; border-radius: 6px; transition: background var(--t-med) var(--ease); }
+.hw-right .lh-tokline.hot { background: rgba(111, 227, 210, 0.13); }
+.hw-right .lh-graph { position: absolute; inset: 0; border-radius: 0; }
+.hw-foot { display: flex; align-items: center; gap: 12px; padding: 10px 14px 14px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+.hw-foot .spacer { flex: 1; }
+.hw-foot .btn.primary { background: linear-gradient(135deg, #14b8a6, #0ea5e9); border-color: transparent; color: #fff; }
+.hw-skel { display: grid; gap: 10px; padding: 14px; }
+.hw-skel i { display: block; height: 13px; border-radius: 6px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)); background-size: 200% 100%; animation: cv-shimmer 1.4s linear infinite; }
+.hw-skel i:nth-child(odd) { width: 82%; } .hw-skel i:nth-child(3n) { width: 58%; }
+.hw-failed .hw-offline { display: grid; justify-items: start; gap: 12px; padding: 28px 24px 30px; color: #b7c9c8; }
+.hw-offline code { color: #6fe3d2; }
+.hw-chip { position: absolute; z-index: 3; padding: 6px 12px; border-radius: 999px; font: 600 12px var(--font-ui); color: #dffaf6; background: rgba(12, 20, 28, 0.8); border: 1px solid rgba(111, 227, 210, 0.35); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); display: inline-flex; align-items: center; gap: 7px; }
+.hw-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+.hw-chip.c1 { top: -16px; right: 34px; animation: hw-bob 5s ease-in-out infinite; }
+.hw-chip.c2 { bottom: -18px; left: 44px; border-color: rgba(167, 139, 250, 0.45); animation: hw-bob 6.5s ease-in-out -2s infinite; }
+.hw-chip.c3 { bottom: -18px; right: 70px; border-color: rgba(251, 191, 119, 0.45); animation: hw-bob 7s ease-in-out -4s infinite; }
+@keyframes hw-bob { 50% { transform: translateY(-9px); } }
+
+/* ribbon */
+.wow-ribbon { position: relative; list-style: none; margin: 40px auto 0; padding: 22px 0 28px; width: 100%; max-width: 1360px; display: flex; justify-content: space-between; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.wow-ribbon li { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; color: #6f8584; font-size: 12.5px; font-weight: 600; }
+.wow-ribbon li::before { content: ""; position: absolute; top: 13px; left: -50%; width: 100%; height: 2px; background: rgba(255, 255, 255, 0.1); z-index: 0; }
+.wow-ribbon li:first-child::before { display: none; }
+.wow-ribbon li.done::before, .wow-ribbon li.on::before { background: linear-gradient(90deg, #6fe3d2, #a78bfa); }
+.rb-dot { position: relative; z-index: 1; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.2); background: #0a1016; font: 600 11px var(--font-mono); transition: all var(--t-med) var(--ease); }
+.wow-ribbon li.done { color: #a8c3c1; } .wow-ribbon li.done .rb-dot { border-color: #6fe3d2; color: #6fe3d2; }
+.wow-ribbon li.on { color: #fff; } .wow-ribbon li.on .rb-dot { background: #6fe3d2; border-color: #6fe3d2; color: #04211e; box-shadow: 0 0 0 6px rgba(111, 227, 210, 0.18), 0 0 24px rgba(111, 227, 210, 0.6); }
+
+@media (max-width: 1100px) {
+  .wow { padding: 40px 20px 0; min-height: 0; }
+  .wow-inner { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .hw-chip { display: none; }
+  .hw-window { transform: none; }
+  .hw-body { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .hw-left { height: 220px; } .hw-flow { display: none; } .hw-right { height: 300px; margin-top: 10px; }
+  .hw-blurb { display: none; }
+}
+@media (max-width: 640px) {
+  .wow-stats { grid-template-columns: 1fr 1fr 1fr; gap: 14px; } .wow-stats dt { font-size: 1.4rem; }
+  .wow-ribbon .rb-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wow .blob, .wt-edge.flow, .wt-node.hot, .wow-floaters span, .wow-word, .hw-window, .hw-window::after, .hw-flow path, .hw-chip, .wow-pill .pulse { animation: none !important; }
+  .wow-floaters { display: none; }
+}
+
+/* the nav floats over the dark hero on the landing page */
+.topnav.on-hero {
+  --ink: #e8eef5; --ink-2: #b4c0cf; --ink-3: #8a97a9; --line: rgba(173, 189, 214, 0.16); --line-strong: rgba(173, 189, 214, 0.3);
+  --surface: rgba(255, 255, 255, 0.06); --teal: #6fe3d2; --teal-dim: rgba(111, 227, 210, 0.14); --bg-raised: rgba(255, 255, 255, 0.06);
+  background: rgba(6, 10, 15, 0.94); border-bottom-color: rgba(255, 255, 255, 0.08); color: var(--ink);
+}
+.topnav.on-hero .brand { color: #f4f9f8; }
+.topnav.on-hero .modeswitch { background: rgba(255, 255, 255, 0.06); }
+.topnav.on-hero .modeswitch button { color: #b4c0cf; }
+.topnav.on-hero .kbdhint, .topnav.on-hero .iconbtn { background: rgba(255, 255, 255, 0.06); color: #b4c0cf; }
+
+.hw-code { -webkit-mask-image: linear-gradient(90deg, #000 86%, transparent); mask-image: linear-gradient(90deg, #000 86%, transparent); display: block; overflow: hidden; }
+.hw-right .lh-tokline { flex-wrap: nowrap; overflow: hidden; gap: 5px; }
+.hw-right .lh-ln { width: 22px; flex-shrink: 0; }
+.hw-right .lh-tok { padding: 2px 8px; font-size: 12px; flex-shrink: 0; }
+.hw-right .lh-tokens { gap: 4px; }
+.hw-right .lh-ins { grid-template-columns: 44px 150px 1fr; font-size: 12px; }
+.topnav.on-hero .modeswitch button[aria-pressed="true"] { color: #ffffff; }

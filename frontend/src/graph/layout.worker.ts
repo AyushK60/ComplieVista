@@ -19,6 +19,8 @@ type EdgeRec = { source: string; target: string; kind?: string; [k: string]: unk
 
 interface LayoutOpts {
   strategy: "tree" | "layered";
+  /** tree only: "LR" lays depth out left-to-right (broad, shallow code trees fit a wide canvas) */
+  direction: "TB" | "LR";
   nodeWidth: number;
   nodeHeight: number;
   siblingGap: number;
@@ -28,6 +30,7 @@ interface LayoutOpts {
 
 const DEFAULTS: LayoutOpts = {
   strategy: "tree",
+  direction: "TB",
   nodeWidth: 190,
   nodeHeight: 46,
   siblingGap: 10,
@@ -81,20 +84,26 @@ function tree(nodes: NodeRec[], edges: EdgeRec[], o: LayoutOpts): Record<string,
   const roots = nodes.filter((n) => !hasParent.has(n.id)).map((n) => n.id);
   const positions: Record<string, Pos> = {};
 
+  // Cross-axis extent: node width for top-down, node height for left-to-right.
+  const LR = o.direction === "LR";
+  const cross = LR ? o.nodeHeight : o.nodeWidth;
+  const levelStep = LR ? o.nodeWidth + o.levelGap : o.levelGap;
+  const put = (c: number, depth: number): Pos => (LR ? { x: depth * levelStep, y: c } : { x: c, y: depth * levelStep });
+
   // Subtree width = max(own width, packed children width); memoized
   const widthCache = new Map<string, number>();
   function subtreeWidth(id: string): number {
     const hit = widthCache.get(id);
     if (hit != null) return hit;
     const kids = childrenOf.get(id) ?? [];
-    let w = o.nodeWidth;
+    let w = cross;
     if (kids.length) {
       let cw = 0;
       for (let i = 0; i < kids.length; i++) {
         if (i > 0) cw += o.siblingGap;
         cw += subtreeWidth(kids[i]);
       }
-      w = Math.max(o.nodeWidth, cw);
+      w = Math.max(cross, cw);
     }
     widthCache.set(id, w);
     return w;
@@ -102,7 +111,7 @@ function tree(nodes: NodeRec[], edges: EdgeRec[], o: LayoutOpts): Record<string,
 
   function placeTree(id: string, xLeft: number, depth: number) {
     if (positions[id]) return; // cycle/re-entry guard
-    positions[id] = { x: xLeft + (subtreeWidth(id) - o.nodeWidth) / 2, y: depth * o.levelGap };
+    positions[id] = put(xLeft + (subtreeWidth(id) - cross) / 2, depth);
     const kids = childrenOf.get(id) ?? [];
     let cx = xLeft;
     for (const k of kids) {
@@ -118,9 +127,9 @@ function tree(nodes: NodeRec[], edges: EdgeRec[], o: LayoutOpts): Record<string,
     cursor += subtreeWidth(r) + o.subtreeGap;
   }
   // safety: any node unreachable via containment (e.g. cap orphans) — stack below
-  let orphanY = (Math.max(0, ...Object.values(positions).map((p) => p.y)) + o.levelGap);
+  const maxMain = Math.max(0, ...Object.values(positions).map((p) => (LR ? p.x : p.y)));
   for (const n of nodes) {
-    if (!positions[n.id]) positions[n.id] = { x: 0, y: orphanY };
+    if (!positions[n.id]) positions[n.id] = LR ? { x: maxMain + levelStep, y: 0 } : { x: 0, y: maxMain + levelStep };
   }
   return positions;
 }

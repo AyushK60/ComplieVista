@@ -76,7 +76,22 @@ def main() -> int:
                 FAIL.append(f"{name}: could not reach screen: {str(e)[:200]}")
                 print(f"[{name}] COULD NOT REACH: {str(e)[:200]}")
 
-        go("home", lambda: page.goto(BASE + "/"))
+        go("home", lambda: (page.goto(BASE + "/"), expect(page.locator(".hw-steps")).to_be_visible(timeout=60000), page.wait_for_timeout(800)))
+        go("about", lambda: (page.goto(BASE + "/about"), expect(page.get_by_role("heading", level=1)).to_be_visible(timeout=15000)))
+        def palette():
+            page.goto(BASE + "/demos")
+            expect(page.locator(".democard").first).to_be_visible(timeout=15000)
+            page.keyboard.press("Control+k")
+            expect(page.get_by_role("dialog", name="Command palette")).to_be_visible(timeout=5000)
+        go("command-palette", palette)
+        def dark_home():
+            page.keyboard.press("Escape")
+            page.goto(BASE + "/demos")
+            page.evaluate("localStorage.setItem('cv.theme','dark')")
+            page.reload()
+            expect(page.locator(".democard").first).to_be_visible(timeout=15000)
+        go("demo-library-dark", dark_home)
+        go("reset-theme", lambda: (page.evaluate("localStorage.removeItem('cv.theme')"), page.goto(BASE + "/demos/PY-03"), expect(page.locator(".demo-detail")).to_be_visible(timeout=15000)))
         go("demo-library", lambda: (page.goto(BASE + "/demos"), expect(page.locator(".democard").first).to_be_visible(timeout=15000)))
         go("demo-detail", lambda: (page.goto(BASE + "/demos/PY-03"), expect(page.locator(".demo-detail")).to_be_visible(timeout=15000)))
         go("compare", lambda: (page.goto(BASE + "/compare"), expect(page.get_by_role("heading", level=1)).to_be_visible(timeout=15000)))

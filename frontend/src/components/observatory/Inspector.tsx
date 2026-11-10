@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Selection } from "./types";
+import StatusBadge from "../../ui/status";
 
 /**
  * Contextual Inspector — explains whatever the user selected in any canvas:
@@ -35,11 +36,7 @@ export default function Inspector({ selection, onClose, onShowSource }: {
       <div className="panel-h">
         <span className="insp-kind">{selection.subtitle ?? selection.stage}</span>
         <span className="spacer" />
-        {selection.confidence && (
-          <span className={`badge ${selection.confidence === "EXACT" ? "exact"
-            : selection.confidence === "DERIVED" || selection.confidence === "APPROXIMATE" ? "derived"
-            : "unavailable"}`}>{selection.confidence}</span>
-        )}
+        {selection.confidence && <StatusBadge code={String(selection.confidence)} />}
         <button className="btn ghost" onClick={onClose} aria-label="close inspector">✕</button>
       </div>
       <div className="insp-title">

@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CompileVista — see how code becomes execution</title>
     <meta name="description" content="An observatory for how C and Python programs become tokens, syntax trees, IR, bytecode and recorded execution — built from real Clang and CPython artifacts." />
+    <meta name="theme-color" content="#1d292f" />
+    <meta property="og:title" content="CompileVista — see how code becomes execution" />
+    <meta property="og:description" content="Follow real Clang/LLVM and CPython artifacts from source to tokens, syntax trees, IR, bytecode and recorded execution." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      /* set the theme before first paint so there is no light flash in dark mode */
+      try {
+        var t = localStorage.getItem("cv.theme");
+        if (t !== "dark" && t !== "light") t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = t;
+      } catch (e) { document.documentElement.dataset.theme = "light"; }
+    </script>
   </head>
   <body>
     <div id="root"></div>

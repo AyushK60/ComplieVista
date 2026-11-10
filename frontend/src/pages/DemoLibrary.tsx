@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DemoEntry, DemoRunResult, demos, errorFixtures } from "../api";
+import { Button, EmptyState, Skeleton } from "../ui";
 
 /**
  * Demo Library — a learning gallery over the exact 20-program inventory
@@ -356,7 +357,7 @@ export default function DemoLibrary() {
         </div>
       </div>
 
-      {catalog.loading && !catalog.demos && <p className="muted" role="status">Loading demo catalog…</p>}
+      {catalog.loading && !catalog.demos && <Skeleton rows={6} label="Loading demo catalog" />}
       {!catalog.loading && catalog.error && !catalog.demos && (
         <p className="err" role="alert">
           The demo catalog could not be loaded: {catalog.error}{" "}
@@ -390,7 +391,7 @@ export default function DemoLibrary() {
                   <div className="dc-concepts">
                     {d.concepts.slice(0, 4).map((c) => <span key={c} className="conceptchip mini">{c}</span>)}
                   </div>
-                  <div className="dc-stages" aria-label="available stages">
+                  <div className="dc-stages tech-only" aria-label="available stages">
                     {stageChips(d).slice(0, 7).map((s) => <span key={s} className="st">{s}</span>)}
                   </div>
                   <span className="dc-open">Explore →</span>
@@ -401,7 +402,9 @@ export default function DemoLibrary() {
         </section>
       ))}
       {!catalog.loading && catalog.demos && filtered.length === 0 && (
-        <p className="muted">No demos match — clear a filter.</p>
+        <EmptyState icon="search" title="No demos match those filters"
+          action={<Button onClick={() => { setQuery(""); setLang("all"); setConcept(null); setDifficulty(null); }}>Clear filters</Button>}>
+          Try a broader search, or clear the concept and difficulty filters.</EmptyState>
       )}
 
       <section className="dl-errors">

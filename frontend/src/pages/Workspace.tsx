@@ -5,6 +5,9 @@ import {
   StageData, Target, demos, executions,
 } from "../api";
 import { clearRecent, loadRecent, recentUrl, recordRecent } from "../lib/recent";
+import Tabs from "../ui/Tabs";
+import Tour from "../components/Tour";
+import { Button, Skeleton, EmptyState, Icon } from "../ui";
 import SourceDock from "../components/observatory/SourceDock";
 import JourneyNavigator from "../components/observatory/JourneyNavigator";
 import StageCanvas from "../components/observatory/StageCanvas";
@@ -15,7 +18,8 @@ import ProgramWalkthrough from "../components/observatory/ProgramWalkthrough";
 const CodeEditor = lazy(() => import("../components/CodeEditor"));
 const OptimizationExplorer = lazy(() => import("../components/observatory/OptimizationExplorer"));
 import { SourceSpan } from "../components/observatory/TokenFormation";
-import { Selection } from "../components/observatory/types";
+import { Selection, STAGE_BLURBS } from "../components/observatory/types";
+import { Command, isTypingTarget, useCommands } from "../state/commands";
 
 /**
  * M8 Observatory — one cohesive source-to-execution environment.
@@ -191,7 +195,9 @@ export default function Workspace() {
         setJob(j);
         if (["QUEUED", "RUNNING"].includes(j.status)) setTimeout(poll, 800);
         else if (j.stages.length && !stageName) {
-          const first = j.stages.find((s) => s.availability === "AVAILABLE")
+          const wanted = new URLSearchParams(window.location.search).get("stage");
+          const first = j.stages.find((s) => s.stage === wanted && s.availability !== "ERROR")
+            ?? j.stages.find((s) => s.availability === "AVAILABLE")
             ?? j.stages.find((s) => s.stage === "tokens") ?? j.stages[0];
           setStageName(first.stage);
         }
@@ -325,6 +331,63 @@ export default function Workspace() {
   }, [project, snapshot, demoMeta, lang, analysisId, executionId, analyzableTarget, runnableTarget]);
   const [recent, setRecent] = useState(() => loadRecent());
 
+  // ——— command palette entries and keyboard shortcuts for the open program ———
+  const stageList = useMemo(
+    () => (job?.status === "COMPLETED" ? job.stages.filter((s) => s.availability !== "ERROR").map((s) => s.stage) : []),
+    [job]);
+  const viewIds = useMemo(() => {
+    const v: Array<typeof view> = [];
+    if (job?.status === "COMPLETED" || (executionId && !analysisId)) v.push("compile");
+    if (executionId) v.push("execution", "walkthrough");
+    if (optPair) v.push("optimization");
+    return v;
+  }, [job, executionId, analysisId, optPair]);
+  const toggleInspector = useCallback(() => setInspectorOpen((o) => {
+    localStorage.setItem("cv.inspector", o ? "collapsed" : "open");
+    return !o;
+  }), []);
+  const VIEW_NAMES: Record<string, string> = { compile: "Compilation journey", execution: "Execution observatory",
+    walkthrough: "Watch it work", optimization: "Optimization lab" };
+  const wsCommands = useMemo<Command[]>(() => {
+    if (!project || !snapshot) return [];
+    const c: Command[] = viewIds.map((v, i) => ({
+      id: "view:" + v, group: "This program", title: `View: ${VIEW_NAMES[v]}`, hint: String(i + 1),
+      run: () => setView(v),
+    }));
+    stageList.forEach((st) => c.push({
+      id: "stage:" + st, group: "Jump to stage", title: STAGE_BLURBS[st]?.name ?? st,
+      keywords: st, run: () => { setView("compile"); setStageName(st); },
+    }));
+    c.push({ id: "inspector", group: "This program", title: "Show or hide the inspector", hint: "I", run: toggleInspector });
+    return c;
+  }, [project, snapshot, viewIds, stageList, toggleInspector]); // eslint-disable-line react-hooks/exhaustive-deps
+  useCommands("workspace", wsCommands);
+
+  const keyState = useRef({ stageName, stageList, viewIds, view, canvasFull, stageData: !!stageData });
+  keyState.current = { stageName, stageList, viewIds, view, canvasFull, stageData: !!stageData };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const k = keyState.current;
+      if (e.key === "Escape" && k.canvasFull) { setCanvasFull(false); return; }
+      if (isTypingTarget(e.target)) return;
+      if (e.key === "[" || e.key === "]") {
+        const i = k.stageList.indexOf(k.stageName ?? "");
+        const n = k.stageList[i + (e.key === "]" ? 1 : -1)];
+        if (n) { setView("compile"); setStageName(n); }
+      } else if (/^[1-9]$/.test(e.key)) {
+        const v = k.viewIds[Number(e.key) - 1];
+        if (v) setView(v);
+      } else if (e.key === "i" || e.key === "I") {
+        toggleInspector();
+      } else if ((e.key === "f" || e.key === "F") && k.view === "compile" && k.stageData) {
+        setCanvasFull((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggleInspector]);
+
   /* ——— ingest (empty state) ——— */
   if (!project || !snapshot) {
     return (
@@ -410,8 +473,11 @@ export default function Workspace() {
           )}
           {busy && <p className="notice"><span className="spinner" /> Working…</p>}
           {error && <p className="err">{error}</p>}
-          <p className="muted">Looking for a quick start? Pick a program in the{" "}
-            <Link to="/demos">Demo Library</Link>.</p>
+          <div className="ingest-example">
+            <span className="muted">No code handy?</span>
+            <Link className="btn" to="/demos/PY-01"><Icon name="play" size={14} /> Try an example program</Link>
+            <span className="muted">or pick one in the <Link to="/demos">Demo Library</Link>.</span>
+          </div>
           {recent.length > 0 && (
             <section className="recent" aria-label="recent sessions">
               <h2>Pick up where you left off</h2>
@@ -463,22 +529,13 @@ export default function Workspace() {
       </div>
       <div className="obs-toolrow obs-filebar">
         {showTabs && (
-          <div className="obs-viewtabs" role="tablist" aria-label="workspace views">
-            <button role="tab" aria-selected={view === "compile"} className={view === "compile" ? "active" : ""}
-                    onClick={() => setView("compile")}>Compilation journey</button>
-            {executionId && (
-              <button role="tab" aria-selected={view === "execution"} className={view === "execution" ? "active" : ""}
-                      onClick={() => setView("execution")}>Execution observatory</button>
-            )}
-            {executionId && (
-              <button role="tab" aria-selected={view === "walkthrough"} className={view === "walkthrough" ? "active" : ""}
-                      onClick={() => setView("walkthrough")}>Watch it work</button>
-            )}
-            {optPair && (
-              <button role="tab" aria-selected={view === "optimization"} className={view === "optimization" ? "active" : ""}
-                      onClick={() => setView("optimization")}>Optimization lab</button>
-            )}
-          </div>
+          <Tabs className="obs-viewtabs" label="workspace views" value={view} onChange={setView}
+                items={[
+                  { id: "compile", label: "Compilation journey" },
+                  { id: "execution", label: "Execution observatory", hidden: !executionId },
+                  { id: "walkthrough", label: "Watch it work", hidden: !executionId },
+                  { id: "optimization", label: "Optimization lab", hidden: !optPair },
+                ]} />
         )}
         <span className="spacer" />
         {/* the list holds only the file chips */}
@@ -624,7 +681,7 @@ export default function Workspace() {
               </div>
             ) : view === "compile" && job?.status === "COMPLETED" ? (
               <div className="obs-canvas panel canvas-loading">
-                <p className="muted"><span className="spinner" /> loading stage…</p>
+                <div style={{ width: "min(420px, 80%)" }}><Skeleton rows={5} label="Loading stage" /></div>
               </div>
             ) : view === "compile" ? (
               <div className="obs-canvas panel canvas-loading">
@@ -663,6 +720,7 @@ export default function Workspace() {
         </div>
         </>
       )}
+      <Tour ready={showTabs && (!!stageData || !!executionId)} />
     </main>
   );
 }

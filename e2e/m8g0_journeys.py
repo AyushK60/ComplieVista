@@ -86,14 +86,14 @@ def journey_trace_trust_badges(page: Page) -> None:
     warning = page.get_by_role("note", name="trace trust warning")
     expect(warning).to_be_visible(timeout=60000)
     ok("untrusted" in warning.inner_text().lower()
-       and page.locator(".badge", has_text="UNTRUSTED_TARGET").count() >= 1,
+       and page.locator(".badge", has_text="Untrusted program").count() >= 1,
        "pasted run labeled UNTRUSTED_TARGET with the honest warning")
     shot(page, "m8g0_trace_trust_untrusted.png")
 
     page.goto(BASE + "/demos/PY-03")
     page.get_by_role("button", name="Run (observatory)").click()
     expect(page.locator(".execdock")).to_be_visible(timeout=90000)
-    trust_badge = page.locator(".badge", has_text="trace: trusted")
+    trust_badge = page.locator(".badge", has_text="Trusted trace")
     expect(trust_badge.first).to_be_visible(timeout=60000)
     ok(page.get_by_role("note", name="trace trust warning").count() == 0,
        "curated demo run labeled trusted, with no untrusted warning")

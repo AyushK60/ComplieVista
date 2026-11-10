@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { isTypingTarget } from "../../state/commands";
 import { ExecutionEvent, ExecutionJob } from "../../api";
 import { Locals, TreeNode, retRepr, localsRepr, buildTree, aggregate, AggNode, aggArgSummary, stackAt, EVENT_KINDS } from "./traceModel";
 
@@ -39,6 +40,18 @@ export default function TraceTheater({ events, job, loading, onSelectLine, activ
   const current = cursor > 0 ? events[Math.min(cursor, events.length) - 1] : null;
 
   const tick = useCallback(() => setCursor((c) => Math.min(c + 1, events.length)), [events.length]);
+  // replay keys: Space play/pause, arrows step (ignored while typing or on a focused control)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return;
+      const onControl = (e.target as HTMLElement | null)?.closest?.("button, a, [role=tab], input");
+      if (e.key === " " && !onControl) { e.preventDefault(); setSelIdx(null); setPlaying((p) => !p); }
+      else if (e.key === "ArrowRight" && !onControl) { setPlaying(false); setSelIdx(null); tick(); }
+      else if (e.key === "ArrowLeft" && !onControl) { setPlaying(false); setSelIdx(null); setCursor((c) => Math.max(0, c - 1)); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tick]);
   useEffect(() => {
     if (!playing) return;
     if (cursor >= events.length) { setPlaying(false); return; }

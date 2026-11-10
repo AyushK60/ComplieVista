@@ -1,3 +1,5 @@
+import StatusBadge from "../../ui/status";
+import { InfoTip } from "../../ui";
 import { useEffect, useState } from "react";
 import { StageData } from "../../api";
 import { confBadge, Selection, STAGE_BLURBS } from "./types";
@@ -40,11 +42,23 @@ export default function StageCanvas({ analysisId, stageData, sourceText, languag
         <div className="sc-title">
           <h2>{blurb?.name ?? s.stage}</h2>
           {s.availability !== "AVAILABLE" && (
-            <span className={`badge ${s.availability === "PARTIAL" ? "partial" : "blocked"}`}>
-              {s.availability}
-            </span>
+            <StatusBadge code={s.availability === "PARTIAL" ? "PARTIAL" : s.availability === "UNAVAILABLE" ? "UNAVAILABLE" : "BLOCKED"} />
           )}
           {s.truncated && <span className="badge partial">truncated</span>}
+          {s.limitations.length > 0 && (
+            <InfoTip label={`${s.limitations.length} limitation${s.limitations.length === 1 ? "" : "s"} of this stage`}>
+              <b>Limits of this stage</b>
+              <ul className="infotip-list">{s.limitations.map((l, i) => <li key={i}>{l}</li>)}</ul>
+            </InfoTip>
+          )}
+          {(graphable || isBytecode) && (
+            <div className="sc-viewtoggle" role="tablist" aria-label="stage view mode">
+              <button role="tab" aria-selected={view === "visual"} className={view === "visual" ? "active" : ""}
+                      onClick={() => setView("visual")}>{isBytecode ? "Lanes" : "Graph"}</button>
+              <button role="tab" aria-selected={view === "raw"} className={view === "raw" ? "active" : ""}
+                      onClick={() => setView("raw")}>Raw tool output</button>
+            </div>
+          )}
         </div>
         <p className="sc-what muted">{blurb?.what}</p>
         <div className="prov tech-only">
@@ -57,18 +71,10 @@ export default function StageCanvas({ analysisId, stageData, sourceText, languag
           <span>observation: <code>{s.observation_class}</code></span>
           {s.raw_artifact_sha256 && <span>artifact: <code>{s.raw_artifact_sha256.slice(0, 20)}…</code></span>}
         </div>
-        {(graphable || isBytecode) && (
-          <div className="sc-viewtoggle" role="tablist" aria-label="stage view mode">
-            <button role="tab" aria-selected={view === "visual"} className={view === "visual" ? "active" : ""}
-                    onClick={() => setView("visual")}>{isBytecode ? "Lanes" : "Graph"}</button>
-            <button role="tab" aria-selected={view === "raw"} className={view === "raw" ? "active" : ""}
-                    onClick={() => setView("raw")}>Raw tool output</button>
-          </div>
-        )}
       </div>
 
       {s.limitations.length > 0 && (
-        <ul className="limits" aria-label="stage limitations">
+        <ul className="limits tech-only" aria-label="stage limitations">
           {s.limitations.map((l, i) => <li key={i}>{l}</li>)}
         </ul>
       )}
@@ -194,7 +200,7 @@ function AssemblyView({ items, counts, onSelect, language }: {
         {String(counts.function_labels ?? items.length)} function labels ·{" "}
         {String(counts.lines ?? "—")} lines of assembly (static artifact — not an
         executed-instruction count). Source→assembly mapping is{" "}
-        <span className="badge unavailable">UNAVAILABLE</span> in this pipeline; the
+        <StatusBadge code="UNAVAILABLE" /> in this pipeline; the
         full listing is in the raw view.
       </p>
       <div className="asmfuncs">

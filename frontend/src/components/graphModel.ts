@@ -59,8 +59,8 @@ export function depth_limit(level: 0 | 1 | 2 | 3, language: string, stage: strin
   return [0, 1, 2, 999][level];                                   // AST: fn -> stmts -> all (default = readable)
 }
 
-export const NODE_W = 172;
-export const NODE_H = 46;
+export const NODE_W = 212;
+export const NODE_H = 60;
 
 export function semanticLabel(n: Record<string, unknown>): { kind: string; value: string; line: number | null } {
   const kind = String(n.kind ?? "?");

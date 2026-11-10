@@ -79,7 +79,7 @@ export default function JourneyNavigator({ job, stageName, onSelectStage, guided
                         <span className="jstage-dot" />
                         <span className="jstage-name">{STAGE_BLURBS[st.stage]?.name ?? st.stage}</span>
                         {avail !== "AVAILABLE" && (
-                          <span className={`badge ${avail === "PARTIAL" ? "partial" : "blocked"}`}>{avail}</span>
+                          <span className={`badge ${avail === "PARTIAL" ? "partial" : "blocked"}`}>{avail === "PARTIAL" ? "Partial" : avail === "UNAVAILABLE" ? "Not available" : avail}</span>
                         )}
                       </button>
                       {i < present.length - 1 && <span className="jstage-link" aria-hidden />}

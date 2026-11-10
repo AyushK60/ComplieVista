@@ -3,6 +3,9 @@
  * Spec: docs/M8_DESIGN_SYSTEM.md (revision 2 — replaces Project Phoenix). */
 :root {
   /* ——— porcelain chrome (the page) ——— */
+  color-scheme: light;
+  --teal-solid: #166d68;
+  --on-solid: #f4faf8;
   --bg: #f6f5f0;
   --bg-raised: #fcfbf8;
   --bg-panel: #fcfbf8;
@@ -111,3 +114,54 @@
 /* mode switching: technical detail is hidden in explore mode */
 html[data-mode="explore"] .tech-only { display: none !important; }
 html[data-mode="technical"] .explore-only { display: none !important; }
+
+/* ——— dark theme: graphite surfaces, one cool hue, bright accents ——— */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0f14;
+  --bg-raised: #131922;
+  --bg-panel: #131922;
+  --bg-inset: #0a0d12;
+  --line: rgba(173, 189, 214, 0.14);
+  --line-strong: rgba(173, 189, 214, 0.3);
+  --ink: #e8eef5;
+  --ink-2: #b4c0cf;
+  --ink-3: #8a97a9;
+
+  --canvas: #070a0e;
+  --canvas-raised: #0f151c;
+  --canvas-inset: #05070a;
+  --canvas-line: rgba(173, 189, 214, 0.12);
+  --canvas-line-strong: rgba(173, 189, 214, 0.28);
+  --c-ink: #e8eef5;
+  --c-ink-2: #b4c0cf;
+  --c-ink-3: #8a97a9;
+
+  --teal: #5eead4;
+  --teal-solid: #0c7a71;
+  --clay: #fdba74;
+  --plum: #c4b5fd;
+  --moss: #86efac;
+  --clay-text: #fdba74;
+  --moss-text: #86efac;
+  --crimson: #fca5a5;
+  --teal-dim: rgba(94, 234, 212, 0.13);
+  --clay-dim: rgba(253, 186, 116, 0.13);
+  --plum-dim: rgba(196, 181, 253, 0.14);
+  --moss-dim: rgba(134, 239, 172, 0.12);
+  --crimson-dim: rgba(252, 165, 165, 0.13);
+
+  --teal-l: #5eead4;
+  --clay-l: #fdba74;
+  --plum-l: #c4b5fd;
+  --moss-l: #86efac;
+  --crimson-l: #fca5a5;
+  --teal-l-dim: rgba(94, 234, 212, 0.14);
+  --clay-l-dim: rgba(253, 186, 116, 0.14);
+  --plum-l-dim: rgba(196, 181, 253, 0.14);
+  --moss-l-dim: rgba(134, 239, 172, 0.13);
+  --crimson-l-dim: rgba(252, 165, 165, 0.13);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.28);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 18px 44px rgba(0, 0, 0, 0.5);
+}

@@ -48,24 +48,24 @@ def journey_landing_ctas(page: Page) -> None:
     page.set_viewport_size({"width": 1440, "height": 900})
     page.goto(BASE + "/")
     page.wait_for_load_state("domcontentloaded")
-    expect(page.get_by_role("heading", level=1)).to_contain_text("transforms before it runs")
+    expect(page.get_by_role("heading", level=1)).to_contain_text("Watch your code")
     ok(True, "hero headline states the proposition")
-    ctas = page.locator(".hero-ctas a")
+    ctas = page.locator(".wow-cta a.wow-btn")
     expect(ctas).to_have_count(2)
-    ok(ctas.nth(0).get_by_text("Explore a Program").is_visible(), "CTA 1: Explore a Program")
-    ok(ctas.nth(1).get_by_text("Import Your Code").is_visible(), "CTA 2: Import Your Code")
+    ok(ctas.nth(0).get_by_text("Explore live demos").is_visible(), "CTA 1: Explore live demos")
+    ok(ctas.nth(1).get_by_text("Paste your code").is_visible(), "CTA 2: Paste your code")
     shot(page, "01_landing_hero_1440x900.png")
     page.locator(".start-row").scroll_into_view_if_needed()
     page.wait_for_timeout(300)
     shot(page, "02_landing_lower_sections.png")
     ctas.nth(0).click()
     page.wait_for_url("**/demos", timeout=15_000)
-    ok(True, "Explore a Program -> Demo Library")
+    ok(True, "Explore live demos -> Demo Library")
     page.go_back()
     page.wait_for_load_state("domcontentloaded")
-    page.locator(".hero-ctas a").nth(1).click()
+    page.locator(".wow-cta a.wow-btn").nth(1).click()
     page.wait_for_url("**/workspace", timeout=15_000)
-    ok(True, "Import Your Code -> Source Workspace")
+    ok(True, "Paste your code -> Source Workspace")
     # the workspace is a lazily loaded route: wait for it instead of sampling instantly
     page.get_by_text("Bring a program to the observatory").wait_for(state="visible", timeout=15_000)
     ok(page.get_by_text("Bring a program to the observatory").is_visible(),
@@ -196,8 +196,8 @@ def journey_reduced_motion(page: Page) -> None:
     page.goto(BASE + "/")
     page.wait_for_load_state("domcontentloaded")
     page.wait_for_timeout(400)
-    # hero jumps to its final phase (execution) instead of cycling
-    ok(page.locator(".hero-run.on").count() == 1, "hero honors reduced motion (jumps to final phase)")
+    # the headline stops cycling and rests on its final word
+    ok(page.locator(".wow-word.on").inner_text() == "a running program", "hero honors reduced motion (headline rests on the final word)")
     page.emulate_media(reduced_motion="no-preference")
 
 
