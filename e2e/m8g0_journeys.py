@@ -4,6 +4,7 @@ temporary network-level failure injected for the recovery test, which is then
 removed so Retry exercises the live API (no static fake replacement)."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from playwright.sync_api import Page, expect, sync_playwright
@@ -43,7 +44,7 @@ def journey_catalog_recovery(page: Page) -> None:
 
     page.route("**/api/v1/demos**", fail_demos)
     page.goto(BASE + "/demos")
-    expect(page.get_by_role("heading", name="Demo Library — 20 real programs")
+    expect(page.get_by_role("heading", name=re.compile("Twenty real programs"))
            ).to_be_visible()
     banner = page.get_by_role("alert").filter(has_text="demo catalog could not be loaded")
     expect(banner.first).to_be_visible(timeout=15000)
@@ -79,24 +80,23 @@ def journey_trace_trust_badges(page: Page) -> None:
         "def main():\n    print('trust probe')\n    return 5\n\n"
         "if __name__ == '__main__':\n    main()\n")
     page.get_by_role("button", name="Load code").click()
-    expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=15000)
+    expect(page.get_by_role("list", name="snapshot files")).to_be_visible(timeout=15000)
     page.get_by_role("button", name="Run in restricted container").click()
-    expect(page.locator(".execution")).to_be_visible(timeout=60000)
+    expect(page.locator(".execdock")).to_be_visible(timeout=60000)
     warning = page.get_by_role("note", name="trace trust warning")
     expect(warning).to_be_visible(timeout=60000)
-    ok("UNTRUSTED_TARGET" in warning.inner_text(),
+    ok("untrusted" in warning.inner_text().lower()
+       and page.locator(".badge", has_text="UNTRUSTED_TARGET").count() >= 1,
        "pasted run labeled UNTRUSTED_TARGET with the honest warning")
     shot(page, "m8g0_trace_trust_untrusted.png")
 
-    page.goto(BASE + "/demos")
-    page.locator(".democard").filter(has_text="PY-03").get_by_role(
-        "button", name="Open").click()
-    page.get_by_role("button", name="Run in restricted container").click()
-    expect(page.locator(".execution")).to_be_visible(timeout=90000)
-    trust_note = page.get_by_role("note", name="trace trust")
-    expect(trust_note).to_be_visible(timeout=60000)
-    ok("CURATED_COOPERATIVE" in trust_note.inner_text(),
-       "curated demo run labeled CURATED_COOPERATIVE")
+    page.goto(BASE + "/demos/PY-03")
+    page.get_by_role("button", name="Run (observatory)").click()
+    expect(page.locator(".execdock")).to_be_visible(timeout=90000)
+    trust_badge = page.locator(".badge", has_text="trace: trusted")
+    expect(trust_badge.first).to_be_visible(timeout=60000)
+    ok(page.get_by_role("note", name="trace trust warning").count() == 0,
+       "curated demo run labeled trusted, with no untrusted warning")
     shot(page, "m8g0_trace_trust_curated.png")
 
 

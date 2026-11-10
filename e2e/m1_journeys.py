@@ -8,6 +8,7 @@ written to docs/TEST_EVIDENCE/m1/.
 from __future__ import annotations
 
 import io
+import re
 import sys
 import zipfile
 from pathlib import Path
@@ -40,13 +41,16 @@ def expect_or_fail(cond: bool, what: str) -> None:
 
 
 def journey_home(page: Page) -> None:
-    step("M0 regression: home proof page")
+    # The M0 "toolchain proof" page was replaced by the landing page in M8; the
+    # intent of this check (the app is live and reports real backend/toolchain
+    # state instead of a hard-coded claim) is preserved against the current page.
+    step("Home: landing page + live backend health")
     page.goto(BASE + "/")
-    expect(page.get_by_role("heading", name="CompileVista — toolchain proof (M0)")).to_be_visible()
-    expect(page.get_by_text("status=ok")).to_be_visible()
-    expect(page.get_by_text("pasted_execution: PARTIAL")).to_be_visible()
-    expect(page.get_by_text("m0-c", exact=False).first).to_be_visible()
-    expect_or_fail(True, "home shows M0 proof with honest PARTIAL mode (M4QA-05)")
+    expect(page.get_by_role("heading", name=re.compile("Your code transforms before it runs"))).to_be_visible()
+    expect(page.get_by_role("link", name="Explore a Program")).to_be_visible()
+    expect(page.get_by_text("ok · python 3.12", exact=False).first).to_be_visible(timeout=15000)
+    expect(page.get_by_text("clang", exact=False).first).to_be_visible()
+    expect_or_fail(True, "home renders and shows live backend health + toolchain versions")
     shot(page, "home_m0_regression.png")
 
 
@@ -60,15 +64,16 @@ def journey_paste(page: Page) -> None:
         "def fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n"
         "    return a\n\nif __name__ == '__main__':\n    print(fib(10))\n")
     page.get_by_role("button", name="Load code").click()
-    expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=15000)
+    expect(page.get_by_role("list", name="snapshot files")).to_be_visible(timeout=15000)
     expect(page.get_by_text("fib.py").first).to_be_visible()
-    code = page.locator(".codeview")
+    code = page.locator(".sourcedock-body")
     expect(code).to_contain_text("def fib(n):")
-    expect(page.get_by_text("EXECUTABLE_CANDIDATE").first).to_be_visible()
+    expect(page.get_by_text("executable", exact=True).first).to_be_visible()
     # M4QA-08: the stale "gated by M4" chip was removed — an eligible pasted target
     # now reports readiness honestly and offers the real Run control.
     expect(page.get_by_role("button", name="Run in restricted container")).to_be_visible()
-    expect(page.get_by_text("[detected]").first).to_be_visible()
+    # nothing has run yet: the page must say what happens next instead of sitting empty
+    expect(page.get_by_text("Your code is loaded. What next?")).to_be_visible()
     expect_or_fail(True, "paste → snapshot → editor + honest detected-not-verified statuses")
     shot(page, "paste_python_journey.png")
 
@@ -87,7 +92,7 @@ def journey_upload_zip(page: Page) -> None:
         files=[{"name": "bundle.zip", "mimeType": "application/zip", "buffer": buf.getvalue()}])
     expect(page.get_by_text("1 archive entry rejected")).to_be_visible(timeout=15000)
     expect(page.get_by_text("calc/main.c").first).to_be_visible()
-    expect(page.get_by_text("COMPILATION_CANDIDATE").first).to_be_visible()
+    expect(page.get_by_text("compiles", exact=True).first).to_be_visible()
     expect_or_fail(True, "zip upload → sources accepted, hostile entry rejected+recorded")
     shot(page, "upload_zip_journey.png")
 
@@ -128,8 +133,11 @@ def journey_github_real(page: Page) -> None:
     expect(page.get_by_text("github: antirez/kilo").first).to_be_visible(timeout=60000)
     expect(page.get_by_text("kilo.c").first).to_be_visible()
     page.get_by_text("kilo.c").first.click()
-    expect(page.locator(".codeview")).to_contain_text("main(", timeout=15000)
+    expect(page.locator(".sourcedock-body")).to_contain_text("main(", timeout=15000)
+    # classification reasons are provenance detail: shown in Technical mode only
+    page.get_by_role("button", name="Technical").click()
     expect(page.get_by_text("link-deps-unknown").first).to_be_visible()
+    page.get_by_role("button", name="Explore", exact=True).click()
     expect_or_fail(True, "real GitHub import with pinned SHA provenance and C classification")
     shot(page, "github_import_kilo.png")
 

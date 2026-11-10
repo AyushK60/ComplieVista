@@ -8,6 +8,8 @@ C-01) since the backend matrix (test_m7_demos) covers all 20 exhaustively.
 """
 from __future__ import annotations
 
+import json
+import re
 import sys
 from pathlib import Path
 
@@ -18,6 +20,8 @@ SHOTS = REPO / "docs" / "TEST_EVIDENCE" / "m7"
 BASE = "http://127.0.0.1:5173"
 FAILED: list[str] = []
 RESULTS: dict[str, str] = {}
+EXPECTED = {d["id"]: d for d in json.loads(
+    (REPO / "sandbox" / "fixtures" / "demos" / "manifest.json").read_text())["demos"]}
 
 
 def shot(page: Page, name: str) -> None:
@@ -37,7 +41,7 @@ def ok(cond: bool, what: str) -> None:
 def journey_catalog(page: Page) -> None:
     print("[journey] catalog: 20 cards, search, language toggle")
     page.goto(BASE + "/demos")
-    expect(page.get_by_role("heading", name="Demo Library — 20 real programs")
+    expect(page.get_by_role("heading", name=re.compile("Twenty real programs"))
            ).to_be_visible()
     cards = page.locator(".democard")
     expect(cards.first).to_be_visible()
@@ -52,51 +56,56 @@ def journey_catalog(page: Page) -> None:
     page.get_by_label("search demos").fill("recursion")
     ok(page.locator(".democard").count() >= 2, "search filters by concept")
     page.get_by_label("search demos").fill("")
-    page.get_by_role("button", name="python", exact=True).click()
+    lang_filter = page.get_by_role("group", name="language filter")
+    lang_filter.get_by_role("button", name="python", exact=True).click()
     py_cards = page.locator(".democard").count()
     ok(py_cards == 10, f"python toggle shows 10 PY/PY-pair demos (got {py_cards})")
-    page.get_by_role("button", name="all", exact=True).click()
+    lang_filter.get_by_role("button", name="all", exact=True).click()
     shot(page, "m7_catalog.png")
 
 
 def journey_demo_detail(page: Page, demo_id: str, title_part: str) -> None:
-    page.goto(BASE + "/demos")
-    page.get_by_label("search demos").fill(demo_id)
-    card = page.locator(".democard").filter(has_text=demo_id)
-    expect(card.first).to_be_visible()
-    card.first.get_by_role("button", name="Open").click()
-    expect(page.locator(".demodetail")).to_be_visible()
-    # guided story: three levels
-    for level in ("Simple", "Detailed", "Technical"):
-        page.get_by_role("tab", name=level).click()
-        expect(page.locator(".guided")).not_to_be_empty()
-    ok(True, f"{demo_id}: guided story levels present")
-    # capability matrix honesty
-    body = page.locator(".demodetail").inner_text()
-    ok("Capability matrix" in body, f"{demo_id}: capability matrix shown")
-    # run (real containers)
-    page.get_by_role("button", name="Run in restricted container").click()
-    expect(page.get_by_text("matches expected ✓").first).to_be_visible(timeout=180000)
-    expect(page.get_by_text("Recorded replay").first).to_be_visible(timeout=60000)
-    ok(True, f"{demo_id}: run matched expected output with recorded replay")
+    """Open the demo's own page, check the three guided stories and honest capability
+    matrix, run it in the observatory, and compare the recorded stdout/exit code (read
+    from the API) with the manifest's expected values."""
+    page.goto(BASE + f"/demos/{demo_id}")
+    expect(page.locator(".demo-detail")).to_be_visible(timeout=15000)
+    for heading in ("The idea", "How it works", "Under the hood"):
+        expect(page.get_by_role("heading", name=heading)).to_be_visible()
+    ok(page.locator(".dd-story p").count() == 3 and
+       all(t.strip() for t in page.locator(".dd-story p").all_inner_texts()),
+       f"{demo_id}: three guided stories present")
+    ok("Capability matrix" in page.locator(".demo-detail").inner_text(),
+       f"{demo_id}: capability matrix shown")
+    page.get_by_role("button", name="Run (observatory)").click()
+    page.wait_for_url(re.compile(r"/workspace\?.*execution="), timeout=180000)
+    expect(page.locator(".execdock")).to_be_visible(timeout=120000)
+    eid = re.search(r"execution=([0-9a-f]+)", page.url).group(1)
+    out = page.request.get(BASE + f"/api/v1/executions/{eid}/output").json()
+    want = EXPECTED[demo_id]
+    ok((out["stdout"] or "").strip() == want["expected_stdout"].strip()
+       and out["exit_code"] == want["expected_exit"],
+       f"{demo_id}: recorded run output matches the manifest's expected output")
     RESULTS[demo_id] = "run+replay OK"
 
 
 def journey_deep_checks(page: Page) -> None:
     print("[journey] deep checks: C-05 multi-file, PY-03 memory, error microscope")
     journey_demo_detail(page, "C-05", "Multi-file")
-    body = page.locator(".demodetail").inner_text()
-    ok("matches expected ✓" in body, "C-05 linked program matched expected output")
     shot(page, "m7_c05_multifile.png")
     journey_demo_detail(page, "PY-03", "recursion")
     shot(page, "m7_py03_replay.png")
+    page.goto(BASE + "/demos")
     # Error Microscope: all four fixtures with genuine diagnostics
-    for fid in ("ERR-SYNTAX", "ERR-SEMANTIC", "ERR-LINK", "ERR-RUNTIME"):
-        card = page.locator(".errfixture").filter(has_text=fid)
-        card.get_by_role("button", name="Run").click()
+    cards = page.locator(".errcard")
+    expect(cards.first).to_be_visible(timeout=15000)
+    ok(cards.count() == 4, f"four error fixtures listed (got {cards.count()})")
+    for i in range(cards.count()):
+        card = cards.nth(i)
+        card.get_by_role("button", name="Reproduce the diagnostic").click()
         expect(card.locator("pre")).to_be_visible(timeout=120000)
         diag = card.locator("pre").inner_text()
-        ok(len(diag.strip()) > 20, f"{fid}: genuine diagnostic rendered")
+        ok(len(diag.strip()) > 20, f"error fixture {i + 1}: genuine diagnostic rendered")
     shot(page, "m7_error_microscope.png")
 
 
