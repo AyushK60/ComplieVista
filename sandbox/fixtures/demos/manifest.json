@@ -477,7 +477,7 @@
    "files": [
     {
      "path": "pairs/recursion.c",
-     "sha256": "12bf8615984e6f20f2d0595b2dac10858bac2b06b014ab44b961d431631c9fbc"
+     "sha256": "ce325526acf0864b5ad014f05a6b14dbbf7c20e1b6a42c88b00e06577ad7b5e3"
     }
    ],
    "primary_file": "pairs/recursion.c",
@@ -514,7 +514,7 @@
    "files": [
     {
      "path": "pairs/arraysum.c",
-     "sha256": "d49e224ba6c685e73ae3ed403f194e4fce6757526391495a1ceaa558b540addd"
+     "sha256": "e813a517d469b95f5a11758527f31ce43688146341523094e68d5e91affe64f5"
     }
    ],
    "primary_file": "pairs/arraysum.c",
@@ -550,7 +550,7 @@
    "files": [
     {
      "path": "pairs/sort.c",
-     "sha256": "1235947f318ee20df77942597ffdf4e75e89b39acb029ee06904dc3d3efa425f"
+     "sha256": "cac5c53aba3c15db0ab9d0823978e01af0eff9925b131fbfaab9b3db88432b63"
     }
    ],
    "primary_file": "pairs/sort.c",
@@ -586,7 +586,7 @@
    "files": [
     {
      "path": "pairs/add.py",
-     "sha256": "8a21669ddb2bb6f0ca8461652e190b6a33b280398b5e506bf3ba65019cecdd7f"
+     "sha256": "9ef0daf0346932744beda36642b4789317892a34d7999180777ca19372a769a0"
     }
    ],
    "primary_file": "pairs/add.py",
@@ -622,7 +622,7 @@
    "files": [
     {
      "path": "pairs/conditional.py",
-     "sha256": "b2070cc46d31f682dfe63c70634dd792f0dea0734a1ab0a395bb8c7756d1c58a"
+     "sha256": "fd6fa63a6caddc10384557a5860c9df9c547888b88421c6b5db2fe7e36ea9b3a"
     }
    ],
    "primary_file": "pairs/conditional.py",
@@ -658,7 +658,7 @@
    "files": [
     {
      "path": "pairs/recursion.py",
-     "sha256": "68bcbb5fddef6ec1851c017621b1c1d54ec3e021ad2fb71942efddb312f2dacd"
+     "sha256": "768746ba3fe779202e1a48ccbd48d463ad5ea4afd571eefef561f269255fb6ad"
     }
    ],
    "primary_file": "pairs/recursion.py",
@@ -695,7 +695,7 @@
    "files": [
     {
      "path": "pairs/arraysum.py",
-     "sha256": "2c30f28e80d0ba20ebb1f4de1685f8900255a2a354e454f8bea2235809e029d7"
+     "sha256": "9096e684cb2c6af2519923bce3816050f14a09d7b70c8c680d4da17c3ff4f1b2"
     }
    ],
    "primary_file": "pairs/arraysum.py",
@@ -731,7 +731,7 @@
    "files": [
     {
      "path": "pairs/sort.py",
-     "sha256": "453d160a1e45ec3e8fb717fb65ddbdb6a74d40b13fa3464fb7f0744dbc90e56f"
+     "sha256": "e9ff4488805b1e3fe7ce6fe0699663c13c87b41e1d9ac821f3d305cb3bc81046"
     }
    ],
    "primary_file": "pairs/sort.py",
