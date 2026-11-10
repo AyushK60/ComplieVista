@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ExecutionEvent, ExecutionJob, executions } from "../../api";
+import { ExecutionEvent, ExecutionJob, executions, loadAllEvents } from "../../api";
 import MemoryPanel from "./MemoryPanel";
 import ProcessPanel from "./ProcessPanel";
 
@@ -164,18 +164,8 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
         setJob(j);
         if (["QUEUED", "RUNNING"].includes(j.status)) setTimeout(poll, 800);
         else if (j.status === "COMPLETED") {
-          // paginate the recorded event stream (500/page cap) up to 5000 events
           setEventsLoading(true);
-          const evs: ExecutionEvent[] = [];
-          let after = 0;
-          for (let page = 0; page < 10; page++) {
-            const p = await executions.events(executionId, after, 500);
-            evs.push(...p.events);
-            const next = (p as { next_after?: number | null }).next_after ?? null;
-            if (next == null || next <= after || evs.length >= 5000) break;
-            after = next;
-          }
-          const out = await executions.output(executionId);
+          const [evs, out] = await Promise.all([loadAllEvents(executionId), executions.output(executionId)]);
           if (!alive) return;
           setEvents(evs);
           setEventsLoading(false);

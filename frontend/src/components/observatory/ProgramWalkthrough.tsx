@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ExecutionEvent, executions } from "../../api";
+import { ExecutionEvent, executions, loadAllEvents } from "../../api";
 
-/** Recorded-run cache: view switches remount the walkthrough; without this the
- * 5-page event pagination refetches (twice under StrictMode) and the scene sits
- * on a spinner every time. Entries are immutable once loaded. */
-const runCache = new Map<string, { events: ExecutionEvent[]; output: string; snapshots: Array<{ seq: number; payload: Record<string, unknown> }> }>();
 import { buildTree, stackAt, TreeNode } from "./ExecutionDock";
 
 /**
@@ -55,17 +51,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
         if (!alive) return;
         setJob({ status: j.status, exit_code: j.exit_code });
         if (j.status !== "COMPLETED") return;
-        const evs: ExecutionEvent[] = [];
-        let after = 0;
-        (window as unknown as Record<string, unknown>).__wt = { eid: executionId, pages: [] as number[] };
-        for (let page = 0; page < 10; page++) {
-          const p = await executions.events(executionId, after, 500);
-          ((window as unknown as Record<string, unknown>).__wt as { pages: number[] }).pages.push(p.events.length);
-          evs.push(...p.events);
-          const next = (p as { next_after?: number | null }).next_after ?? null;
-          if (next == null || next <= after || evs.length >= 5000) break;
-          after = next;
-        }
+        const evs = await loadAllEvents(executionId);
         const out = await executions.output(executionId);
         // memory frame snapshots (may not exist for every profile — honest absence)
         let snaps: Array<{ seq: number; payload: Record<string, unknown> }> = [];
@@ -73,7 +59,6 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
           const m = await executions.memory(executionId, 0, 500);
           snaps = (m.chunks ?? []).map((c) => ({ seq: c.seq, payload: c.payload }));
         } catch { /* snapshots unavailable — variable stage falls back to call locals */ }
-        runCache.set(executionId, { events: evs, output: out.stdout ?? "(no stdout)", snapshots: snaps });
         if (!alive) return;
         setLoading(false);
         setEvents(evs);
@@ -245,6 +230,9 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
   if (error) return <p className="err" style={{ padding: 16 }}>Walkthrough: {error}</p>;
   if (job && job.status !== "COMPLETED") {
     return <p className="muted" style={{ padding: 16 }}>Execution {job.status.toLowerCase()}… the walkthrough starts when the run completes.</p>;
+  }
+  if (loading) {
+    return <p className="muted" style={{ padding: 16 }}><span className="spinner" /> Loading the recorded run…</p>;
   }
   if (!events.length) {
     return <div className="unavailable" style={{ margin: 16 }}><span className="glyph">◍</span>

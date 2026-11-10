@@ -46,7 +46,7 @@ def journey_optlab(page: Page) -> None:
     page.get_by_label("Language").select_option("c")
     page.get_by_label("Filename").fill("add.c")
     page.get_by_label("paste source code").fill(C_SRC)
-    page.get_by_role("button", name="Create snapshot").click()
+    page.get_by_role("button", name="Load code").click()
     expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=15000)
     page.get_by_role("button", name="Build -O0/-O1/-O2").click()
     expect(page.get_by_text("Assembly diff (A/B, static artifacts)")).to_be_visible(

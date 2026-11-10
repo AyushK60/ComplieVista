@@ -71,7 +71,7 @@ def paste_and_analyze(page: Page, language: str, filename: str, content: str):
     page.get_by_label("Language").select_option(language)
     page.get_by_label("Filename").fill(filename)
     page.get_by_label("paste source code").fill(content)
-    page.get_by_role("button", name="Create snapshot").click()
+    page.get_by_role("button", name="Load code").click()
     expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=20000)
     page.get_by_role("button", name="Analyze with real").click()
 
@@ -188,7 +188,7 @@ def journey_viewports(page: Page) -> None:
     shot(page, "m3_laptop_1366.png")
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto(BASE + "/workspace")
-    expect(page.get_by_role("button", name="Create snapshot")).to_be_visible()
+    expect(page.get_by_role("button", name="Load code")).to_be_visible()
     shot(page, "m3_mobile_390.png")
     page.set_viewport_size({"width": 1280, "height": 900})
     ok("viewport matrix captured")
@@ -302,7 +302,7 @@ def journey_m4_execution(page: Page) -> None:
         "#include <stdio.h>\nstatic int adjust(int b, int l) {\n"
         "    return b > l ? l : b;\n}\n"
         "int main(void) {\n    printf(\"total=%d\\n\", adjust(4, 2));\n    return 0;\n}\n")
-    page.get_by_role("button", name="Create snapshot").click()
+    page.get_by_role("button", name="Load code").click()
     expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=20000)
     page.get_by_role("button", name="Run in restricted container").click()
     expect(page.get_by_text("Recorded replay").first).to_be_visible(timeout=120000)

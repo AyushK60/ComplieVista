@@ -44,7 +44,7 @@ def paste_and_run(page: Page, language: str, filename: str, content: str,
     page.get_by_label("Language").select_option(language)
     page.get_by_label("Filename").fill(filename)
     page.get_by_label("paste source code").fill(content)
-    page.get_by_role("button", name="Create snapshot").click()
+    page.get_by_role("button", name="Load code").click()
     expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=15000)
     if debug:
         page.get_by_role("button", name="Debug run (curated only)").click()

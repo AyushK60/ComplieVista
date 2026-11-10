@@ -41,6 +41,8 @@ export type GraphSelection = {
   node: Record<string, unknown>;
   incoming: Array<Record<string, unknown>>;
   outgoing: Array<Record<string, unknown>>;
+  /** node id -> short human label ("kind · name") for the other end of each edge */
+  labels: Record<string, string>;
 } | null;
 
 // ---- node categories (restrained, semantic — never a rainbow) ----
@@ -474,7 +476,15 @@ export default function GraphView({
     if (!raw) return;
     const incoming = (pl.edges ?? []).filter((e) => e.target === nodeId);
     const outgoing = (pl.edges ?? []).filter((e) => e.source === nodeId);
-    propsRef.current.onSelectNode({ node: raw, incoming, outgoing });
+    const labels: Record<string, string> = {};
+    for (const e of [...incoming, ...outgoing]) {
+      for (const id of [e.source as string, e.target as string]) {
+        if (labels[id]) continue;
+        const n = pl.nodes.find((x) => x.id === id);
+        if (n) labels[id] = n.name ? `${String(n.kind)} · ${String(n.name)}` : String(n.kind ?? id);
+      }
+    }
+    propsRef.current.onSelectNode({ node: raw, incoming, outgoing, labels });
     const line = raw.line as number | null;
     propsRef.current.onSelectLine(typeof line === "number" ? line : null);
     if (center) {

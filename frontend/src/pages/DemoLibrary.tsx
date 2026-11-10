@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { DemoEntry, DemoRunResult, demos, errorFixtures } from "../api";
 
 /**
@@ -17,6 +17,17 @@ const CONCEPT_ICONS: Record<string, string> = {
   tokens: "␣", "call stack": "▤", bytecode: "◈", "control flow": "⑂",
 };
 const DIFF_ORDER: Record<string, number> = { introductory: 0, intermediate: 1, advanced: 2 };
+/** The catalog uses two vocabularies (the single-language demos say introductory/
+ * intermediate/advanced, the matched pairs say very easy … challenging). The UI groups
+ * them into the same three tiers; the catalog data itself is not altered. */
+const DIFF_TIER: Record<string, string> = {
+  "very easy": "introductory", easy: "introductory", introductory: "introductory",
+  moderate: "intermediate", intermediate: "intermediate",
+  challenging: "advanced", advanced: "advanced",
+};
+const tier = (d: string) => DIFF_TIER[d] ?? d;
+/** concepts used by only one demo are tucked behind a toggle to keep the filter row scannable */
+const MIN_SHARED_CONCEPT = 2;
 
 function demoLang(d: DemoEntry): Lang {
   return (d.id.startsWith("PY-") || d.id.endsWith("-PY")) ? "python" : "c";
@@ -144,7 +155,12 @@ export default function DemoLibrary() {
   const [lang, setLang] = useState<Lang>("all");
   const [concept, setConcept] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [showAllConcepts, setShowAllConcepts] = useState(false);
+  // The open demo lives in the URL (/demos/:demoId) so it can be shared and the
+  // browser back button returns to the gallery.
+  const { demoId } = useParams();
+  const openId = demoId ?? null;
+  const setOpenId = (id: string | null) => navigate(id ? `/demos/${encodeURIComponent(id)}` : "/demos");
   const [busy, setBusy] = useState<string | null>(null);
   const [errDiag, setErrDiag] = useState<Record<string, string>>({});
 
@@ -162,13 +178,17 @@ export default function DemoLibrary() {
   }, [reloadTick]);
 
   const all = catalog.demos ?? [];
-  const concepts = [...new Set(all.flatMap((d) => d.concepts))].sort();
-  const difficulties = [...new Set(all.map((d) => d.difficulty))].sort((a, b) => (DIFF_ORDER[a] ?? 9) - (DIFF_ORDER[b] ?? 9));
+  const conceptCount = new Map<string, number>();
+  for (const d of all) for (const c of d.concepts) conceptCount.set(c, (conceptCount.get(c) ?? 0) + 1);
+  const concepts = [...conceptCount.keys()].sort();
+  const sharedConcepts = concepts.filter((c) => (conceptCount.get(c) ?? 0) >= MIN_SHARED_CONCEPT || c === concept);
+  const shownConcepts = showAllConcepts ? concepts : sharedConcepts;
+  const difficulties = [...new Set(all.map((d) => tier(d.difficulty)))].sort((a, b) => (DIFF_ORDER[a] ?? 9) - (DIFF_ORDER[b] ?? 9));
 
   const filtered = all.filter((d) => {
     if (lang !== "all" && demoLang(d) !== lang) return false;
     if (concept && !d.concepts.includes(concept)) return false;
-    if (difficulty && d.difficulty !== difficulty) return false;
+    if (difficulty && tier(d.difficulty) !== difficulty) return false;
     const q = query.trim().toLowerCase();
     if (!q) return true;
     return (d.id + " " + d.title + " " + d.concepts.join(" ")).toLowerCase().includes(q);
@@ -199,6 +219,20 @@ export default function DemoLibrary() {
 
   const open = all.find((d) => d.id === openId) ?? null;
 
+  // opening a demo must start at its heading, not wherever the gallery was scrolled
+  useEffect(() => { window.scrollTo(0, 0); }, [openId]);
+
+  if (openId && !open && !catalog.loading && catalog.demos) {
+    return (
+      <main className="demolib">
+        <div className="demo-detail">
+          <h1>No demo called “{openId}”</h1>
+          <p className="muted">The Demo Library has {all.length} programs. <Link to="/demos">Browse them all →</Link></p>
+        </div>
+      </main>
+    );
+  }
+
   if (open) {
     return (
       <main className="demolib">
@@ -207,7 +241,7 @@ export default function DemoLibrary() {
           <div className="dd-head">
             <span className={`langbadge ${demoLang(open)}`}>{demoLang(open)}</span>
             <h1>{open.title}</h1>
-            <span className="chip">{open.difficulty}</span>
+            <span className="chip">{tier(open.difficulty)}</span>
           </div>
           <p className="muted">{open.id} · {open.concepts.join(" · ")}</p>
 
@@ -237,6 +271,11 @@ export default function DemoLibrary() {
               sanitized report (JSON)
             </a>
           </div>
+          <p className="muted dd-actionhelp">
+            <strong>Explore</strong> shows the compilation stages — nothing runs.{" "}
+            <strong>Watch</strong> runs it once in a sandbox, then replays it step by step.{" "}
+            <strong>Run</strong> opens the full execution, memory and process observatory.
+          </p>
 
           <div className="dd-meta">
             <div className="dd-caps panel">
@@ -291,13 +330,19 @@ export default function DemoLibrary() {
         </div>
         <div className="dl-concepts">
           <span className="dl-diff-lab muted" style={{ fontSize: 11, fontFamily: "var(--font-mono)", alignSelf: "center", marginRight: 2 }}>concept</span>
-          {concepts.map((c) => (
+          {shownConcepts.map((c) => (
             <button key={c} className={`conceptchip ${concept === c ? "active" : ""}`}
                     aria-pressed={concept === c}
                     onClick={() => setConcept(concept === c ? null : c)}>
               {CONCEPT_ICONS[c] ?? ""} {c}
             </button>
           ))}
+          {concepts.length > sharedConcepts.length && (
+            <button className="conceptchip more" aria-expanded={showAllConcepts}
+                    onClick={() => setShowAllConcepts((v) => !v)}>
+              {showAllConcepts ? "show fewer" : `+ ${concepts.length - sharedConcepts.length} more`}
+            </button>
+          )}
         </div>
         <div className="dl-difficulty">
           <span className="lab">difficulty</span>
@@ -338,7 +383,7 @@ export default function DemoLibrary() {
                     <span className={`langbadge ${d.group === "C" ? "pair" : demoLang(d)}`}>{demoLang(d)}</span>
                     <code className="dc-id">{d.id}</code>
                     <span className="spacer" />
-                    <span className="chip">{d.difficulty}</span>
+                    <span className="chip">{tier(d.difficulty)}</span>
                   </div>
                   <h3>{d.title}</h3>
                   <p className="dc-teaches"><b>Teaches:</b> {teaches(d)}</p>

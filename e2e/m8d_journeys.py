@@ -201,7 +201,7 @@ def j8_paste(page) -> None:
       setter.call(ta, 'def sq(n):\\n    return n * n\\n\\n\\nprint(sq(9))\\n');
       ta.dispatchEvent(new Event('input', { bubbles: true }));
       [...document.querySelectorAll('button')]
-        .find((b) => b.textContent.includes('Create snapshot')).click();
+        .find((b) => b.textContent.includes('Load code')).click();
     }""")
     page.wait_for_timeout(3000)
     ok(page.locator(".obs-app").is_visible(), "snapshot created → workspace")
@@ -229,7 +229,7 @@ def j8_paste(page) -> None:
       setter.call(ta, '#include <stdio.h>\\nint main(void) { int s = 0; for (int i = 0; i < 4; i++) s += i; printf(\\"%d\\\\n\\", s); return 0; }\\n');
       ta.dispatchEvent(new Event('input', { bubbles: true }));
       [...document.querySelectorAll('button')]
-        .find((b) => b.textContent.includes('Create snapshot')).click();
+        .find((b) => b.textContent.includes('Load code')).click();
     }""")
     page.wait_for_timeout(3000)
     page.evaluate("""() => {

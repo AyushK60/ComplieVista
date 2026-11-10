@@ -78,7 +78,7 @@ def journey_trace_trust_badges(page: Page) -> None:
     page.get_by_label("paste source code").fill(
         "def main():\n    print('trust probe')\n    return 5\n\n"
         "if __name__ == '__main__':\n    main()\n")
-    page.get_by_role("button", name="Create snapshot").click()
+    page.get_by_role("button", name="Load code").click()
     expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=15000)
     page.get_by_role("button", name="Run in restricted container").click()
     expect(page.locator(".execution")).to_be_visible(timeout=60000)

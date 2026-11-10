@@ -340,8 +340,10 @@ export default function Workspace() {
                         onChange={(e) => setContent(e.target.value)} />
               <button className="btn primary" disabled={busy}
                       onClick={() => runIngest(() => api.paste(language, filename, content))}>
-                Create snapshot
+                Load code
               </button>
+              <p className="muted">Your code is stored as a read-only snapshot. Next you choose
+                whether to analyze it or run it — nothing runs until you click.</p>
             </div>
           )}
           {mode === "upload" && (
@@ -436,6 +438,22 @@ export default function Workspace() {
         <p className="err">Analysis {job.status}: {job.error_code ?? "no stage output"}</p>
       )}
 
+      {!job && !executionId && !analysisId && analyzableTarget && (
+        <div className="obs-next panel" role="note">
+          <h2>Your code is loaded. What next?</h2>
+          <ul>
+            <li><strong>Analyze with {lang === "c" ? "Clang/LLVM 18" : "CPython 3.12"}</strong> — see the real
+              tokens, syntax tree{lang === "c" ? ", LLVM IR and assembly" : ", code objects and bytecode"}.
+              Nothing is executed.</li>
+            {runnableTarget && (
+              <li><strong>Run in restricted container</strong> — execute it once in a sandbox and replay the
+                recorded call stack, variables and output.</li>
+            )}
+          </ul>
+          <p className="muted">Use the buttons above.</p>
+        </div>
+      )}
+
       {job && ["QUEUED", "RUNNING"].includes(job.status) && (
         <p className="notice"><span className="spinner" /> Analysis {job.status.toLowerCase()}… bounded container run
           <button className="btn ghost" onClick={() => api.cancelAnalysis(analysisId!)}>Cancel</button>
@@ -479,7 +497,7 @@ export default function Workspace() {
                                 onSelectStage={(s) => setStageName(s)} />
             )}
             {view === "compile" && stageData ? (
-              <div className={"obs-canvas panel" + (canvasFull ? " fullscreen" : "")}>
+              <div className={"obs-canvas panel" + (canvasFull ? " fullscreen" : "") + (canvasFull && selection ? " fs-insp" : "")}>
                 <button className={"btn ghost fs-toggle" + (canvasFull ? " fs-exit" : "")}
                         onClick={() => setCanvasFull((v) => !v)}
                         title={canvasFull ? "exit full-screen exploration" : "expand the canvas to full screen"}

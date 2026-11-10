@@ -59,8 +59,9 @@ export default function GraphViewWithSel({ analysisId, stage, onSelect, onSelect
           sourceLine: typeof line === "number" ? line : null,
           confidence: conf,
           relations: [
-            { label: "incoming", items: sel.incoming.map((e) => `${e.kind} → ${String(e.target)}`) },
-            { label: "outgoing", items: sel.outgoing.map((e) => `${e.kind} → ${String(e.target)}`) },
+            // incoming edges are listed by the node they come FROM, outgoing by the node they go TO
+            { label: "incoming", items: sel.incoming.map((e) => `${e.kind} ← ${sel.labels[String(e.source)] ?? String(e.source)}`) },
+            { label: "outgoing", items: sel.outgoing.map((e) => `${e.kind} → ${sel.labels[String(e.target)] ?? String(e.target)}`) },
           ],
           raw: n,
           excerpt: instrs?.length ? instrs.slice(0, 40).join("\n") : undefined,

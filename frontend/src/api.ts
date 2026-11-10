@@ -266,6 +266,31 @@ export const executions = {
     fetch(`/api/v1/executions/${id}/process?after=${after}&limit=${limit}`).then(unwrap<ObservationStream>),
 };
 
+// A COMPLETED execution's recorded events never change, so the paged stream is
+// fetched once per run and shared by every view (Execution observatory, Watch It Work).
+const MAX_EVENTS = 5000;
+const eventCache = new Map<string, Promise<ExecutionEvent[]>>();
+
+export function loadAllEvents(executionId: string): Promise<ExecutionEvent[]> {
+  const hit = eventCache.get(executionId);
+  if (hit) return hit;
+  const p = (async () => {
+    const evs: ExecutionEvent[] = [];
+    let after = 0;
+    for (let page = 0; page < MAX_EVENTS / 500; page++) {
+      const r = await executions.events(executionId, after, 500) as { events: ExecutionEvent[]; next_after?: number | null };
+      evs.push(...r.events);
+      const next = r.next_after ?? null;
+      if (next == null || next <= after || evs.length >= MAX_EVENTS) break;
+      after = next;
+    }
+    return evs;
+  })();
+  eventCache.set(executionId, p);
+  p.catch(() => eventCache.delete(executionId));
+  return p;
+}
+
 /** M6: OptimizationLab / benchmarks / pair comparison. */
 export interface ExperimentStage {
   stage: string; availability: string;

@@ -59,7 +59,7 @@ def journey_paste(page: Page) -> None:
     page.get_by_label("paste source code").fill(
         "def fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n"
         "    return a\n\nif __name__ == '__main__':\n    print(fib(10))\n")
-    page.get_by_role("button", name="Create snapshot").click()
+    page.get_by_role("button", name="Load code").click()
     expect(page.get_by_text("Snapshot created")).to_be_visible(timeout=15000)
     expect(page.get_by_text("fib.py").first).to_be_visible()
     code = page.locator(".codeview")
