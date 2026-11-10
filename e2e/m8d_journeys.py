@@ -190,19 +190,22 @@ def j7_compare(page) -> None:
     shot(page, "j7_compare_1440.png")
 
 
+def paste_code(page, text: str) -> None:
+    """Type into the paste editor (CodeMirror, lazily loaded) and click Load code."""
+    editor = page.get_by_label("paste source code")
+    editor.wait_for(state="visible", timeout=20_000)
+    editor.click()
+    page.keyboard.press("Control+A")
+    page.keyboard.insert_text(text)
+    page.get_by_role("button", name="Load code").click()
+
+
 def j8_paste(page) -> None:
     print("[j8] paste custom code → analyze (Python + C)")
     page.goto(BASE + "/workspace")
     page.wait_for_load_state("domcontentloaded")
     page.wait_for_timeout(800)
-    page.evaluate("""() => {
-      const ta = document.querySelector('.paste-area');
-      const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
-      setter.call(ta, 'def sq(n):\\n    return n * n\\n\\n\\nprint(sq(9))\\n');
-      ta.dispatchEvent(new Event('input', { bubbles: true }));
-      [...document.querySelectorAll('button')]
-        .find((b) => b.textContent.includes('Load code')).click();
-    }""")
+    paste_code(page, "def sq(n):\n    return n * n\n\n\nprint(sq(9))\n")
     page.wait_for_timeout(3000)
     ok(page.locator(".obs-app").is_visible(), "snapshot created → workspace")
     # analyze explicitly (static, user's own code — still an explicit action)
@@ -223,14 +226,7 @@ def j8_paste(page) -> None:
       sel.dispatchEvent(new Event('change', { bubbles: true }));
     }""")
     page.wait_for_timeout(300)
-    page.evaluate("""() => {
-      const ta = document.querySelector('.paste-area');
-      const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
-      setter.call(ta, '#include <stdio.h>\\nint main(void) { int s = 0; for (int i = 0; i < 4; i++) s += i; printf(\\"%d\\\\n\\", s); return 0; }\\n');
-      ta.dispatchEvent(new Event('input', { bubbles: true }));
-      [...document.querySelectorAll('button')]
-        .find((b) => b.textContent.includes('Load code')).click();
-    }""")
+    paste_code(page, '#include <stdio.h>\nint main(void) { int s = 0; for (int i = 0; i < 4; i++) s += i; printf("%d\\n", s); return 0; }\n')
     page.wait_for_timeout(3000)
     page.evaluate("""() => {
       [...document.querySelectorAll('button')]

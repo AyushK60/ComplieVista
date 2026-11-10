@@ -66,6 +66,8 @@ def journey_landing_ctas(page: Page) -> None:
     page.locator(".hero-ctas a").nth(1).click()
     page.wait_for_url("**/workspace", timeout=15_000)
     ok(True, "Import Your Code -> Source Workspace")
+    # the workspace is a lazily loaded route: wait for it instead of sampling instantly
+    page.get_by_text("Bring a program to the observatory").wait_for(state="visible", timeout=15_000)
     ok(page.get_by_text("Bring a program to the observatory").is_visible(),
        "workspace ingest surface reachable (import path works)")
 
