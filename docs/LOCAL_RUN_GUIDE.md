@@ -6,10 +6,31 @@ This guide covers running CompileVista **locally on the developer machine**
 HTTPS deployment and NOT a public service** (see README §10/§21 before ever
 considering exposure).
 
+## First time on a new machine: `Setup.cmd`
+
+Prerequisites (installed once, outside this repo):
+
+- **Windows 11** with **WSL2** and an **Ubuntu 24.04** distro
+  (`wsl --install -d Ubuntu-24.04` from an administrator PowerShell).
+- Inside that Ubuntu: **Python 3.12+** with `python3-venv`, and **Node.js + npm**
+  (`sudo apt install -y python3 python3-venv nodejs npm`). Node must be the
+  *Linux* one inside WSL — dependencies are installed from there, so a Windows-only
+  Node cannot run the frontend.
+- **Docker Desktop** with the WSL 2 engine and WSL integration enabled for Ubuntu.
+
+Then **double-click `Setup.cmd`** once. It checks each prerequisite and tells you
+exactly what is missing, creates the backend virtual environment, installs the
+frontend dependencies (`npm ci`) and builds the three sandbox images. It is safe to
+re-run — finished steps are skipped. Afterwards use `Start.cmd`.
+
+To use a differently named WSL distro, set the `COMPILEVISTA_WSL_DISTRO`
+environment variable before running the scripts.
+
 ## One-click workflow (recommended)
 
 | File | What it does |
 |---|---|
+| `Setup.cmd`  | One-time: checks prerequisites, installs backend/frontend dependencies, builds the sandbox images. |
 | `Start.cmd`  | Checks WSL, Docker Desktop/engine, pinned images; starts backend + frontend; waits for REAL health; opens the browser. |
 | `Stop.cmd`   | Gracefully stops ONLY the servers this launcher started (identity-verified); idempotent; leaves Docker Desktop and unrelated processes alone. |
 | `Status.cmd` | Reports engine health, both URLs, ownership, and live pids — no false green states. |

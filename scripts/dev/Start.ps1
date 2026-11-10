@@ -131,6 +131,9 @@ try {
                 throw ("Port $($script:BackendPort) is occupied on WINDOWS by '$winOwner' (not visible in WSL). " +
                        "This launcher never kills unrelated processes. Free the port, then run Start again.")
             }
+            if (-not (Test-Path (Join-Path $roots.WinRoot "backend\.venv\bin\uvicorn"))) {
+                throw "The backend environment is not installed yet. Double-click Setup.cmd once (it installs everything and checks your prerequisites), then run Start again."
+            }
             Write-CvStep "Starting backend (uvicorn, 127.0.0.1:$script:BackendPort)..."
             # WSL 3.x tears down the whole session process tree when the wsl.exe
             # client exits (reproduced: plain nohup/setsid daemons died with it).
@@ -218,7 +221,7 @@ try {
                        "This launcher never kills unrelated processes. Free the port, then run Start again.")
             }
             if (-not (Test-Path (Join-Path $roots.WinRoot "frontend\node_modules"))) {
-                throw "frontend\node_modules is missing. Install dependencies once (wsl -d $script:WslDistro -- sh -c 'cd $($roots.WslRoot)/frontend && npm install'), then run Start again."
+                throw "The frontend dependencies are not installed yet. Double-click Setup.cmd once (it installs everything and checks your prerequisites), then run Start again."
             }
             Write-CvStep "Starting frontend (Vite dev server, 127.0.0.1:$script:FrontendPort)..."
             $flogFile = "$($roots.WslRoot)/.local/compilevista/logs/frontend.log"

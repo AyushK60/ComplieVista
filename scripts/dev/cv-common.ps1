@@ -4,7 +4,7 @@
 # verified by recorded identity; never use taskkill /IM, pkill -f, or blanket
 # docker stop; ports occupied by unknown owners are reported, never stolen.
 
-$script:WslDistro = "Ubuntu-24.04"
+$script:WslDistro = if ($env:COMPILEVISTA_WSL_DISTRO) { $env:COMPILEVISTA_WSL_DISTRO } else { "Ubuntu-24.04" }
 $script:BackendPort = 8123
 $script:FrontendPort = 5173
 $script:StateDirName = ".local\compilevista"

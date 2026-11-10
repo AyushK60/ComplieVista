@@ -1,7 +1,7 @@
 """M0 Deliverable D — Windows/WSL source-staging bridge (ADR-0001).
 
 Copies a source tree ONCE into an immutable, hashed per-job directory under
-Linux-native storage (/home/khana/.cache/compilevista/jobs/<job-id>/src), records a
+Linux-native storage (~/.cache/compilevista/jobs/<job-id>/src), records a
 SHA-256 manifest atomically, and cleans up. Never executes or imports source during
 static file discovery; never interpolates untrusted filenames into shell strings.
 
@@ -20,7 +20,9 @@ import tempfile
 import time
 from pathlib import Path, PurePosixPath
 
-DEFAULT_JOBS_ROOT = Path("/home/khana/.cache/compilevista/jobs")
+# Linux-native staging area; follows the current user's home so a fresh clone works
+# on any machine. Override with COMPILEVISTA_JOBS_ROOT.
+DEFAULT_JOBS_ROOT = Path.home() / ".cache" / "compilevista" / "jobs"
 MAX_FILE_BYTES = 2 * 1024 * 1024       # per-file cap (M0 fixtures are tiny)
 MAX_TOTAL_BYTES = 16 * 1024 * 1024
 MAX_FILES = 2000
