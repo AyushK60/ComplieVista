@@ -244,3 +244,10 @@ pre.excerpt {
   .topnav::-webkit-scrollbar { display: none; }
   .topnav a.navlink { white-space: nowrap; }
 }
+
+/* skip link: visible only when keyboard-focused */
+.skip-link { position: absolute; left: 8px; top: -48px; z-index: 1000; padding: 8px 12px;
+  background: var(--panel, #fff); color: var(--fg, #1b1f24); border: 2px solid var(--accent, #0b5fff);
+  border-radius: 6px; text-decoration: none; }
+.skip-link:focus { top: 8px; }
+main:focus { outline: none; }

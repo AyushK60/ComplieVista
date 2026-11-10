@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Experiment, experiments } from "../../api";
+import SourceLinkView from "./SourceLinkView";
 
 /** Minimal LCS line diff for asm/IR comparison (bounded inputs ≤ 24 KB). */
 function lineDiff(a: string, b: string): Array<[" " | "-" | "+", string]> {
@@ -212,6 +213,10 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
             benchmark for measured timing on this machine only.
           </p>
         </div>
+      )}
+
+      {opt?.status === "COMPLETED" && (
+        <div className="optbody"><SourceLinkView experimentId={opt.id} /></div>
       )}
 
       {bench && bench.status !== "COMPLETED" && (

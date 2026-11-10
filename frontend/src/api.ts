@@ -307,6 +307,23 @@ export interface PairSpec {
   id: string; concept: string; c_file: string; py_file: string;
   expected_stdout: string; c_source: string | null; py_source: string | null;
 }
+/** Source <-> IR <-> asm line links derived from real -g output (Stage C). */
+export interface LevelLineMap {
+  has_debug_info: boolean; source_lines: number; artifacts_truncated: boolean;
+  ir_to_source: Record<string, number>; asm_to_source: Record<string, number>;
+  ir_inlined: number[];
+  by_source: Record<string, { ir: number[]; asm: number[] }>;
+  counts: { ir_instructions_linked: number; asm_instructions_linked: number };
+}
+export interface LineMap {
+  experiment_id: string; primary_file: string; source: string;
+  levels: Record<string, LevelLineMap>;
+  compare_O0_O2?: {
+    rows: Array<{ line: number; ir: [number, number]; asm: [number, number] }>;
+    removed: number[]; grown: number[]; shrunk: number[]; new: number[];
+    totals: { asm: [number, number]; ir: [number, number] };
+  };
+}
 export const experiments = {
   create: (body: Record<string, unknown>) =>
     fetch("/api/v1/experiments", {
@@ -320,6 +337,8 @@ export const experiments = {
       .then(unwrap<{ excerpt: string; truncated: boolean; sha256: string; bytes: number }>),
   cancel: (id: string) =>
     fetch(`/api/v1/experiments/${id}/cancel`, { method: "POST" }).then(unwrap),
+  linemap: (id: string) =>
+    fetch(`/api/v1/experiments/${id}/linemap`).then(unwrap<LineMap>),
 };
 export const pairs = {
   list: () => fetch("/api/v1/pairs").then(unwrap<{ pairs: PairSpec[] }>),

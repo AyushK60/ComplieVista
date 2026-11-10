@@ -223,11 +223,15 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
         )}
         {job.trace_integrity === "SUSPECT" && <span className="badge blocked">integrity SUSPECT</span>}
         <span className="spacer" />
+        <a className="btn ghost" href={`/api/v1/executions/${executionId}/replay.html`} download
+           title="one self-contained HTML file that replays this recorded run offline — no backend needed">
+          ⬇ Replay file
+        </a>
         <span className="muted tech-only">recorded replay · never re-executes ·
           {" "}{events.length} events{job.events_truncated ? " (TRUNCATED)" : ""}</span>
       </div>
       {job.trace_trust === "UNTRUSTED_TARGET" && (
-        <p className="trustnote" role="note">
+        <p className="trustnote" role="note" aria-label="trace trust warning">
           ⚠ This program ran untrusted in the same container as the observer. It could have
           attempted to alter or disable instrumentation, so these events are not guaranteed
           genuine{job.trace_integrity === "CONSISTENT" ? " (channel integrity checks passed, but the trust domain is shared)" : ""}.

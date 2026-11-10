@@ -1,16 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  AnalysisJob, ApiError, api, FileDetail, Project, Reason, SnapshotDetail,
+  AnalysisJob, ApiError, api, FileDetail, IngestResult, Project, Reason, SnapshotDetail,
   StageData, Target, demos, executions,
 } from "../api";
+import { clearRecent, loadRecent, recentUrl, recordRecent } from "../lib/recent";
 import SourceDock from "../components/observatory/SourceDock";
 import JourneyNavigator from "../components/observatory/JourneyNavigator";
 import StageCanvas from "../components/observatory/StageCanvas";
 import Inspector from "../components/observatory/Inspector";
 import ExecutionDock from "../components/observatory/ExecutionDock";
 import ProgramWalkthrough from "../components/observatory/ProgramWalkthrough";
-import OptimizationExplorer from "../components/observatory/OptimizationExplorer";
+
+const CodeEditor = lazy(() => import("../components/CodeEditor"));
+const OptimizationExplorer = lazy(() => import("../components/observatory/OptimizationExplorer"));
 import { SourceSpan } from "../components/observatory/TokenFormation";
 import { Selection } from "../components/observatory/types";
 
@@ -44,6 +47,8 @@ export default function Workspace() {
   const [mode, setMode] = useState<Mode>("paste");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // entries the intake refused (hostile ZIP paths, oversize files…) — always reported to the user
+  const [rejected, setRejected] = useState<IngestResult["rejected"]>([]);
   const [language, setLanguage] = useState("python");
   const [filename, setFilename] = useState("demo.py");
   const [content, setContent] = useState(
@@ -221,9 +226,13 @@ export default function Workspace() {
     setExecutionId(null); setSelection(null); setOptPair(null);
   }
 
-  async function runIngest(action: () => Promise<{ project_id: string }>) {
-    setBusy(true); setError(null);
-    try { await loadProject((await action()).project_id); }
+  async function runIngest(action: () => Promise<IngestResult>) {
+    setBusy(true); setError(null); setRejected([]);
+    try {
+      const res = await action();
+      setRejected(res.rejected ?? []);
+      await loadProject(res.project_id);
+    }
     catch (e) { setError(e instanceof ApiError ? `${e.code}: ${e.body.message}` : String(e)); }
     setBusy(false);
   }
@@ -275,7 +284,12 @@ export default function Workspace() {
       // persist so reload keeps the journey
       const next = new URLSearchParams(params);
       next.set("analysis", ref.analysis_id);
+      next.set("snapshot", snapshot.id);
+      next.set("target", analyzableTarget.target_id);
+      if (!next.get("project")) next.set("project", project?.id ?? "");
       setParams(next, { replace: true });
+      // the Optimization lab (and its source<->IR<->asm links) works on this snapshot/target
+      setOptPair({ snapshotId: snapshot.id, targetId: analyzableTarget.target_id });
     } catch (e) { setAnalyzeError(e instanceof ApiError ? e.message : String(e)); }
   }
 
@@ -299,6 +313,17 @@ export default function Workspace() {
       </div>
     );
   }, [project, snapshot, lang, demoMeta]);
+
+  // Session history (this browser only): remember what was opened so it can be reopened.
+  useEffect(() => {
+    if (!project || !snapshot) return;
+    recordRecent({
+      title: demoMeta ?? project.name, language: lang, project: project.id, snapshot: snapshot.id,
+      analysis: analysisId ?? undefined, execution: executionId ?? undefined,
+      target: (analyzableTarget ?? runnableTarget)?.target_id,
+    });
+  }, [project, snapshot, demoMeta, lang, analysisId, executionId, analyzableTarget, runnableTarget]);
+  const [recent, setRecent] = useState(() => loadRecent());
 
   /* ——— ingest (empty state) ——— */
   if (!project || !snapshot) {
@@ -335,9 +360,12 @@ export default function Workspace() {
                   <input className="input" value={filename} onChange={(e) => setFilename(e.target.value)} />
                 </label>
               </div>
-              <textarea className="input paste-area" rows={12} value={content} aria-label="paste source code"
-                        spellCheck={false}
-                        onChange={(e) => setContent(e.target.value)} />
+              <Suspense fallback={
+                <textarea className="input paste-area" rows={12} value={content} aria-label="paste source code"
+                          spellCheck={false} onChange={(e) => setContent(e.target.value)} />}>
+                <CodeEditor value={content} onChange={setContent} language={language}
+                            ariaLabel="paste source code" />
+              </Suspense>
               <button className="btn primary" disabled={busy}
                       onClick={() => runIngest(() => api.paste(language, filename, content))}>
                 Load code
@@ -384,6 +412,25 @@ export default function Workspace() {
           {error && <p className="err">{error}</p>}
           <p className="muted">Looking for a quick start? Pick a program in the{" "}
             <Link to="/demos">Demo Library</Link>.</p>
+          {recent.length > 0 && (
+            <section className="recent" aria-label="recent sessions">
+              <h2>Pick up where you left off</h2>
+              <ul>
+                {recent.map((r) => (
+                  <li key={r.key}>
+                    {/* plain link: a full load restores state even though the route is unchanged */}
+                    <a href={recentUrl(r)}>{r.title}</a>
+                    <span className="chip">{r.language === "c" ? "C" : "Python"}</span>
+                    <span className="muted">{new Date(r.ts).toLocaleString()}</span>
+                    {r.analysis && <span className="chip ok">analyzed</span>}
+                    {r.execution && <span className="chip ok">run</span>}
+                  </li>
+                ))}
+              </ul>
+              <p className="muted">Stored only in this browser.{" "}
+                <button className="btn ghost" onClick={() => { clearRecent(); setRecent([]); }}>Clear history</button></p>
+            </section>
+          )}
         </div>
       </main>
     );
@@ -432,25 +479,43 @@ export default function Workspace() {
           ))}
         </ul>
       )}
+      {rejected.length > 0 && (
+        <div className="notice obs-rejected" role="status">
+          <strong>{rejected.length} archive {rejected.length === 1 ? "entry" : "entries"} rejected</strong>
+          {" "}— not added to the snapshot and never executed:
+          <ul>
+            {rejected.map((r, i) => (
+              <li key={i}><code>{r.entry}</code> — {r.reason_code}{r.detail ? ` (${r.detail})` : ""}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {analyzeError && <p className="err">Analyze failed: {analyzeError}</p>}
       {runError && <p className="err">Run failed: {runError}</p>}
       {job && ["BLOCKED", "FAILED", "TIMEOUT"].includes(job.status) && (
         <p className="err">Analysis {job.status}: {job.error_code ?? "no stage output"}</p>
       )}
 
-      {!job && !executionId && !analysisId && analyzableTarget && (
-        <div className="obs-next panel" role="note">
-          <h2>Your code is loaded. What next?</h2>
-          <ul>
-            <li><strong>Analyze with {lang === "c" ? "Clang/LLVM 18" : "CPython 3.12"}</strong> — see the real
-              tokens, syntax tree{lang === "c" ? ", LLVM IR and assembly" : ", code objects and bytecode"}.
-              Nothing is executed.</li>
-            {runnableTarget && (
-              <li><strong>Run in restricted container</strong> — execute it once in a sandbox and replay the
-                recorded call stack, variables and output.</li>
-            )}
-          </ul>
-          <p className="muted">Use the buttons above.</p>
+      {!job && !executionId && !analysisId && (
+        <div className="obs-preanalysis">
+          {analyzableTarget && (
+            <div className="obs-next panel" role="note">
+              <h2>Your code is loaded. What next?</h2>
+              <ul>
+                <li><strong>Analyze with {lang === "c" ? "Clang/LLVM 18" : "CPython 3.12"}</strong> — see the real
+                  tokens, syntax tree{lang === "c" ? ", LLVM IR and assembly" : ", code objects and bytecode"}.
+                  Nothing is executed.</li>
+                {runnableTarget && (
+                  <li><strong>Run in restricted container</strong> — execute it once in a sandbox and replay the
+                    recorded call stack, variables and output.</li>
+                )}
+              </ul>
+              <p className="muted">Use the buttons above.</p>
+            </div>
+          )}
+          {selected && (
+            <SourceDock text={sourceText} path={selected.rel_path} language={lang} />
+          )}
         </div>
       )}
 
@@ -567,7 +632,9 @@ export default function Workspace() {
                                   onSelectLine={(l) => showLine(l, true)} />
             )}
             {view === "optimization" && optPair && (
-              <OptimizationExplorer snapshotId={optPair.snapshotId} targetId={optPair.targetId} language={lang} />
+              <Suspense fallback={<p className="muted"><span className="spinner" /> loading…</p>}>
+                <OptimizationExplorer snapshotId={optPair.snapshotId} targetId={optPair.targetId} language={lang} />
+              </Suspense>
             )}
           </div>
 

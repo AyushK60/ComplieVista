@@ -360,13 +360,13 @@ export default function DemoLibrary() {
       {!catalog.loading && catalog.error && !catalog.demos && (
         <p className="err" role="alert">
           The demo catalog could not be loaded: {catalog.error}{" "}
-          <button className="btn" onClick={() => setReloadTick((t) => t + 1)}>Retry</button>
+          <button className="btn" aria-label="Retry loading the demo catalog" onClick={() => setReloadTick((t) => t + 1)}>Retry</button>
         </p>
       )}
       {catalog.error && catalog.demos && (
         <p className="err" role="alert">
           Catalog refresh failed (showing previously loaded data): {catalog.error}{" "}
-          <button className="btn" onClick={() => setReloadTick((t) => t + 1)}>Retry</button>
+          <button className="btn" aria-label="Retry loading the demo catalog" onClick={() => setReloadTick((t) => t + 1)}>Retry</button>
         </p>
       )}
 

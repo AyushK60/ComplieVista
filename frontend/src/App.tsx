@@ -1,9 +1,11 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import AppShell from "./components/AppShell";
 import Home from "./pages/Home";
-import Workspace from "./pages/Workspace";
-import Compare from "./pages/Compare";
-import DemoLibrary from "./pages/DemoLibrary";
+
+const Workspace = lazy(() => import("./pages/Workspace"));
+const Compare = lazy(() => import("./pages/Compare"));
+const DemoLibrary = lazy(() => import("./pages/DemoLibrary"));
 
 function NotFound() {
   return (
@@ -21,6 +23,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppShell>
+        <Suspense fallback={<main className="obs obs-empty"><p className="muted" role="status">Loading…</p></main>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/workspace" element={<Workspace />} />
@@ -29,6 +32,7 @@ export default function App() {
           <Route path="/demos/:demoId" element={<DemoLibrary />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </AppShell>
     </BrowserRouter>
   );

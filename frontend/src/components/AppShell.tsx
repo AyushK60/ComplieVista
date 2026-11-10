@@ -17,7 +17,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
   return (
     <>
-      <nav className="topnav">
+      <a href="#main" className="skip-link" onClick={(e) => {
+        e.preventDefault();
+        const m = document.querySelector<HTMLElement>("main");
+        if (m) { m.setAttribute("tabindex", "-1"); m.focus(); }
+      }}>Skip to main content</a>
+      <nav className="topnav" aria-label="primary">
         <Link to="/" className="brand"><span className="brand-mark" aria-hidden />CompileVista</Link>
         {[
           ["/", "Home"],
