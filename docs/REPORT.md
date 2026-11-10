@@ -71,6 +71,24 @@ CSP forbids network access.
 | Is untrusted execution contained? | Adversarial suite, fresh-run outcomes | **[evidence needed]** |
 | Does it help learners? | Small task-based usability study (optional) | not started |
 
+## 7.1 Other measurements (as of this draft)
+
+- **Automated tests:** 223 backend tests (including adversarial sandbox cases, oracle checks
+  against the real toolchains and the 20-program demo matrix) and 20 frontend unit tests pass.
+  Browser journeys cover the main flows; the layout suite checks seven viewport widths
+  (390 to 1920 px) for overflow, overlap and covered controls.
+- **Accessibility:** an axe-core scan (WCAG 2.0/2.1 A and AA rules) over 12 screens reached
+  through the real UI (home, library, demo page, compare, workspace states, each stage view,
+  the optimization lab, execution, walkthrough) found 23 violations initially (links
+  distinguished by colour only, a tab list with non-tab children, low-contrast badges,
+  scrollable panes without keyboard access, nested interactive controls in graph nodes);
+  all were fixed and the rescan reports 0. Machine checks only: no manual screen-reader or
+  full keyboard audit was done.
+- **Load size:** the initial JavaScript bundle went from 521 kB to 193 kB by loading routes,
+  the code editor and the optimization explorer on demand.
+- **Not measured:** wall-clock performance claims, any learning outcome (see
+  `docs/USABILITY_STUDY.md`), CI behaviour on a hosted runner.
+
 ## 8. Limitations and future work
 
 Local single-user tool (not a hosted service); C execution tracing is function-level; Python

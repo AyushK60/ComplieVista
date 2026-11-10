@@ -9,6 +9,22 @@ Nothing is simulated. Every artifact carries the tool and version that produced 
 invocation, the exit code and a SHA-256; when a tool cannot provide something, the UI says
 "unavailable" instead of making it up.
 
+## See it work
+
+**From pasted code to every compiler stage** (tokens, syntax tree, LLVM IR, assembly):
+
+![Compilation journey](docs/media/compilation-journey.gif)
+
+**Source ↔ LLVM IR ↔ assembly**, linked from the compiler's own debug info, with -O0 vs -O2:
+
+![Source, IR and assembly links](docs/media/source-ir-asm-links.gif)
+
+**Watch a program work** — a sandboxed run, replayed step by step:
+
+![Watch it work](docs/media/watch-it-work.gif)
+
+*(Recorded from the real app by `scripts/media/make_gifs.py`; nothing is mocked.)*
+
 ## What you can do
 
 - **Paste, upload or import** C/Python code (a CodeMirror editor, ZIP upload, or a public GitHub repo) and step through the compilation journey stage by stage.
@@ -38,7 +54,7 @@ Everything binds to `127.0.0.1`. This is a local tool, not a hosted service.
 | Backend | FastAPI, SQLite metadata + content-addressed artifacts |
 | Analysis & execution | Three pinned Docker images (analyzer/builder, runtime, debug); no network, read-only root, dropped capabilities, resource limits, non-root |
 | Frontend | React, TypeScript, Vite, React Flow, CodeMirror 6 |
-| Tests | pytest (API, security, oracle checks against the real toolchains), Playwright browser journeys, a layout test at seven viewport widths |
+| Tests | pytest (API, security, oracle checks against the real toolchains), Vitest unit tests for the pure logic, Playwright browser journeys, a layout test at seven viewport widths, an axe-core accessibility scan of 12 screens |
 
 Design rules that shape the code:
 
