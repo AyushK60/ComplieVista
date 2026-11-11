@@ -2,7 +2,7 @@ import { ExecutionEvent } from "../../api";
 
 /**
  * Pure trace model: turns a recorded event list into a call tree and a stack at a
- * cursor. No React, no I/O — every value comes straight from the recorded events.
+ * cursor. No React, no I/O - every value comes straight from the recorded events.
  */
 
 export interface Frame {
@@ -28,7 +28,7 @@ export interface TreeNode {
   agg?: false;
 }
 
-/** Trace values are typed records ({type,repr}|{type,identity}|{type,len}) —
+/** Trace values are typed records ({type,repr}|{type,identity}|{type,len}) -
  * render the honest repr, never "[object Object]". */
 export function retRepr(arg: unknown): string | null {
   if (arg == null) return null;

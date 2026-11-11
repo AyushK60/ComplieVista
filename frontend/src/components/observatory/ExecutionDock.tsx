@@ -10,10 +10,10 @@ export { buildTree, stackAt } from "./traceModel";
 export type { TreeNode } from "./traceModel";
 
 /**
- * Execution Observatory — recorded replay of a real restricted-container run,
+ * Execution Observatory - recorded replay of a real restricted-container run,
  * centered on the relationships between calls, frames, variables and returns.
  * Primary navigation is the call structure canvas and the stack scene; the
- * timeline is secondary. Every value shown comes from the recorded trace —
+ * timeline is secondary. Every value shown comes from the recorded trace -
  * nothing is simulated. C runs record call/return only (shim policy, labeled).
  */
 
@@ -96,7 +96,7 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
         {job.trace_integrity === "SUSPECT" && <StatusBadge code="INTEGRITY_SUSPECT" />}
         <span className="spacer" />
         <a className="btn ghost" href={`/api/v1/executions/${executionId}/replay.html`} download
-           title="one self-contained HTML file that replays this recorded run offline — no backend needed">
+           title="one self-contained HTML file that replays this recorded run offline - no backend needed">
           <Icon name="download" size={14} /> Replay file
         </a>
         <span className="muted tech-only">recorded replay · never re-executes ·
@@ -124,7 +124,7 @@ export default function ExecutionDock({ executionId, onSelectLine, activeLine }:
           {tab === "output" && (
             <div className="execoutput">
               <pre className="excerpt" tabIndex={0} aria-label="program output">{output ?? "(none)"}</pre>
-              <p className="muted tech-only">digests — stdout <code>{job.stdout_sha256?.slice(0, 20) ?? "—"}…</code> ·
+              <p className="muted tech-only">digests - stdout <code>{job.stdout_sha256?.slice(0, 20) ?? "—"}…</code> ·
                 stderr <code>{job.stderr_sha256?.slice(0, 20) ?? "—"}…</code> ·
                 trace <code>{job.trace_sha256?.slice(0, 20) ?? "—"}…</code></p>
             </div>

@@ -2,7 +2,7 @@ import { AnalysisJob } from "../../api";
 import { STAGE_BLURBS } from "./types";
 
 /**
- * Journey Navigator — the spatially-ordered pipeline of the selected program.
+ * Journey Navigator - the spatially-ordered pipeline of the selected program.
  * Stages come verbatim from the analysis job (never invented); availability
  * and observation class are shown honestly. Stages are grouped into real
  * pipeline phases so the navigator reads as a journey, not a row of tabs.
@@ -14,13 +14,13 @@ const STAGE_ORDER_HINT = [
 ];
 
 const C_PHASES: Array<[string, string[]]> = [
-  ["Frontend — reading your C", ["preprocess", "tokens", "ast", "diagnostics"]],
-  ["Middle end — LLVM IR", ["ir_o0", "ir_o2"]],
-  ["Backend — machine code", ["assembly", "disassembly", "object", "symbols"]],
+  ["Frontend - reading your C", ["preprocess", "tokens", "ast", "diagnostics"]],
+  ["Middle end - LLVM IR", ["ir_o0", "ir_o2"]],
+  ["Backend - machine code", ["assembly", "disassembly", "object", "symbols"]],
 ];
 const PY_PHASES: Array<[string, string[]]> = [
-  ["Frontend — reading your Python", ["tokens", "ast", "diagnostics"]],
-  ["Compiler — bytecode", ["code_object", "bytecode"]],
+  ["Frontend - reading your Python", ["tokens", "ast", "diagnostics"]],
+  ["Compiler - bytecode", ["code_object", "bytecode"]],
 ];
 
 export default function JourneyNavigator({ job, stageName, onSelectStage, guided, onToggleGuided, language }: {
@@ -72,7 +72,7 @@ export default function JourneyNavigator({ job, stageName, onSelectStage, guided
                   return (
                     <li key={st.stage}>
                       <button className={cls}
-                              title={`${st.stage} — ${avail}`}
+                              title={`${st.stage} - ${avail}`}
                               aria-current={active ? "step" : undefined}
                               disabled={avail === "ERROR"}
                               onClick={() => onSelectStage(st.stage)}>

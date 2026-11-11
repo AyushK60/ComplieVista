@@ -69,7 +69,7 @@ def test_no_top_level_execution_side_effects():
     from pathlib import Path
     blob = b"".join(p.read_bytes() for p in Path("evidence/m0/python").rglob("*") if p.is_file())
     assert b"total=28" not in blob or True  # dis/bytecode may contain the constant name only
-    # Stronger check: compile-only produce no stdout — verified by construction; assert
+    # Stronger check: compile-only produce no stdout - verified by construction; assert
     # that the manifest argv never contains "runpy", "-c exec", or an import of the fixture.
     m = manifest()
     for s in m["stages"]:

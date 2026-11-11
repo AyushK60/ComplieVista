@@ -17,7 +17,7 @@ from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 
 REPO = Path(__file__).resolve().parents[1]
-SHOTS = REPO / "docs" / "TEST_EVIDENCE" / "layout_widths"
+SHOTS = REPO / "e2e" / "screenshots" / "layout_widths"
 BASE = "http://127.0.0.1:5173"
 WIDTHS = [(390, 844), (768, 1024), (1024, 768), (1180, 800), (1181, 800), (1440, 900), (1920, 1080)]
 FAILED: list[str] = []

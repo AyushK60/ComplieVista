@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M0 Deliverable B — genuine C toolchain proof (Clang/LLVM 18, Ubuntu 24.04).
+"""Stage 0 Deliverable B - genuine C toolchain proof (Clang/LLVM 18, Ubuntu 24.04).
 
 Runs the real installed Clang against checked-in deterministic fixtures and writes
 raw artifacts + normalized excerpts + manifest to evidence/m0/c/. Stdlib only.
@@ -179,7 +179,7 @@ def main() -> int:
     else:
         stages.append(stage_record("preprocess", inv, [], {}, ["clang -E failed"]))
 
-    # Stage 2: tokens (dump may land on stdout or stderr depending on version — record which)
+    # Stage 2: tokens (dump may land on stdout or stderr depending on version - record which)
     inv = run(["clang", "-fsyntax-only", "-Xclang", "-dump-tokens", str(fixture)])
     dump_stream = "stdout" if inv["stdout"].strip() else ("stderr" if inv["stderr"].strip() else None)
     if dump_stream:
@@ -289,7 +289,7 @@ def main() -> int:
         "stages": stages,
         "limitations_global": [
             "Static analysis only; no C execution in this deliverable (Docker feasibility is separate).",
-            "No source→IR instruction mapping is claimed (UNAVAILABLE in M0).",
+            "No source→IR instruction mapping is claimed (UNAVAILABLE in stage 0).",
         ],
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=1))

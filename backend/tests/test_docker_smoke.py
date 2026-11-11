@@ -1,7 +1,7 @@
 """Integration smoke: one curated deterministic run under the restrictive Docker
 baseline, executed through the same code path as the feasibility probe. Skipped
 cleanly when Docker is unavailable. This is feasibility evidence, NOT a sandbox
-safety claim (ADR-0003; adversarial tests are an M4 gate).
+safety claim (ADR-0003; adversarial tests are an stage 4 gate).
 """
 import importlib.util
 import shutil

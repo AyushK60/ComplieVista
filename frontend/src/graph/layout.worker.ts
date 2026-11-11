@@ -1,8 +1,8 @@
 /// <reference lib="webworker" />
-// M8 Part-2 layout engine. Two strategies, chosen by the caller:
+// Stage 8 Part-2 layout engine. Two strategies, chosen by the caller:
 //
 //  1. "tree" (syntax trees): Reingold–Tilford-style tidy tree over CONTAINMENT
-//     edges only. Children keep source order (line, col, id — stable sibling
+//     edges only. Children keep source order (line, col, id - stable sibling
 //     ordering); each parent is centered over its children; subtrees are packed
 //     so nothing overlaps. This replaces the old layer-column layout that made
 //     ASTs read as unrelated columns of labels.
@@ -10,7 +10,7 @@
 //  2. "layered" (CFGs): SCC-condensed DAG layered TOP-DOWN (control flow reads
 //     downward), members of a cycle stacked at the component position, layers
 //     ordered by predecessor barycenter to reduce edge crossings. Kept from
-//     M3.5 (CV-06) but rotated vertical and re-ordered.
+//     Stage 3.5 (CV-06) but rotated vertical and re-ordered.
 //
 // Positions only; no node is invented or dropped here.
 type Pos = { x: number; y: number };
@@ -126,7 +126,7 @@ function tree(nodes: NodeRec[], edges: EdgeRec[], o: LayoutOpts): Record<string,
     placeTree(r, cursor, 0);
     cursor += subtreeWidth(r) + o.subtreeGap;
   }
-  // safety: any node unreachable via containment (e.g. cap orphans) — stack below
+  // safety: any node unreachable via containment (e.g. cap orphans) - stack below
   const maxMain = Math.max(0, ...Object.values(positions).map((p) => (LR ? p.x : p.y)));
   for (const n of nodes) {
     if (!positions[n.id]) positions[n.id] = LR ? { x: maxMain + levelStep, y: 0 } : { x: 0, y: maxMain + levelStep };

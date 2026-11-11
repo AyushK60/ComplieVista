@@ -1,4 +1,4 @@
-"""M0 Deliverable D — Windows/WSL source-staging bridge (ADR-0001).
+"""Stage 0 Deliverable D - Windows/WSL source-staging bridge (ADR-0001).
 
 Copies a source tree ONCE into an immutable, hashed per-job directory under
 Linux-native storage (~/.cache/compilevista/jobs/<job-id>/src), records a
@@ -23,7 +23,7 @@ from pathlib import Path, PurePosixPath
 # Linux-native staging area; follows the current user's home so a fresh clone works
 # on any machine. Override with COMPILEVISTA_JOBS_ROOT.
 DEFAULT_JOBS_ROOT = Path.home() / ".cache" / "compilevista" / "jobs"
-MAX_FILE_BYTES = 2 * 1024 * 1024       # per-file cap (M0 fixtures are tiny)
+MAX_FILE_BYTES = 2 * 1024 * 1024       # per-file cap (Stage 0 fixtures are tiny)
 MAX_TOTAL_BYTES = 16 * 1024 * 1024
 MAX_FILES = 2000
 
@@ -183,14 +183,14 @@ def cleanup_job(job_id: str, dest_root: Path | None = None) -> bool:
 def remove_disposable_dir(job_dir: Path, fallback_image: str) -> None:
     """Remove a disposable per-job directory after a container used it.
 
-    Robust against two observed failure modes (M4QA):
+    Robust against two observed failure modes (Stage 4 review):
       1. EBUSY/race right after `docker run --rm` exits while the daemon is still
-         tearing down the bind mount — retried briefly.
-      2. Docker Desktop chowning container-written dirs to root — fall back to a
+         tearing down the bind mount - retried briefly.
+      2. Docker Desktop chowning container-written dirs to root - fall back to a
          one-off privileged container bounded to the jobs parent (trusted
          orchestration only; fixed argv, internally generated paths).
     A failed fallback is reported loudly instead of disappearing silently
-    (M4-era leftovers proved the silent failure).
+    (Stage 4-era leftovers proved the silent failure).
     """
     for _ in range(4):
         shutil.rmtree(job_dir, ignore_errors=True)

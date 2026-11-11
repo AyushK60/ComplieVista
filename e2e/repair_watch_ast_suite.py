@@ -1,10 +1,10 @@
-"""Repair acceptance suite — Watch It Work (A) + AST edges/focus/contrast (B).
+"""Repair acceptance suite - Watch It Work (A) + AST edges/focus/contrast (B).
 
 G1: Watch layout + real playback against recorded PY-02 and PY-03 runs.
 G2: painted AST edges (C and Python), auto-focus-once lifecycle, contrast.
 G3: screenshot matrix 1920x1080 / 1366x768 / 390x844.
 
-Real stack, no mocks. Evidence: docs/TEST_EVIDENCE/repair_watch_ast/after/
+Real stack, no mocks. Evidence: e2e/screenshots/repair_watch_ast/after/
 Run: backend/.venv/bin/python e2e/repair_watch_ast_suite.py   (repo root, stack running)
 """
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 REPO = Path(__file__).resolve().parents[1]
-SHOTS = REPO / "docs" / "TEST_EVIDENCE" / "repair_watch_ast" / "after"
+SHOTS = REPO / "e2e" / "screenshots" / "repair_watch_ast" / "after"
 BASE = "http://127.0.0.1:5173"
 FAILED: list[str] = []
 CONSOLE_ERRORS: list[str] = []
@@ -25,7 +25,7 @@ CONSOLE_ERRORS: list[str] = []
 def shot(page, name: str) -> None:
     SHOTS.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(SHOTS / name), full_page=False)
-    print(f"  screenshot: docs/TEST_EVIDENCE/repair_watch_ast/after/{name}")
+    print(f"  screenshot: e2e/screenshots/repair_watch_ast/after/{name}")
 
 
 def ok(cond: bool, what: str) -> bool:

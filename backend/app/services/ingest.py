@@ -1,7 +1,7 @@
-"""M1-B ingestion: paste / uploaded files / archives → projects, snapshots, targets.
+"""Stage 1-B ingestion: paste / uploaded files / archives → projects, snapshots, targets.
 
 Classification uses bounded static parsing only (ast.parse / lexical checks on
-size-capped text). NOTHING is executed or imported here — adversarial fixtures
+size-capped text). NOTHING is executed or imported here - adversarial fixtures
 with top-level side effects are used in tests to prove that invariant.
 """
 from __future__ import annotations

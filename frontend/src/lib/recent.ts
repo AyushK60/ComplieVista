@@ -1,4 +1,4 @@
-/** Recent sessions, kept only in this browser (localStorage) — never sent anywhere. */
+/** Recent sessions, kept only in this browser (localStorage) - never sent anywhere. */
 export interface RecentSession {
   key: string; title: string; language: string; ts: number;
   project: string; snapshot: string; analysis?: string; execution?: string; target?: string;

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""M7 C-05 multi-file link worker — runs INSIDE the pinned analyzer container.
+"""Stage 7 C-05 multi-file link worker - runs INSIDE the pinned analyzer container.
 
 Compiles the curated translation units listed in --tus (JSON; derived from the
-versioned demo manifest — NEVER from user input) with the same allowlisted flags
+versioned demo manifest - NEVER from user input) with the same allowlisted flags
 as the single-file build worker, then links all TUs + the trace shim. Emits the
 executable, symbols.txt (llvm-nm-18 -S) and a manifest with digests/durations so
 the linker-resolved cross-TU symbols are inspectable evidence.

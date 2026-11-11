@@ -1,4 +1,4 @@
-"""M1-B safe archive extraction (shared by ZIP upload and GitHub tarballs).
+"""Stage 1-B safe archive extraction (shared by ZIP upload and GitHub tarballs).
 
 Everything is validated in memory; nothing is extracted to disk here. Every
 rejected entry is recorded with a machine-readable reason. Security rules:

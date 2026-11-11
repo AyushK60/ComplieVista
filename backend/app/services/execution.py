@@ -1,4 +1,4 @@
-"""M4-B execution orchestrator — controlled C/Python execution, traces, replay data.
+"""Stage 4-B execution orchestrator - controlled C/Python execution, traces, replay data.
 
 Separate privilege domain from static analysis: builds happen in the pinned analyzer
 container (clang-18 + instrumentation shim); execution happens in the minimal runtime
@@ -6,10 +6,10 @@ container. Both run with the restrictive baseline (network none, read-only rootf
 tmpfs, cap-drop ALL, no-new-privileges, non-root, cpu/mem/pids caps, external timeout,
 orchestrator-forced cleanup). No Docker socket in any container; argv arrays only.
 
-Modes (ADR-0007): static analysis (pre-existing), curated/pasted execution — both use
+Modes (ADR-0007): static analysis (pre-existing), curated/pasted execution - both use
 the same restricted runner; pasted execution is admitted only for targets whose
 classification and provenance pass admission. GitHub-imported snapshots NEVER execute
-in M4 (EXECUTION_ORIGIN_BLOCKED — explicit-fail, per README §10 "never auto-run" and
+in stage 4 (EXECUTION_ORIGIN_BLOCKED - explicit-fail, per the project notes "never auto-run" and
 fail-closed policy).
 """
 from __future__ import annotations
@@ -38,24 +38,24 @@ BUILD_TIMEOUT_S = 90
 STDOUT_CAP = 1024 * 1024
 STDERR_CAP = 1024 * 1024
 EVENTS_CAP = 5000
-# M8-G0: the Python trace harness multiplexes trace/memory/process/stdout over
+# the Python trace harness multiplexes trace/memory/process/stdout over
 # the container stdout pipe (protected channel, no writable /out mount); the
 # framed stream needs a larger pipe cap than a plain stdout capture.
 FRAMED_STDOUT_CAP = 32 * 1024 * 1024
 # Defensive read cap for container-written files: the shim/harness cap their own
-# output in-band, but the orchestrator never trusts a file's size (M4QA-02/03).
+# output in-band, but the orchestrator never trusts a file's size.
 TRACE_FILE_CAP = 8 * 1024 * 1024
-# M5 observation caps: container files are capped in-harness; the orchestrator
-# additionally reads through defensive caps and stores bounded rows (M5-F).
+# Stage 5 observation caps: container files are capped in-harness; the orchestrator
+# additionally reads through defensive caps and stores bounded rows.
 OBS_FILE_CAP = 4 * 1024 * 1024
 MEMORY_ROW_CAP = 2000
 PROCESS_ROW_CAP = 2000
 MAX_CONCURRENT = 1
 
-# Trace trust contract (M8-G0, ADR-0011): a trace is CURATED_COOPERATIVE only
+# Trace trust contract (Stage 8, ADR-0011): a trace is CURATED_COOPERATIVE only
 # when the snapshot origin is the curated demo/fixture manifests (regression-
-# tested not to tamper with instrumentation). Everything else — pasted, uploaded
-# — is UNTRUSTED_TARGET: the traced program could attempt to alter or disable
+# tested not to tamper with instrumentation). Everything else - pasted, uploaded
+# - is UNTRUSTED_TARGET: the traced program could attempt to alter or disable
 # observation, so its events are never labeled guaranteed-genuine.
 TRUST_CURATED = "CURATED_COOPERATIVE"
 TRUST_UNTRUSTED = "UNTRUSTED_TARGET"
@@ -84,9 +84,9 @@ class ExecutionError(Exception):
 
 
 def resolve_image_id(tag: str) -> str | None:
-    """Immutable identity of `tag` RIGHT NOW (F-M7-02). Returns the sha256 image
+    """Immutable identity of `tag` RIGHT NOW (finding). Returns the sha256 image
     ID, or None when the daemon is unreachable or the tag does not resolve.
-    Callers MUST fail closed on None and launch argv with the returned ID —
+    Callers MUST fail closed on None and launch argv with the returned ID -
     never with the mutable tag."""
     try:
         out = subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", tag],
@@ -100,13 +100,13 @@ def resolve_image_id(tag: str) -> str | None:
 
 
 def trace_trust_for(origin: str | None) -> str:
-    """Honest per-run trust label (F-M7-01): only curated manifests are
+    """Honest per-run trust label (finding): only curated manifests are
     regression-tested cooperative targets; pasted/uploaded code is untrusted."""
     return TRUST_CURATED if origin == "curated" else TRUST_UNTRUSTED
 
 
 def _rmtree_or_privileged(job_dir: Path) -> None:
-    """Remove a job dir; shared robust helper in staging (M4QA: retry + visible
+    """Remove a job dir; shared robust helper in staging (Stage 4 review: retry + visible
     fallback failure)."""
     from app.services.staging import remove_disposable_dir
     remove_disposable_dir(job_dir, RUNTIME_IMAGE)
@@ -128,7 +128,7 @@ def _store_observations(store: Store, eid: str, kind: str, path: Path,
         seq += 1
         try:
             payload = json.loads(raw)
-        except ValueError:  # JSONDecodeError and UnicodeDecodeError (M5: never
+        except ValueError:  # JSONDecodeError and UnicodeDecodeError (Stage 5: never
             # let one malformed container line abort the whole execution)
             payload = {"kind": "unparsed",
                        "raw": raw[:300].decode("utf-8", "replace")}
@@ -152,7 +152,7 @@ def _store_stream_rows(store: Store, eid: str, kind: str, data: bytes,
         seq += 1
         try:
             payload = json.loads(raw)
-        except ValueError:  # JSONDecodeError and UnicodeDecodeError (M5: never
+        except ValueError:  # JSONDecodeError and UnicodeDecodeError (Stage 5: never
             # let one malformed container line abort the whole execution)
             payload = {"kind": "unparsed",
                        "raw": raw[:300].decode("utf-8", "replace")}
@@ -170,7 +170,7 @@ def _store_memory_bytes(store: Store, eid: str,
 
 
 def _host_pid_sampler(cname: str, stop: threading.Event) -> list[int]:
-    """Best-effort host-side PID of the container as long as it exists (M5-D:
+    """Best-effort host-side PID of the container as long as it exists (Stage 5-D:
     distinguishes container PID namespace from host PID). Returns [pid] or []."""
     while not stop.is_set():
         r = subprocess.run(["docker", "inspect", "-f", "{{.State.Pid}}", cname],
@@ -209,7 +209,7 @@ def run_capped(argv: list[str], timeout: int,
     proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     threads = [
         # pass the effective caps (run_capped's stdout_cap param wires through
-        # here — the framed trace channel needs the larger cap)
+        # here - the framed trace channel needs the larger cap)
         threading.Thread(target=lambda: pump(proc.stdout, sink_out, stdout_cap,
                                              "stdout_truncated")),
         threading.Thread(target=lambda: pump(proc.stderr, sink_err, STDERR_CAP,
@@ -253,7 +253,7 @@ class _ExecRunner:
                 " finished_utc=? WHERE id=?", (now_utc(), r["id"]))
         for r in self.store.query("SELECT id FROM executions WHERE status='QUEUED'"):
             self.q.put(r["id"])
-        # M4QA-09: mop up orphaned execution job dirs (e.g. a previous process was
+        # mop up orphaned execution job dirs (e.g. a previous process was
         # killed mid-job, so its `finally` cleanup never ran). Safe locally: this
         # runner is the single execution worker, and terminal jobs never touch
         # their job dir again.
@@ -296,7 +296,7 @@ class _ExecRunner:
                           " error_code='DOCKER_UNAVAILABLE', finished_utc=? WHERE id=?",
                           (now_utc(), eid))
             return
-        # F-M7-02: resolve the IMMUTABLE image IDs immediately before use and
+        # resolve the IMMUTABLE image IDs immediately before use and
         # launch argv with those IDs, never the mutable tags. Fail closed when
         # resolution fails or the tag no longer matches the identity recorded at
         # submission (TOCTOU: tag mutated/repainted between request and run).
@@ -343,7 +343,7 @@ class _ExecRunner:
                 dest.write_bytes(store.get_artifact(f["content_sha256"]))
 
             t0 = time.monotonic()
-            # M4QA-06: a cancel that arrives while the job is starting must not
+            # a cancel that arrives while the job is starting must not
             # launch a container afterwards (previously the container ran its full
             # wall-clock before cancel_requested was observed).
             if store.query_one("SELECT cancel_requested FROM executions WHERE id=?",
@@ -392,8 +392,8 @@ class _ExecRunner:
                build_ref: str, exec_ref: str) -> None:
         # Build in the analyzer container (clang-18 + instrumentation shim).
         # Output bind mount: Docker Desktop chowns the dir after container writes,
-        # so the orchestrator ONLY READS from it (never writes) — audit F05 lesson.
-        # F-M7-02: immutable image IDs resolved by the runner, not tags.
+        # so the orchestrator ONLY READS from it (never writes) - audit F05 lesson.
+        # immutable image IDs resolved by the runner, not tags.
         build_argv = ["docker", "run", "--rm", "--name", f"cv-build-{eid[:12]}",
                       "--network", "none", "--read-only", "--tmpfs", "/tmp:rw,size=16m",
                       "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
@@ -403,7 +403,7 @@ class _ExecRunner:
                       "--file", job["primary_file"], "--out", "/out"]
         b = run_capped(build_argv, BUILD_TIMEOUT_S)
         if b["killed"]:
-            # Killing the docker CLI does not stop the build container (M4QA-01).
+            # Killing the docker CLI does not stop the build container.
             subprocess.run(["docker", "rm", "-f", f"cv-build-{eid[:12]}"],
                            capture_output=True, timeout=60)
             self._finish(store, eid, "TIMEOUT", "build timeout")
@@ -418,7 +418,7 @@ class _ExecRunner:
         exe_art = next((a for a in build_rec.get("artifacts", [])
                         if a["file"] == "app.bin"), None)
         if not exe_art:
-            # M7 Error Microscope: surface the real compiler/linker diagnostic
+            # Stage 7 Error Microscope: surface the real compiler/linker diagnostic
             # (e.g. "undefined reference"), not just "no executable".
             err_tail = ""
             bs = build_out / "build_stderr.txt"
@@ -437,7 +437,7 @@ class _ExecRunner:
         store.execute("UPDATE executions SET binary_sha256=? WHERE id=?",
                       (app_sha, eid))
 
-        # Execute in the minimal runtime container. M5: the shim additionally
+        # Execute in the minimal runtime container. Stage 5: the shim additionally
         # interposes the allocator (memory.jsonl) and samples /proc (process.jsonl).
         run_argv = ["docker", "run", "--rm", "--name", cname, *_BASE_FLAGS,
                     "-e", "CV_TRACE_OUT=/out/trace.jsonl",
@@ -452,7 +452,7 @@ class _ExecRunner:
     def _run_demo_link(self, store: Store, eid: str, job, src: Path,
                        build_out: Path, run_out: Path, cname: str,
                        build_ref: str, exec_ref: str) -> None:
-        """M7 C-05: compile ALL curated TUs, link with the shim, then run the
+        """Stage 7 C-05: compile ALL curated TUs, link with the shim, then run the
         linked binary exactly like the standard C path (instrumented trace)."""
         from app.services.demos import _demo_link_tus
         snap = store.query_one(
@@ -507,7 +507,7 @@ class _ExecRunner:
 
     def _run_debug(self, store: Store, eid: str, job, src: Path,
                    run_out: Path, cname: str, exec_ref: str) -> None:
-        """M5-B curated debug profile: gdb frame/variable/pointer observations for
+        """Stage 5-B curated debug profile: gdb frame/variable/pointer observations for
         allowlisted curated C fixtures only (ADR-0008). One container, no privilege
         expansion (gdb traces its own child under cap-drop ALL / no-new-privileges)."""
         from app.services.curated import curated_entry
@@ -538,7 +538,7 @@ class _ExecRunner:
         trace_channel = CHANNEL_FRAMED if framed else CHANNEL_FILE
         store.execute("UPDATE executions SET trace_channel=? WHERE id=?",
                       (trace_channel, eid))
-        # M5-D: best-effort host-side PID of the container while it exists.
+        # best-effort host-side PID of the container while it exists.
         pid_stop = threading.Event()
         pid_result: list[int] = []
         pid_thread = threading.Thread(target=lambda: pid_result.extend(
@@ -556,14 +556,14 @@ class _ExecRunner:
             self._finish(store, eid, "CANCELLED", None)
             return
         if r["killed"]:
-            # Killing the docker CLI does NOT stop the container (M4QA-01: a timed-out
+            # Killing the docker CLI does NOT stop the container (stage 4 review-01: a timed-out
             # `while True` container stayed Up and kept burning CPU). Force-remove it.
             subprocess.run(["docker", "rm", "-f", cname], capture_output=True, timeout=60)
             self._finish(store, eid, "TIMEOUT", "run timeout")
             return
 
         if framed:
-            # Protected channel (F-M7-01): artifacts arrive as harness frames.
+            # Protected channel (finding): artifacts arrive as harness frames.
             frames = parse_framed_stream(r["stdout"])
             meta_fr = frames["meta"] or {}
             meta_record = {"kind": "meta",
@@ -609,8 +609,8 @@ class _ExecRunner:
                     continue
                 if rec.get("kind") == "meta":
                     meta_payloads.append(rec)
-            # C-channel integrity (F-M7-01): verify the shim's final trace_meta
-            # record — count consistency; absence of the record (e.g. an abrupt
+            # C-channel integrity (finding): verify the shim's final trace_meta
+            # record - count consistency; absence of the record (e.g. an abrupt
             # kill or tampering) is SUSPECT, never silently promoted.
             c_integrity = "SUSPECT"
             c_meta_rec: dict = {"kind": "trace_meta_record", "channel": CHANNEL_FILE}
@@ -639,7 +639,7 @@ class _ExecRunner:
             trace_bytes = b"\n".join(lines) + (b"\n" if lines else b"")
             trace_ref = store.put_artifact(trace_bytes) if trace_p.is_file() else None
 
-            # M5-F: bounded observation capture (memory + process streams).
+            # bounded observation capture (memory + process streams).
             mem_rows, mem_art, mem_trunc = self._capture_memory(
                 store, eid, run_out, profile)
             proc_rows, proc_art, proc_trunc = _store_observations(
@@ -685,7 +685,7 @@ class _ExecRunner:
                         profile: str) -> tuple[int, str | None, bool]:
         """Store the memory observation stream; standard C runs always get the
         honest debugger-unavailable marker first (even for curated snapshots run
-        in the standard profile — no gdb ran there). Never writes into the
+        in the standard profile - no gdb ran there). Never writes into the
         container output dir (orchestrator only reads it)."""
         job = store.query_one("SELECT language FROM executions WHERE id=?", (eid,))
         p = run_out / "memory.jsonl"
@@ -704,7 +704,7 @@ class _ExecRunner:
 
     def _run_python(self, store: Store, eid: str, job, src: Path,
                     run_out: Path, cname: str, exec_ref: str) -> None:
-        # M8-G0 F-M7-01: NO writable /out mount — the untrusted target cannot
+        # Stage 8 finding: NO writable /out mount - the untrusted target cannot
         # write trace artifacts. The harness multiplexes all observations over
         # the container stdout pipe (protected channel); the orchestrator parses
         # and stores them host-side.
@@ -728,7 +728,7 @@ class _ExecRunner:
                 (now_utc(), execution_id))
             return "CANCELLED"
         # RUNNING: stop BOTH the run container and any in-flight build container
-        # (M4QA-06: a cancel during the C build phase used to leave cv-build running).
+        # (stage 4 review-06: a cancel during the C build phase used to leave cv-build running).
         # The flag is committed BEFORE the kill so the worker's post-run check can
         # never miss a cancel that already destroyed the container (the runner used
         # to record COMPLETED for a killed run in that gap). The rm -f is retried
@@ -769,8 +769,8 @@ def create_execution(store: Store, snapshot_id: str, target_id: str,
         raise ExecutionError("NOT_FOUND", "unknown snapshot", 404)
     trust = trace_trust_for(snap["origin"])
     if snap["origin"] == "github":
-        # README §10 / M4-A: imported repositories NEVER auto-run. Explicit
-        # user-run of imported code needs the M9 deployment review — fail closed.
+        # the project notes / Stage 4-A: imported repositories NEVER auto-run. Explicit
+        # user-run of imported code needs the stage 9 deployment review - fail closed.
         raise ExecutionError("EXECUTION_ORIGIN_BLOCKED",
                              "execution of imported repository code is disabled "
                              "pending independent security review", 403)
@@ -785,8 +785,8 @@ def create_execution(store: Store, snapshot_id: str, target_id: str,
         raise ExecutionError("NOT_EXECUTABLE",
                              f"target status {target['status']} is not execution-eligible")
     language = "python" if target["kind"].startswith("python") else "c"
-    # M5-B (ADR-0008): the gdb debug profile is admitted ONLY for curated
-    # allowlisted C fixtures — content-hash allowlist computed from the pinned
+    # Stage 5-B (ADR-0008): the gdb debug profile is admitted ONLY for curated
+    # allowlisted C fixtures - content-hash allowlist computed from the pinned
     # manifest, never from user input. Pasted/untrusted code: fail closed.
     if profile == "debug":
         from app.services.curated import curated_entry
@@ -796,7 +796,7 @@ def create_execution(store: Store, snapshot_id: str, target_id: str,
                 "debugger capture is restricted to curated allowlisted C fixtures "
                 "(ADR-0008); pasted code keeps an explicit unavailable state", 403)
     if profile == "demo-link":
-        # M7 C-05: multi-TU compile+link for curated demo-manifest snapshots
+        # Stage 7 C-05: multi-TU compile+link for curated demo-manifest snapshots
         # only; the TU list comes from the versioned manifest, never from input.
         from app.services.demos import _demo_link_tus
         if language != "c" or snap["combined_sha256"] not in _demo_link_tus():

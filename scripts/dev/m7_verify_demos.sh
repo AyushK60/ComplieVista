@@ -1,5 +1,5 @@
 #!/bin/bash
-# M7: compute expected outputs for all demo fixtures with the HOST toolchain
+# compute expected outputs for all demo fixtures with the HOST toolchain
 # (independent oracle). C compiled with the recorded worker flags.
 set -e
 D=/mnt/e/ComplieVista/sandbox/fixtures/demos

@@ -8,7 +8,7 @@ from app.store.db import Store
 
 
 def register(app: FastAPI, store: Store) -> None:
-    # ---------------- M7: demo library + Error Microscope ----------------
+    # ---------------- stage 7: demo library + Error Microscope ----------------
     @app.get("/api/v1/demos")
     def list_demos() -> dict:
         from app.services.demos import load_manifest

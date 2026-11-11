@@ -1,11 +1,11 @@
-"""M2 analysis orchestrator (ADR-0005).
+"""Stage 2 analysis orchestrator (ADR-0005).
 
 Untrusted source is analyzed ONLY inside the pinned, restricted container:
  --network none, read-only rootfs, size-capped tmpfs, --cap-drop ALL,
  --security-opt no-new-privileges, non-root UID, memory/cpu/pids limits,
  snapshot mounted read-only, per-job output dir mounted rw (disposable job space),
  argv-array invocation only, external wall-clock timeout with orchestrator-enforced
- `docker rm -f` cleanup (M0 finding), no Docker socket anywhere near a container.
+ `docker rm -f` cleanup (Stage 0 finding), no Docker socket anywhere near a container.
 
 Jobs are queued (single bounded worker thread), persisted in SQLite, cancellable
 while queued, and idempotent on (snapshot, target, tool fingerprint).
@@ -108,7 +108,7 @@ class _JobRunner:
             self._threads.append(t)
 
     def _reconcile_interrupted(self) -> None:
-        """Restart recovery (CV-11): RUNNING jobs died with the previous process —
+        """Restart recovery (CV-11): RUNNING jobs died with the previous process -
         record that honestly; QUEUED jobs are re-enqueued."""
         for r in self.store.query("SELECT id FROM analyses WHERE status='RUNNING'"):
             self.store.execute(
@@ -144,7 +144,7 @@ class _JobRunner:
                 "UPDATE analyses SET status='BLOCKED', error_code='DOCKER_UNAVAILABLE',"
                 " finished_utc=? WHERE id=?", (now_utc(), analysis_id))
             return
-        # F-M7-02: launch with the IMMUTABLE image ID resolved immediately before
+        # launch with the IMMUTABLE image ID resolved immediately before
         # use (never the mutable tag); fail closed when resolution fails or the
         # tag no longer matches the identity recorded at submission (TOCTOU).
         ref = resolve_image_id(ANALYZER_IMAGE)
@@ -232,7 +232,7 @@ class _JobRunner:
                 (status, now_utc(), duration_ms,
                  None if status == "COMPLETED" else stderr_tail[:200], analysis_id))
         finally:
-            # Robust disposable-dir cleanup (M4QA: retry + privileged fallback for
+            # Robust disposable-dir cleanup (Stage 4 review: retry + privileged fallback for
             # Docker-Desktop root-owned remnants + visible failure), shared with
             # the execution orchestrator.
             from app.services.staging import remove_disposable_dir
@@ -300,7 +300,7 @@ def create_analysis(store: Store, snapshot_id: str, target_id: str) -> dict:
         " ORDER BY created_utc DESC LIMIT 1", (fp,))
     if existing:
         return {"analysis_id": existing["id"], "status": existing["status"], "existed": True}
-    # F-M7-02: pin the immutable image ID at submission; the runner fails closed
+    # pin the immutable image ID at submission; the runner fails closed
     # if the tag no longer resolves to it when the job starts.
     requested_ref = resolve_image_id(ANALYZER_IMAGE)
     aid = new_id()

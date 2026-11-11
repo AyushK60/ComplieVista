@@ -1,4 +1,4 @@
-/* CompileVista — Workspace and Compare in the title-sequence world: the journey stepper reads like
+/* CompileVista - Workspace and Compare in the title-sequence world: the journey stepper reads like
  * numbered film frames, and Compare pairs show the two real frames side by side. */
 button.jstage .jstage-dot { border-radius: 0; width: 22px; height: 22px; border: 2px solid var(--ink); background: transparent; color: var(--ink); font-weight: 800; }
 button.jstage.ok .jstage-dot { background: #d9a02a; border-color: #14110f; color: #14110f; }

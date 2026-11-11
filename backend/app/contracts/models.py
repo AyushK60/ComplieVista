@@ -1,4 +1,4 @@
-"""Typed M0 evidence contracts (schema m0.v1) — see docs/DECISIONS/ADR-0002.
+"""Typed stage 0 evidence contracts (schema m0.v1) - see docs/DECISIONS/ADR-0002.
 
 C and Python pipelines share only this metadata envelope; their stage vocabularies
 are distinct (see API_CONTRACTS.md). Unknown manifest fields are tolerated
@@ -113,7 +113,7 @@ class ErrorResponse(BaseModel):
     error: ErrorBody
 
 
-# ------------------------- M1 additions (m1.v1) -------------------------
+# ------------------------- stage 1 additions (m1.v1) -------------------------
 
 class ClassificationReason(BaseModel):
     code: str

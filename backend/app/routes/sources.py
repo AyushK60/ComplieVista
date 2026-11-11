@@ -14,12 +14,12 @@ from app.store.db import Store
 
 
 def register(app: FastAPI, store: Store) -> None:
-    # ---------------- M1: limits ----------------
+    # ---------------- stage 1: limits ----------------
     @app.get("/api/v1/limits")
     def limits() -> dict:
         return {"limits": LIMITS, "schema_version": SCHEMA_VERSION}
 
-    # ---------------- M1: ingestion ----------------
+    # ---------------- stage 1: ingestion ----------------
     @app.post("/api/v1/sources")
     async def post_sources(request: Request) -> dict:
         # CV-10: reject oversized requests BEFORE reading the body into memory.
@@ -77,7 +77,7 @@ def register(app: FastAPI, store: Store) -> None:
 
     @app.post("/api/v1/imports/github")
     async def post_import_github(request: Request) -> dict:
-        # F05: the GitHub body is tiny JSON — bound it explicitly (chunked safe).
+        # F05: the GitHub body is tiny JSON - bound it explicitly (chunked safe).
         request._receive = _capped_receive_call(  # noqa: SLF001
             request, 1024 * 1024)
         try:
@@ -88,7 +88,7 @@ def register(app: FastAPI, store: Store) -> None:
             raise AppError("INVALID_BODY", "body must be {'url': ..., 'ref'?: ...}")
         return import_github(store, body["url"], body.get("ref"))
 
-    # ---------------- M1: projects / snapshots / targets ----------------
+    # ---------------- stage 1: projects / snapshots / targets ----------------
     @app.get("/api/v1/projects")
     def list_projects() -> list[dict]:
         rows = store.query(
@@ -126,8 +126,8 @@ def register(app: FastAPI, store: Store) -> None:
         out = []
         for r in rows:
             reasons = json.loads(r["reasons_json"])
-            # M4QA-08: report admission honestly — a target is execution-ready exactly
-            # when the M4 admission path would accept it (eligible class, non-GitHub
+            # report admission honestly - a target is execution-ready exactly
+            # when the stage 4 admission path would accept it (eligible class, non-GitHub
             # origin). Docker availability is checked again at submission time.
             ready = (r["status"] in ("EXECUTABLE_CANDIDATE", "COMPILATION_CANDIDATE")
                      and r["snap_origin"] != "github")
@@ -137,8 +137,8 @@ def register(app: FastAPI, store: Store) -> None:
                         "ready_for_controlled_execution": ready,
                         "reasons": reasons,
                         "note": "statuses are detected candidates; verification requires "
-                                "real toolchain checks (M2+); execution runs once in a "
-                                "restricted container (M4) and is refused for "
+                                "real toolchain checks (Stage 2+); execution runs once in a "
+                                "restricted container (Stage 4) and is refused for "
                                 "GitHub-imported origins"})
         return out
 

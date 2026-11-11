@@ -1,4 +1,4 @@
-# CompileVista one-click Start (M8-G0).
+# CompileVista one-click Start (Stage 8).
 # Double-click entrypoint: Start.cmd -> this script. No admin, no execution-policy change.
 param([switch]$NoBrowser)
 

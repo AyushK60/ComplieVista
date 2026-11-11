@@ -1,10 +1,10 @@
-"""M7 demo library — exactly 20 curated real programs (ADR-0010).
+"""Stage 7 demo library - exactly 20 curated real programs (ADR-0010).
 
 The manifest (sandbox/fixtures/demos/manifest.json) is versioned and hash-pinned:
 every file digest is verified on load. Demo snapshots are created from the
-manifest content (idempotent, origin "curated") and run through the REAL M4
+manifest content (idempotent, origin "curated") and run through the REAL stage 4
 execution pipeline; C-05 uses the demo-link profile (multi-TU compile+link
-inside the pinned analyzer container, TU list from the manifest — never user
+inside the pinned analyzer container, TU list from the manifest - never user
 input). Error fixtures are NOT part of the 20 count.
 """
 from __future__ import annotations
@@ -255,7 +255,7 @@ def run_error_fixture(store: Store, fixture_id: str) -> dict:
 
 def demo_report(store: Store, demo_id: str) -> dict:
     """Sanitized session report: digests + availability + measured outcomes.
-    No source text, no host paths, no secrets — safe to export."""
+    No source text, no host paths, no secrets - safe to export."""
     demo = get_demo(demo_id)
     snap_id, _ = _demo_snapshot(store, demo)
     files = [{"path": f["path"], "sha256": f["sha256"]} for f in demo["files"]]

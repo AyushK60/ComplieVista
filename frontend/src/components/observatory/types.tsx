@@ -1,5 +1,5 @@
 import StatusBadge from "../../ui/status";
-/** Shared types for the M8 observatory components. */
+/** Shared types for the stage 8 observatory components. */
 
 /** One normalized token item as returned by the `tokens` stage
  * (identical field names for C and Python after backend normalization:
@@ -41,17 +41,17 @@ export function confBadge(c: Confidence | undefined | null) {
   return <StatusBadge code={String(c)} />;
 }
 
-/** Educational blurbs per stage (UI copy only — never data claims).
+/** Educational blurbs per stage (UI copy only - never data claims).
  * Explore Mode keeps each to one short sentence; Technical Mode adds the
  * provenance rows underneath the canvas. */
 export const STAGE_BLURBS: Record<string, { name: string; what: string }> = {
   preprocess: {
     name: "Preprocessing",
-    what: "All the #include files and macros are expanded — this is the text the compiler actually reads.",
+    what: "All the #include files and macros are expanded - this is the text the compiler actually reads.",
   },
   tokens: {
     name: "Token Formation",
-    what: "Your characters become tokens: keywords, names, literals, operators — each with its exact source position.",
+    what: "Your characters become tokens: keywords, names, literals, operators - each with its exact source position.",
   },
   ast: {
     name: "Syntax Tree",
@@ -59,7 +59,7 @@ export const STAGE_BLURBS: Record<string, { name: string; what: string }> = {
   },
   code_object: {
     name: "Code Objects",
-    what: "CPython compiles each scope — the module, every function — into a code object: its constants, names and locals.",
+    what: "CPython compiles each scope - the module, every function - into a code object: its constants, names and locals.",
   },
   bytecode: {
     name: "Bytecode",
@@ -67,7 +67,7 @@ export const STAGE_BLURBS: Record<string, { name: string; what: string }> = {
   },
   ir_o0: {
     name: "LLVM IR (-O0)",
-    what: "Clang lowers the tree into LLVM IR: functions, basic blocks, branches. Unoptimized — your code's shape is still visible.",
+    what: "Clang lowers the tree into LLVM IR: functions, basic blocks, branches. Unoptimized - your code's shape is still visible.",
   },
   ir_o2: {
     name: "LLVM IR (-O2)",
@@ -75,7 +75,7 @@ export const STAGE_BLURBS: Record<string, { name: string; what: string }> = {
   },
   assembly: {
     name: "Assembly",
-    what: "The backend picks real machine instructions for each function — one label per section below.",
+    what: "The backend picks real machine instructions for each function - one label per section below.",
   },
   disassembly: {
     name: "Disassembly",
@@ -83,7 +83,7 @@ export const STAGE_BLURBS: Record<string, { name: string; what: string }> = {
   },
   object: {
     name: "Object File",
-    what: "The compiled object the linker consumes — digest-recorded, never served for execution.",
+    what: "The compiled object the linker consumes - digest-recorded, never served for execution.",
   },
   symbols: {
     name: "Symbol Table",

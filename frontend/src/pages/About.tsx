@@ -4,7 +4,7 @@ import { Icon, InfoTip } from "../ui";
 /**
  * About / Method. The place where the honesty contract, the measured results and the
  * limitations live, so the working views can stay clean. Every number here comes from a
- * file in the repository (eval/results, docs/REPORT.md); nothing is estimated.
+ * file in the repository (eval/results); nothing is estimated.
  */
 
 function Architecture() {
@@ -97,7 +97,7 @@ export default function About() {
           <li><Icon name="alert" size={15} /> Python memory and process views are observed during an instrumented run; they are not a debugger.</li>
           <li><Icon name="alert" size={15} /> It is a local, single-user tool, not a hosted service. Nothing is sent anywhere.</li>
           <li><Icon name="alert" size={15} /> Accessibility was checked by machine (axe-core, 0 violations on 12 screens); there was no manual screen-reader audit.</li>
-          <li><Icon name="alert" size={15} /> No usability study with participants has been run yet; the protocol is in <code>docs/USABILITY_STUDY.md</code>.</li>
+          <li><Icon name="alert" size={15} /> No usability study with participants has been run.</li>
         </ul>
       </section>
 

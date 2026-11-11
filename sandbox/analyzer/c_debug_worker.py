@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""M5-B curated C debug worker — runs INSIDE the pinned debug image (clang-18 + gdb).
+"""Stage 5-B curated C debug worker - runs INSIDE the pinned debug image (clang-18 + gdb).
 
-Curated allowlisted fixtures ONLY (never pasted code — gdb parses untrusted
+Curated allowlisted fixtures ONLY (never pasted code - gdb parses untrusted
 DWARF/ELF, which is attack surface; ADR-0008). Compiles the target exactly like the
 standard build worker, then runs it under `gdb -batch` with breakpoint commands
 derived from the curated manifest: at every stop it records `info args`,

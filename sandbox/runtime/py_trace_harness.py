@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""M4-D/M5/M8-G0 Python trace harness — runs INSIDE the pinned restricted runtime container.
+"""Stage 4-D/Stage 5/Stage 8 Python trace harness - runs INSIDE the pinned restricted runtime container.
 
 Executes the target ONCE under sys.settrace, capturing genuine call/line/return/
 exception events with bounded, safe variable snapshots. Never calls user __repr__;
 non-primitive values are summarized by type/identity. Caps: 5000 events, 64 frames
-deep, 200 locals/frame, 120 bytes/string, 1 MB stdout (M4QA-02), 3000 memory
-records, 240 process samples, 60-node object graph (M5).
+deep, 200 locals/frame, 120 bytes/string, 1 MB stdout, 3000 memory
+records, 240 process samples, 60-node object graph (Stage 5).
 
-M8-G0 protected trace channel (F-M7-01):
+Stage 8 protected trace channel (finding):
   The container runs WITHOUT any writable host mount (no /out). The harness is the
   privileged observer; the target is untrusted code running in the SAME interpreter
   and could previously forge artifacts by writing to /out. Now every artifact is
@@ -30,11 +30,11 @@ M8-G0 protected trace channel (F-M7-01):
   removed the installed tracer (sys.settrace(None) or a custom tracer): the
   affected portion of the run is honestly absent, never silently promoted.
 
-M5 additions (all OBSERVED inside this run; nothing inferred or fabricated):
+Stage 5 additions (all OBSERVED inside this run; nothing inferred or fabricated):
 - memory.jsonl records: per-call frame snapshots with stable in-run frame ids and
   id()-based object identity (aliasing grounded in observed identity), a bounded
   object-reference graph, tracemalloc snapshot statistics, gc activity.
-- process.jsonl records: container-side process evidence — pid namespace identity,
+- process.jsonl records: container-side process evidence - pid namespace identity,
   /proc RSS/VM/thread/fd samples at a stated interval, observed child pids.
 Value previews use name-based secret redaction and never execute user code.
 """
@@ -61,11 +61,11 @@ PROC_SAMPLE_INTERVAL_S = 0.05
 GRAPH_NODES_CAP = 60
 GRAPH_EDGES_CAP = 120
 GRAPH_DEPTH = 2
-# Name-based secret redaction rule (M5-E): values bound to secret-ish names are
+# Name-based secret redaction rule (Stage 5-E): values bound to secret-ish names are
 # never previewed; this is a documented heuristic, not content inspection.
 SECRET_NAME_PARTS = ("pass", "secret", "token", "key", "pwd", "credential")
 
-# M8-G0 F-M7-04: len() must never reach user code. Only EXACT built-in container
+# Stage 8 finding: len() must never reach user code. Only EXACT built-in container
 # types are measured; subclasses may override __len__ (raise or side effects).
 _EXACT_LEN_TYPES = (list, tuple, dict, set, frozenset, str, bytes, bytearray)
 
@@ -129,8 +129,8 @@ _PREVIEWABLE = (str, bytes, bytearray)
 
 
 def safe_value(v):
-    # M5QA/M8-G0: EXACT type checks. Subclasses of primitives/containers may
-    # override __repr__/__str__/__len__ — calling them executes user code inside
+    # Stage 5 review/Stage 8: EXACT type checks. Subclasses of primitives/containers may
+    # override __repr__/__str__/__len__ - calling them executes user code inside
     # the tracer (side-effect channel, reproduced live). Subclasses of containers
     # get identity treatment WITHOUT len().
     t = type(v)
@@ -143,20 +143,20 @@ def safe_value(v):
         return {"type": t.__name__, "identity": id(v) % 10**8}
     if t in (list, tuple, set, frozenset, dict):
         return {"type": t.__name__, "len": len(v)}
-    # Never call user __repr__ (M4-D): identity summary only.
+    # Never call user __repr__ (Stage 4-D): identity summary only.
     return {"type": t.__module__ + "." + t.__qualname__, "identity": id(v) % 10**8}
 
 
 def safe_len(v):
-    """len() ONLY on exact built-in types (M8-G0 F-M7-04)."""
+    """len() ONLY on exact built-in types (Stage 8 finding)."""
     return len(v) if type(v) in _EXACT_LEN_TYPES else None
 
 
 def safe_exc_record(arg):
     """Build the exc/msg fields for an 'exception' event. CPython 3.12 passes the
     (type, value, traceback) tuple here. str() is called on the instance ONLY for
-    builtin-module exception types — user __str__ must never run inside the
-    tracer (M5QA)."""
+    builtin-module exception types - user __str__ must never run inside the
+    tracer (Stage 5 review)."""
     if isinstance(arg, tuple):
         instance = arg[1] if len(arg) > 1 and arg[1] is not None else arg[0]
     else:
@@ -240,8 +240,8 @@ def emit_frame_snapshot(frame_obj, event_seq: int) -> None:
             locals_out.append(entry)
             continue
         oid = id(v) % 10**8
-        # safe_len: exact built-in types only — a subclassed list whose __len__
-        # raises or counts side effects must never be invoked here (M8-G0).
+        # safe_len: exact built-in types only - a subclassed list whose __len__
+        # raises or counts side effects must never be invoked here.
         entry = {"name": k, "kind": "object", "type": type(v).__name__,
                  "obj_id": oid, "len": safe_len(v)}
         if _is_secret_name(k):
@@ -304,7 +304,7 @@ def _tracer_event(frame_obj, event, arg):
         emit({"kind": "return", "fn": frame_obj.f_code.co_name, "line": frame_obj.f_lineno,
               "depth": depth, "arg": safe_value(arg)})
         if frame_obj.f_code.co_flags & 0x20:  # CO_GENERATOR: yield suspension, not exit
-            return tracer  # frame stays alive; frame_id must stay stable (M5QA)
+            return tracer  # frame stays alive; frame_id must stay stable
         emit_frame_snapshot(frame_obj, events)  # exit-time locals: aliasing/lifetime here
         frame_ids.pop(id(frame_obj), None)  # frame lifetime ends here (observed)
         return tracer
@@ -316,7 +316,7 @@ def _tracer_event(frame_obj, event, arg):
     return None
 
 
-# ---------------- process sampler (container-side, M5-D) ----------------
+# ---------------- process sampler (container-side, stage 5-D) ----------------
 proc_samples = 0
 proc_truncated = False
 
@@ -414,7 +414,7 @@ exit_code = 0
 trace_disabled_by_target = False
 # fd-level redirect (captures C-level and Python-level stdout) through a draining
 # pump thread that stops persisting after STDOUT_CAP bytes but keeps consuming, so
-# the writer never blocks (M4QA-02). The observer channel (CHANNEL_FD) is separate.
+# the writer never blocks. The observer channel (CHANNEL_FD) is separate.
 pipe_r, pipe_w = os.pipe()
 kept = bytearray()
 
@@ -446,11 +446,11 @@ tracemalloc.start()
 sampler.start()
 try:
     sys.settrace(tracer)
-    exec(code, g)  # M4-D: genuine in-container execution, bounded by harness
+    exec(code, g)  # genuine in-container execution, bounded by harness
 except BaseException as e:
     trace_disabled_by_target = sys.gettrace() is not tracer
     # Tracing ENDS here: the harness's own bookkeeping (emit framing,
-    # traceback/linecache/re machinery) must never be traced — tracing it
+    # traceback/linecache/re machinery) must never be traced - tracing it
     # flooded the event stream (reproduced: a module-level ZeroDivisionError
     # produced 5000+ amplified events).
     sys.settrace(None)
@@ -476,7 +476,7 @@ finally:
     sampler_stop.set()
     sampler.join(timeout=2)
 
-    # ---- M5 memory evidence (observed, bounded) ----
+    # ---- stage 5 memory evidence (observed, bounded) ----
     current_b, peak_b = tracemalloc.get_traced_memory()
     snap = tracemalloc.take_snapshot()
     top = []
@@ -551,7 +551,7 @@ finally:
 
 emit({"kind": "exit", "exit_code": exit_code,
       "duration_ms": int((time.monotonic() - t0) * 1000)})
-# User stdout over the protected channel (base64, capped) — then meta LAST.
+# User stdout over the protected channel (base64, capped) - then meta LAST.
 frame("out", {"b64": base64.b64encode(bytes(kept)).decode("ascii")})
 frame("meta", {
     "kind": "meta", "python": sys.version.split()[0], "events": events,

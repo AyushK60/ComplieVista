@@ -1,4 +1,4 @@
-# M4 execution build worker additions: the analyzer image gains the C trace shim
+# Stage 4 execution build worker additions: the analyzer image gains the C trace shim
 # and a build worker so untrusted C can be compiled with -finstrument-functions.
 # Runtime image (separate privilege domain) executes the produced binary.
 FROM ubuntu:24.04

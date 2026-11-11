@@ -1,9 +1,9 @@
-# Local Run Guide — one-click Start/Stop + manual workflow (M8-G0)
+# Local Run Guide - one-click Start/Stop + manual workflow (Stage 8)
 
 This guide covers running CompileVista **locally on the developer machine**
 (Windows 11 + WSL2 Ubuntu 24.04 + Docker Desktop). Everything binds to
-127.0.0.1 only. **This is a local development/demo setup — NOT an authenticated
-HTTPS deployment and NOT a public service** (see README §10/§21 before ever
+127.0.0.1 only. **This is a local development/demo setup - NOT an authenticated
+HTTPS deployment and NOT a public service** (see the project notes before ever
 considering exposure).
 
 ## First time on a new machine: `Setup.cmd`
@@ -14,14 +14,14 @@ Prerequisites (installed once, outside this repo):
   (`wsl --install -d Ubuntu-24.04` from an administrator PowerShell).
 - Inside that Ubuntu: **Python 3.12+** with `python3-venv`, and **Node.js + npm**
   (`sudo apt install -y python3 python3-venv nodejs npm`). Node must be the
-  *Linux* one inside WSL — dependencies are installed from there, so a Windows-only
+  *Linux* one inside WSL - dependencies are installed from there, so a Windows-only
   Node cannot run the frontend.
 - **Docker Desktop** with the WSL 2 engine and WSL integration enabled for Ubuntu.
 
 Then **double-click `Setup.cmd`** once. It checks each prerequisite and tells you
 exactly what is missing, creates the backend virtual environment, installs the
 frontend dependencies (`npm ci`) and builds the three sandbox images. It is safe to
-re-run — finished steps are skipped. Afterwards use `Start.cmd`.
+re-run - finished steps are skipped. Afterwards use `Start.cmd`.
 
 To use a differently named WSL distro, set the `COMPILEVISTA_WSL_DISTRO`
 environment variable before running the scripts.
@@ -33,12 +33,12 @@ environment variable before running the scripts.
 | `Setup.cmd`  | One-time: checks prerequisites, installs backend/frontend dependencies, builds the sandbox images. |
 | `Start.cmd`  | Checks WSL, Docker Desktop/engine, pinned images; starts backend + frontend; waits for REAL health; opens the browser. |
 | `Stop.cmd`   | Gracefully stops ONLY the servers this launcher started (identity-verified); idempotent; leaves Docker Desktop and unrelated processes alone. |
-| `Status.cmd` | Reports engine health, both URLs, ownership, and live pids — no false green states. |
+| `Status.cmd` | Reports engine health, both URLs, ownership, and live pids - no false green states. |
 
 1. Open `E:\ComplieVista` in File Explorer and **double-click `Start.cmd`**.
    - First run may build missing pinned images (`compilevista/analyzer:m2`,
      `compilevista/runtime:m4`, `compilevista/debug:m5`) from the repo
-     Dockerfiles — this is logged explicitly and can take a few minutes.
+     Dockerfiles - this is logged explicitly and can take a few minutes.
    - If Docker Desktop is not running, Start launches it at user level and
      waits (up to ~3 minutes) for the engine.
 2. The browser opens automatically **only after** both health checks pass.
@@ -47,7 +47,7 @@ environment variable before running the scripts.
 3. You can close the Start window; the servers keep running (they are detached
    from the WSL session that spawned them).
 4. Double-clicking `Start.cmd` again while running is safe: healthy servers
-   from this repo are reported as reused/adopted — never duplicated, and the
+   from this repo are reported as reused/adopted - never duplicated, and the
    launcher never starts a second copy.
 5. **Double-click `Stop.cmd`** to stop the servers. It kills only processes it
    can verify by recorded identity (pid + cmdline + working directory in this
@@ -58,12 +58,12 @@ environment variable before running the scripts.
 
 Everything lives in `.local/compilevista/` (git-ignored):
 
-- `state.json` — run id, commit, ports, WSL pids, process identities,
+- `state.json` - run id, commit, ports, WSL pids, process identities,
   ownership (`launched` vs `reused`), pinned image IDs. Written atomically.
-- `logs/backend.log`, `logs/frontend.log` — bounded dev logs. Minimize what
+- `logs/backend.log`, `logs/frontend.log` - bounded dev logs. Minimize what
   you paste into the app if you share logs: submitted source is stored in the
   backend's `data/` artifacts, not in launcher logs.
-- `start.lock` / `stop.lock` — guard against double-click races; a stale lock
+- `start.lock` / `stop.lock` - guard against double-click races; a stale lock
   whose owner process is dead is removed automatically.
 
 ### Port conflicts (what you will see)
@@ -72,7 +72,7 @@ Everything lives in `.local/compilevista/` (git-ignored):
   offending pid and process cmdline and never kills anything. Free the port or
   stop that process yourself, then run Start again.
 - **Healthy CompileVista server already running from this repo**: reported as
-  REUSED (externally owned) or ADOPTED (started by a previous launcher run) —
+  REUSED (externally owned) or ADOPTED (started by a previous launcher run) -
   Stop will only stop the adopted ones.
 - **Windows-side listener** (e.g. another app): refused with the process name;
   the launcher never kills Windows processes.
@@ -105,9 +105,9 @@ npm run dev          # strictPort 5173, proxies /api -> 127.0.0.1:8123
 Notes:
 
 - The backend dev port is **8123** (8000 is occupied by an unrelated Windows
-  process on this machine — recorded since M0).
+  process on this machine - recorded since stage 0).
 - Vite uses polling (`usePolling: true`) because `/mnt/e` (9P) does not
-  propagate inotify events (measured M0).
+  propagate inotify events (measured stage 0).
 - Execution needs the three pinned images; rebuild them after changing
   anything under `sandbox/`:
   `docker build -t compilevista/analyzer:m2 sandbox/analyzer` (and the

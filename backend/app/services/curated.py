@@ -1,8 +1,8 @@
-"""M5 curated fixture registry (ADR-0008).
+"""Stage 5 curated fixture registry (ADR-0008).
 
 The debug profile (gdb) is admitted ONLY for snapshots whose combined content hash
 matches an entry here. The allowlist is computed from the fixture files at import
-time — no user input can add entries. Pasted/untrusted code always receives an
+time - no user input can add entries. Pasted/untrusted code always receives an
 explicit debugger-unavailable state instead (see execution.py).
 """
 from __future__ import annotations

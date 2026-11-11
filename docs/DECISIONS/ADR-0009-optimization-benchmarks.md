@@ -1,12 +1,12 @@
-# ADR-0009 — OptimizationLab, benchmarks, and pair comparison (M6)
+# ADR-0009 - OptimizationLab, benchmarks, and pair comparison (Stage 6)
 
-Status: Accepted (M6)
+Status: Accepted (Stage 6)
 
 ## Decision
 
 1. **Experiments ride the existing orchestration patterns** (`services/experiments.py`):
    one bounded worker thread, argv-array docker invocations, the same restricted
-   `_BASE_FLAGS` as M4/M5, `run_capped` with byte caps, defensive reads, forced
+   `_BASE_FLAGS` as stage 4/Stage 5, `run_capped` with byte caps, defensive reads, forced
    container cleanup, and startup reconciliation. There is NO second executor.
 2. **C optimization builds** (`c_opt_worker.py`, analyzer image): the immutable
    snapshot source is compiled at `-O0/-O1/-O2` (+ `-g -no-pie
@@ -25,14 +25,14 @@ Status: Accepted (M6)
    guard). Environment provenance: kernel, CPU model, cgroup v2 cpu/memory
    limits. Samples with median < 5 ms carry `resolution_warning` (documented
    workload bound; no invented precision). Python is measured on its own
-   `py312` level — NO fake LLVM levels.
-4. **Pair comparison** reuses the M4 execution pipeline end-to-end
+   `py312` level - NO fake LLVM levels.
+4. **Pair comparison** reuses the stage 4 execution pipeline end-to-end
    (`create_execution` for both sides). Five pair specs
    (`sandbox/fixtures/pairs/manifest.json`) are matched-input, deterministic,
    defined-behavior programs whose `expected_stdout` was verified with the HOST
    toolchain (clang-18 -O2 / CPython 3.12.3) independently of the container
    pipeline; both sides must match exactly. Signed-overflow in C is UB and is
-   prohibited by pair policy (the sort checksum initially overflowed — caught
+   prohibited by pair policy (the sort checksum initially overflowed - caught
    by the host verification and fixed with a modulo checksum).
 5. **Persistence** (`m6.v1`, additive): `experiments` + `experiment_stages`
    tables; artifacts content-addressed; reopening is deterministic (idempotent

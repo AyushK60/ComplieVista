@@ -9,9 +9,9 @@ import { nodeCategory, node_depths, depth_limit, semanticLabel, g_descendants, N
 export { nodeCategory } from "./graphModel";
 
 /**
- * M8 Part-2 graph engine. Layout: tidy tree for syntax trees (worker, over
+ * Stage 8 Part-2 graph engine. Layout: tidy tree for syntax trees (worker, over
  * containment edges), top-down layered CFG for IR. All data comes from
- * /graph endpoints (m3.graph.v1) — no invented nodes/edges.
+ * /graph endpoints (m3.graph.v1) - no invented nodes/edges.
  *
  * Framing contract: the default view frames a readable, meaningful region
  * (structural Level 2), never the whole tree squeezed to illegibility; the
@@ -54,7 +54,7 @@ export default function GraphView({
   stage: string;
   onSelectNode: (sel: GraphSelection) => void;
   onSelectLine: (line: number | null) => void;
-  /** source line clicked in the Source Dock — focuses the shallowest AST node there */
+  /** source line clicked in the Source Dock - focuses the shallowest AST node there */
   focusLine?: number | null;
   guided?: boolean;
   onNavigateStage?: (stage: string) => void;
@@ -87,7 +87,7 @@ export default function GraphView({
   payloadRef.current = payload;
 
   /** frame the laid-out region: zoom clamped to [0.5, 1.05] so text stays
-   * legible and small graphs never blow up. Computed from layout bounds —
+   * legible and small graphs never blow up. Computed from layout bounds -
    * xyflow's fitView raced measurement and ignored the floor. */
   // Legibility floor: 11px mono at zoom 0.7 is the smallest readable size.
   // When the framed region needs less, keep it centered; when it needs more,
@@ -272,7 +272,7 @@ export default function GraphView({
       })) as Edge[];
       setNodes(rfNodes);
       setEdges(rfEdges);
-      // fit runs in a post-commit effect (layoutTick) — a rAF here raced the
+      // fit runs in a post-commit effect (layoutTick) - a rAF here raced the
       // React commit and fitted against the previous (empty) node set
       setMetrics({
         total: payload.nodes.length,
@@ -546,7 +546,7 @@ export default function GraphView({
   }
   if (!payload) return <p className="muted">Laying out graph…</p>;
   if (!payload.nodes.length) {
-    return <p className="muted">This stage produced no graph nodes — use the table/raw views.</p>;
+    return <p className="muted">This stage produced no graph nodes - use the table/raw views.</p>;
   }
 
   const hitSet = new Set(searchHits);
@@ -554,9 +554,9 @@ export default function GraphView({
   const showMinimap = visible.nodes.length > 14;
   const GUIDED_STEPS = [
     "The parser turns the whole token stream into one tree. Each card is a real node the parser built.",
-    "Start inside one function — the tree under its declaration is that function's meaning.",
+    "Start inside one function - the tree under its declaration is that function's meaning.",
     "One level down: the statements. Each keeps its exact source line.",
-    "All the way down: nested expressions. This reveal order is conceptual — the parser builds the tree in its own order.",
+    "All the way down: nested expressions. This reveal order is conceptual - the parser builds the tree in its own order.",
     "Zoom back out: every function's tree hangs under the module root.",
   ];
 

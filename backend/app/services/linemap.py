@@ -5,7 +5,7 @@ Everything here is DERIVED from real compiler output; nothing is guessed:
 * IR:  an instruction ending in ``!dbg !N`` is linked to the source line recorded in
   metadata node ``!N = !DILocation(line: L, ...)``. Line 0 means "no line" and is not linked.
 * ASM: ``.loc <file> <line> <col> ...`` directives attribute the instructions that follow
-  them (until the next ``.loc``) to ``<line>`` — only when ``<file>`` is the primary source.
+  them (until the next ``.loc``) to ``<line>`` - only when ``<file>`` is the primary source.
 
 Both inputs must come from a build with ``-g`` (the optimization worker uses it). Without
 debug info the result is simply empty and ``has_debug_info`` is false: availability is

@@ -1,4 +1,4 @@
-"""API contract tests for the M0 surface (docs/API_CONTRACTS.md)."""
+"""API contract tests for the stage 0 surface (docs/API_CONTRACTS.md)."""
 import json
 import tempfile
 
@@ -27,7 +27,7 @@ def test_capabilities_honest_modes():
     body = r.json()
     assert body["tools"]["clang"]["available"] is True
     assert "18.1.3" in body["tools"]["clang"]["version"]
-    assert body["modes"]["pasted_execution"] == "PARTIAL"  # M4QA-05: honest since the M4 gate passed
+    assert body["modes"]["pasted_execution"] == "PARTIAL"  # honest since the stage 4 gate passed
     assert body["modes"]["curated_execution"] == "PARTIAL"
 
 

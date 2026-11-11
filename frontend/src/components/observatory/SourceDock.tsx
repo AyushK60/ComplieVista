@@ -12,7 +12,7 @@ const KEYWORDS: Record<string, string[]> = {
 };
 
 /**
- * Source Dock — read-only, line-numbered source of the immutable snapshot.
+ * Source Dock - read-only, line-numbered source of the immutable snapshot.
  * `activeLine` is driven by every other dock (tokens, AST, bytecode, trace).
  * Reader colorization is presentational only; the token stage shows the
  * tool-reported tokens.

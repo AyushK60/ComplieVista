@@ -1,10 +1,10 @@
-"""M1-D discovery & capability classification.
+"""Stage 1-D discovery & capability classification.
 
 Bounded static inspection only: `ast.parse` on size-capped text and lexical
 checks. Classification statuses distinguish "detected candidate" from
 "actually verified" via a `verified` flag on every reason. Nothing here is an
-execution authorization: READY_FOR_CONTROLLED_EXECUTION is never emitted in M1
-(the M4 security gate governs it).
+execution authorization: READY_FOR_CONTROLLED_EXECUTION is never emitted in stage 1
+(the stage 4 security gate governs it).
 """
 from __future__ import annotations
 
@@ -107,7 +107,7 @@ def _classify_python(path: str, data: bytes, diagnostics: list) -> dict:
     if syntax_ok and has_main_guard and not non_stdlib:
         reasons.append(_reason("stdlib-only-entry",
                                "entry guard + stdlib-only imports: bounded execution "
-                               "candidate AFTER the M4 sandbox gate", verified=False))
+                               "candidate AFTER the stage 4 sandbox gate", verified=False))
         status = "EXECUTABLE_CANDIDATE"
     else:
         status = "STATIC_ANALYZABLE"
@@ -137,7 +137,7 @@ def _classify_c(path: str, data: bytes, c_files: list[str]) -> dict:
                                "verified compilability or linkability", verified=False))
         reasons.append(_reason("link-deps-unknown",
                                "headers/link dependencies not verified; multi-file context "
-                               "requires real toolchain checks (M2+)", verified=False))
+                               "requires real toolchain checks (Stage 2+)", verified=False))
         status = "COMPILATION_CANDIDATE"
     else:
         reasons.append(_reason("no-main-detected",
@@ -160,7 +160,7 @@ def classify_multi_file_hint(store: Store, snapshot_id: str, files: dict[str, by
     primary = next((p for p in c_files if MAIN_RE.search(files[p])), c_files[0])
     reasons = [_reason("multi-file-hint",
                        f"{len(c_files)} translation units: linked build target requires "
-                       "user-selected file set and real toolchain checks (M2+)", verified=True)]
+                       "user-selected file set and real toolchain checks (Stage 2+)", verified=True)]
     store.execute(
         "INSERT INTO compilation_targets (id, snapshot_id, kind, primary_file, status,"
         " reasons_json, created_utc) VALUES (?,?,?,?,?,?,?)",

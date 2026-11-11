@@ -1,5 +1,5 @@
 """Pure helpers for execution records: framed-stream parsing, symbol/address resolution
-and capped reads. No Docker, no database, no module state — unit-testable on their own.
+and capped reads. No Docker, no database, no module state - unit-testable on their own.
 Re-exported from app.services.execution for existing callers."""
 from __future__ import annotations
 
@@ -9,13 +9,13 @@ from pathlib import Path
 
 
 def parse_framed_stream(data: bytes) -> dict:
-    """Parse the M8-G0 protected trace channel (harness stdout frames).
+    """Parse the stage 8 protected trace channel (harness stdout frames).
 
     Returns per-channel record lists plus integrity verdict. Integrity is
     CONSISTENT only when: a meta frame exists, it is the LAST frame, no foreign
     frames appeared, the stdout cap was not hit, and the meta's authoritative
     event count equals the number of trace frames received. Anything else is
-    SUSPECT and never silently promoted (F-M7-01)."""
+    SUSPECT and never silently promoted (finding)."""
     res: dict = {"trace": [], "memory": [], "process": [], "stdout": b"",
                  "meta": None, "meta_last": False, "foreign": 0,
                  "integrity": "SUSPECT"}
@@ -108,7 +108,7 @@ def _meta_flags(meta_payloads: list[dict]) -> dict:
 
 def _read_capped(path: Path, cap: int) -> tuple[bytes, bool]:
     """Read at most `cap` bytes from a container-written file. Container output is
-    untrusted: the orchestrator never trusts a file's size (M4QA-02/03)."""
+    untrusted: the orchestrator never trusts a file's size."""
     if not path.is_file():
         return b"", False
     with path.open("rb") as f:

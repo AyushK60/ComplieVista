@@ -1,4 +1,4 @@
-/* CompileVista — workspace and page layer (loaded after observatory.css).
+/* CompileVista - workspace and page layer (loaded after observatory.css).
  * Aligned columns, flat sections instead of boxes in boxes, a numbered stepper, quiet data strips.
  * Selectors and aria are unchanged; every value is a token from tokens.css. */
 
@@ -218,7 +218,7 @@ button.jstage.active .jstage-dot { background: var(--signal); border-color: var(
   padding: var(--sp-3) 0 0; font-size: var(--fs-body); color: var(--ink-2); line-height: 1.65;
 }
 .dd-story h4 { font-size: var(--fs-micro); letter-spacing: var(--tracking-caps); font-family: var(--font-mono); font-weight: 500; text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--sp-3); }
-.dd-story h4::before { content: "0" counter(dd) " — "; color: var(--accent-text); }
+.dd-story h4::before { content: "0" counter(dd) " - "; color: var(--accent-text); }
 .dd-story.simple p { font-size: var(--fs-lead); color: var(--ink); line-height: 1.5; }
 .dd-story.technical p { font-family: var(--font-mono); font-size: var(--fs-code); }
 .dd-actions { gap: var(--sp-3); padding: var(--sp-4) 0; border-top: var(--hairline); border-bottom: var(--hairline); }

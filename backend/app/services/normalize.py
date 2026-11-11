@@ -1,8 +1,8 @@
-"""M2-B/C/D normalization: worker outputs → typed stage records with capped items.
+"""Stage 2-B/C/D normalization: worker outputs → typed stage records with capped items.
 
 Raw artifacts are content-addressed (the audit trail); normalized items are capped
 and carry per-item mapping_confidence (EXACT only where the tool reports positions;
-IR/assembly relations are DERIVED; source→IR/asm mapping is UNAVAILABLE in M2).
+IR/assembly relations are DERIVED; source→IR/asm mapping is UNAVAILABLE in stage 2).
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from app.store.db import Store, new_id
 MAX_ITEMS = 500
 _DIAG_RE = re.compile(r"^(.+?):(\d+):(\d+):\s*(error|warning|note):\s*(.*)$")
 # Full-coverage token parser: bracket flag group is OPTIONAL because clang omits it
-# for tokens coming from included headers (the M0 main-file parser keeps its format).
+# for tokens coming from included headers (the stage 0 main-file parser keeps its format).
 _TOK_RE = re.compile(r"^(\S+)\s+'(.*)'\s+(?:\[.*?\]\s+)?Loc=<([^:>]+):(\d+):(\d+)>?(?:\s.*)?$")
 
 
@@ -89,7 +89,7 @@ def _clang_ast_nodes(ast_json: dict, primary_basename: str | None = None,
             "children": [],
             "mapping_confidence": confidence,
         })
-        parent_index = len(nodes) - 1  # capture BEFORE walking children (M3 tree fix)
+        parent_index = len(nodes) - 1  # capture BEFORE walking children (Stage 3 tree fix)
         for child in node.get("inner", []) or []:
             nodes[parent_index]["children"].append(walk(child, nid))
         return nid
@@ -118,10 +118,10 @@ def _clang_ast_nodes(ast_json: dict, primary_basename: str | None = None,
 
 def _ir_summary(ir_text: str) -> dict:
     """Functions, blocks and REAL terminator-derived edges (DERIVED confidence).
-    The entry block has no label line in LLVM IR — represented as '<entry>'.
+    The entry block has no label line in LLVM IR - represented as '<entry>'.
     Terminators are accumulated across physical lines: LLVM prints switch case
     labels on continuation lines (CV-02). Per-block instruction text is
-    extracted verbatim from the same .ll artifact (presentation extraction —
+    extracted verbatim from the same .ll artifact (presentation extraction -
     the compilation engine is untouched); lines are whitespace-trimmed and
     capped per block with an honest truncated flag."""
     MAX_BLOCK_INSTRUCTIONS = 200
@@ -147,7 +147,7 @@ def _ir_summary(ir_text: str) -> dict:
         bm = re.match(r"^([\w.$-]+):\s*(?:;.*)?$", line)
         if bm:
             # LLVM's entry block is either unlabeled (implicit <entry>) or carries
-            # the first label — merge, don't duplicate.
+            # the first label - merge, don't duplicate.
             if (block is not None and block["label"] == "<entry>"
                     and not block["terminators"] and not block["successors"]
                     and len(cur["blocks"]) == 1):
@@ -245,10 +245,10 @@ _STAGE_LIMITS = {
                  "provenance is ambiguous and not claimed."],
     "c:ast": ["Clang -ast-dump JSON; internal node ids are NOT durable cross-run IDs "
               "(stable ids are session-local). Source ranges EXACT."],
-    "c:ir_o0": ["Source→IR mapping is UNAVAILABLE in M2 (no verified instruction links); "
+    "c:ir_o0": ["Source→IR mapping is UNAVAILABLE in stage 2 (no verified instruction links); "
                 "CFG edges derived from terminators (DERIVED)."],
     "c:ir_o2": ["Optimized IR from an independent -O2 build; source mapping UNAVAILABLE; "
-                "interactive diff/explanations deferred to M6."],
+                "interactive diff/explanations deferred to stage 6."],
     "c:assembly": ["Mnemonics are not machine-code bytes; source mapping UNAVAILABLE."],
     "c:object": ["Object file bytes are stored hashed; binary itself is not served."],
     "c:symbols": ["Symbol table from llvm-readelf (DERIVED parsing)."],
@@ -256,7 +256,7 @@ _STAGE_LIMITS = {
     "python:tokens": ["CPython 3.12 tokenize; positions EXACT incl. Unicode offsets."],
     "python:ast": ["ast/symtable data from CPython 3.12; spans EXACT; no type inference invented."],
     "python:code_object": ["Code-object metadata is version-pinned 3.12.3."],
-    "python:bytecode": ["Static disassembly; NOT runtime coverage (P5 is M4)."],
+    "python:bytecode": ["Static disassembly; NOT runtime coverage (P5 is stage 4)."],
     "python:diagnostics": ["Verbatim SyntaxError fields from CPython."],
 }
 
@@ -405,7 +405,7 @@ def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language
                 raw_ref = store.put_artifact(artifacts["py_bytecode_raw.txt"])
             elif key:
                 # Every Python stage's own JSON worker output is part of the raw
-                # audit trail (CV-09) — persist it, not only the bytecode listing.
+                # audit trail (CV-09) - persist it, not only the bytecode listing.
                 raw_ref = store.put_artifact(artifacts[key])
         if rec.get("stderr") is not None:
             stderr_ref = store.put_artifact(stderr_text.encode())  # empty stderr is provenance too

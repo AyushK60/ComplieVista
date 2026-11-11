@@ -13,7 +13,7 @@ def register(app: FastAPI, store: Store) -> None:
     @app.post("/api/v1/executions")
     async def create_execution(request: Request) -> dict:
         from app.services.execution import ExecutionError, create_execution, get_execution_runner
-        request._receive = _capped_receive_call(request, 1024 * 1024)  # noqa: SLF001 (M4QA-04)
+        request._receive = _capped_receive_call(request, 1024 * 1024)  # noqa: SLF001
         try:
             body = json.loads((await request.body()).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -28,7 +28,7 @@ def register(app: FastAPI, store: Store) -> None:
 
     @app.get("/api/v1/executions/{execution_id}/memory")
     def execution_memory(execution_id: str, after: int = 0, limit: int = 200) -> dict:
-        """M5 MemoryScope chunk (schema m5.memory.v1): per-record payloads with
+        """Stage 5 MemoryScope chunk (schema m5.memory.v1): per-record payloads with
         observation classes, checksummed and paginated. Browsing never re-runs."""
         limit = max(1, min(limit, 500))
         job = store.query_one("SELECT status, language, profile, memory_count,"
@@ -60,7 +60,7 @@ def register(app: FastAPI, store: Store) -> None:
 
     @app.get("/api/v1/executions/{execution_id}/process")
     def execution_process(execution_id: str, after: int = 0, limit: int = 200) -> dict:
-        """M5 ProcessScope chunk (schema m5.process.v1): container-side pid
+        """Stage 5 ProcessScope chunk (schema m5.process.v1): container-side pid
         namespace, /proc samples, children, exit; checksummed and paginated."""
         limit = max(1, min(limit, 500))
         job = store.query_one("SELECT status, language, profile, process_count,"

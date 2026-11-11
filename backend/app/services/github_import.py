@@ -1,6 +1,6 @@
-"""M1-C safe public GitHub repository import.
+"""Stage 1-C safe public GitHub repository import.
 
-Policy (docs/SECURITY.md + README §11):
+Policy (docs/SECURITY.md + the project notes):
  - Only structurally valid https://github.com/OWNER/REPO URLs (optional ?ref= is a
    separate API field, never URL-interpolated). Userinfo, ports, non-GitHub hosts,
    deceptive hostnames, IPs, queries/fragments, control chars are rejected.

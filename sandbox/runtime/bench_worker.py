@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""M6-D benchmark worker — runs INSIDE the pinned runtime container.
+"""Stage 6-D benchmark worker - runs INSIDE the pinned runtime container.
 
 Measures UNINSTRUMENTED execution (no settrace, no -finstrument-functions):
   C mode:      --bin-dir /out with app-O0/O1/O2 -> N timed runs per level
   Python mode: --file <py> with a main() -> N timed in-process runs
 Per sample: wall (monotonic) and CPU time (RUSAGE_CHILDREN delta for C,
 process_time for Python), output checksum per run covering captured stdout,
-bounded return representation and exception/exit status (M8-G0 F-M7-03:
-semantics-equivalence and dead-code-elimination guard — checksums must be
+bounded return representation and exception/exit status (Stage 8 finding:
+semantics-equivalence and dead-code-elimination guard - checksums must be
 identical across repeats AND levels; a workload whose printed output varies per
 run can never produce identical checksums). Warmup runs happen before timing
 and are excluded.
@@ -77,8 +77,8 @@ def run_c_level(exe: str, warmup: int, repeats: int) -> dict:
         samples.append({"wall_ms": round(wall_ms, 3), "cpu_ms": round(cpu_ms, 3)})
         if r.returncode != 0:
             nonzero_exits += 1
-        # M8-G0 F-M7-03: the equivalence checksum covers captured stdout AND the
-        # exit status — a binary that prints differently per run (or starts
+        # Stage 8 finding: the equivalence checksum covers captured stdout AND the
+        # exit status - a binary that prints differently per run (or starts
         # failing) must never produce identical checksums.
         checksums.append(hashlib.sha256(json.dumps({
             "stdout": r.stdout.decode("utf-8", "replace")[:65536],
@@ -126,14 +126,14 @@ def run_py_level(code, warmup: int, repeats: int) -> dict:
         try:
             with redirect_stdout(buf):
                 ret = main()
-        except BaseException as e:  # noqa: BLE001 — a raising repeat is DATA,
+        except BaseException as e:  # noqa: BLE001 - a raising repeat is DATA,
             # not a crash: it must change the checksum, not abort the level
             exc_name = type(e).__name__
             exceptions.append(exc_name)
         wall_ms = (time.perf_counter() - t0) * 1000
         cpu_ms = (time.process_time() - cpu0) * 1000
         samples.append({"wall_ms": round(wall_ms, 3), "cpu_ms": round(cpu_ms, 3)})
-        # M8-G0 F-M7-03: checksum covers captured stdout, bounded return repr and
+        # Stage 8 finding: checksum covers captured stdout, bounded return repr and
         # the exception/exit status. A main() that prints a different line each
         # repeat while returning None MUST yield differing checksums.
         checksums.append(hashlib.sha256(json.dumps({
@@ -186,7 +186,7 @@ def main() -> None:
             result["levels"]["py312"] = run_py_level(code, warmup, repeats)
         except Exception as e:  # noqa: BLE001
             result["errors"]["py312"] = f"{type(e).__name__}: {e}"[:200]
-    # M8-G0 F-M7-03: semantics equivalence requires BOTH that every level had
+    # Stage 8 finding: semantics equivalence requires BOTH that every level had
     # internally identical repeats AND that all levels agree with each other.
     result["levels_semantics_equivalent"] = (
         all(lv["checksums_identical"] for lv in result["levels"].values())

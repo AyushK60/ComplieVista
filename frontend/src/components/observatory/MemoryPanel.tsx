@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ObservationStream, executions } from "../../api";
 
 /**
- * MemoryScope — recorded memory evidence, presented spatially.
+ * MemoryScope - recorded memory evidence, presented spatially.
  * Python: frame locals, alias groups, the bounded object graph, tracemalloc and
  * gc records. C: an allocation ladder showing each allocation's lifetime from
  * its alloc record to its matching free, plus mem_meta totals. gdb debug_stop
@@ -84,7 +84,7 @@ export default function MemoryPanel({ executionId, onSelectLine }: {
           <FrameLadder snaps={frameSnaps} onSelectLine={onSelectLine} />
           <section className="mem-frames">
             <h4>Frame observations <span className="badge exact">observed</span>
-              <span className="muted"> — most recent first; click a card to see the line</span></h4>
+              <span className="muted"> - most recent first; click a card to see the line</span></h4>
             <div className="framegrid">
               {frameSnaps.slice(-8).reverse().map((f, i) => (
                 <FrameCard key={i} f={f} onSelectLine={onSelectLine} />
@@ -128,7 +128,7 @@ export default function MemoryPanel({ executionId, onSelectLine }: {
               const max = Math.max(...((tracemalloc.top as Array<Record<string, unknown>>) ?? [])
                 .map((x) => Number(x.size_bytes)), 1);
               return (
-                <div key={i} className="tm-bar" title={`${t.file}:${t.line} — ${Number(t.size_bytes)} B in ${t.count} block(s)`}>
+                <div key={i} className="tm-bar" title={`${t.file}:${t.line} - ${Number(t.size_bytes)} B in ${t.count} block(s)`}>
                   <span className="tm-label"><code>{String(t.file).split("/").pop()}:{String(t.line)}</code></span>
                   <span className="tm-fill" style={{ width: `${(Number(t.size_bytes) / max) * 100}%` }} />
                   <span className="tm-val">{fmtBytes(Number(t.size_bytes))}</span>
@@ -176,7 +176,7 @@ export default function MemoryPanel({ executionId, onSelectLine }: {
 }
 
 /** Python frame lifetimes: one band per frame_id, spanning its first to last
- * snapshot record — the Python analogue of the C heap ladder, built only from
+ * snapshot record - the Python analogue of the C heap ladder, built only from
  * recorded frame_snapshot records (not sampled, not inferred). */
 function FrameLadder({ snaps, onSelectLine }: {
   snaps: Array<Record<string, unknown>>;
@@ -199,7 +199,7 @@ function FrameLadder({ snaps, onSelectLine }: {
   return (
     <section>
       <h4>Frame lifetimes <span className="badge exact">observed</span>
-        <span className="muted"> — one band per recorded frame, spanning its snapshots</span></h4>
+        <span className="muted"> - one band per recorded frame, spanning its snapshots</span></h4>
       <div className="memscope-stats">
         <span className="chip">{rows.length} frames</span>
         <span className="chip">{snaps.length} snapshots</span>
@@ -211,7 +211,7 @@ function FrameLadder({ snaps, onSelectLine }: {
           const width = Math.max(((r.last - r.first + 1) / maxSeq) * 100, 1.2);
           return (
             <button key={id} className="alloc-row memband" onClick={() => onSelectLine(r.line)}
-                    title={`frame ${r.fn} (id ${id}) — snapshots at events ${r.first}…${r.last}`}>
+                    title={`frame ${r.fn} (id ${id}) - snapshots at events ${r.first}…${r.last}`}>
               <code className="alloc-addr" style={{ width: 110 }}>{r.fn}</code>
               <span className="alloc-lane">
                 <span className="alloc-bar freed" style={{ marginLeft: `${left}%`, width: `${width}%` }}>
@@ -224,7 +224,7 @@ function FrameLadder({ snaps, onSelectLine }: {
         })}
       </div>
       {deep > 0 && <p className="muted">…{deep} more frames recorded (shown: first 14 by start)</p>}
-      <p className="muted">Bands span from each frame's first snapshot to its last — snapshot
+      <p className="muted">Bands span from each frame's first snapshot to its last - snapshot
         sequence, not wall-clock time. Python frames cannot be sampled continuously without a
         debugger; these are the observations the cooperative tracer reported.</p>
     </section>
@@ -316,13 +316,13 @@ function AllocLadder({ allocs, frees, reallocs, meta }: {
       </div>
       {allocs.length > 12 && <p className="muted">…{allocs.length - 12} more allocations recorded (shown: first 12)</p>}
       <p className="muted">Bars span from the alloc record to the matching free/realloc
-        record — timeline position, not wall-clock time. An allocation without a matching
+        record - timeline position, not wall-clock time. An allocation without a matching
         free at exit is marked <i>outstanding</i>; that is an observation, not an accusation.</p>
     </section>
   );
 }
 
-/** Object reference graph — bounded reachable subgraph of module globals at exit. */
+/** Object reference graph - bounded reachable subgraph of module globals at exit. */
 function ObjectGraph({ graph }: { graph: Record<string, unknown> }) {
   const nodes = (graph.nodes as Array<Record<string, unknown>>) ?? [];
   const edges = (graph.edges as Array<Record<string, unknown>>) ?? [];
@@ -380,7 +380,7 @@ function ObjectGraph({ graph }: { graph: Record<string, unknown> }) {
       </svg>
       <p className="muted">{nodes.length} nodes / {edges.length} edges
         {caps ? ` (caps: ${caps.nodes} nodes, ${caps.edges} edges, depth ${caps.depth})` : ""}.
-        Node identities are id() values from this run — Python references, not C pointers.</p>
+        Node identities are id() values from this run - Python references, not C pointers.</p>
     </section>
   );
 }

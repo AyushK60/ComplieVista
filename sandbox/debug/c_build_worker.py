@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M4-C C build worker — runs INSIDE the pinned analyzer container.
+"""Stage 4-C C build worker - runs INSIDE the pinned analyzer container.
 
 Compiles the staged single-file target with pinned allowlisted flags:
   clang-18 -g -O0 -finstrument-functions (user code)

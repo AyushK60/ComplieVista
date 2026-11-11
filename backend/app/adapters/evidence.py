@@ -1,4 +1,4 @@
-"""Loads M0 evidence manifests and serves bounded typed views (ADR-0002)."""
+"""Loads stage 0 evidence manifests and serves bounded typed views (ADR-0002)."""
 from __future__ import annotations
 
 import json
@@ -38,7 +38,7 @@ def list_analyses() -> list[dict]:
             "stages": [s.stage for s in m.stages],
         })
     if not out:
-        raise EvidenceError("EVIDENCE_MISSING", "no M0 manifests found; run toolchain proofs")
+        raise EvidenceError("EVIDENCE_MISSING", "no stage 0 manifests found; run toolchain proofs")
     return out
 
 

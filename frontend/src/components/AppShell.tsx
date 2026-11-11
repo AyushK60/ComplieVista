@@ -71,7 +71,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const hit = TITLES.find(([p]) => pathname === p || pathname.startsWith(p + "/"));
-    document.title = hit ? `${hit[1]} — CompileVista` : "CompileVista — see how code becomes execution";
+    document.title = hit ? `${hit[1]} - CompileVista` : "CompileVista - see how code becomes execution";
   }, [pathname]);
 
   // global keys: Ctrl/⌘+K palette, ? shortcuts (never while typing in a field)

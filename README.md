@@ -3,7 +3,7 @@
 **See how code becomes execution.** CompileVista is a local-first observatory that shows the
 *real* artifacts a toolchain produces for code you bring: tokens, syntax trees, LLVM IR,
 assembly and objects for **C** (Clang/LLVM 18), and tokens, AST, code objects and bytecode for
-**Python** (CPython 3.12) — plus a recorded, replayable run of the program in a sandbox.
+**Python** (CPython 3.12) - plus a recorded, replayable run of the program in a sandbox.
 
 Nothing is simulated. Every artifact carries the tool and version that produced it, the
 invocation, the exit code and a SHA-256; when a tool cannot provide something, the UI says
@@ -19,7 +19,7 @@ invocation, the exit code and a SHA-256; when a tool cannot provide something, t
 
 ![Source, IR and assembly links](docs/media/source-ir-asm-links.gif)
 
-**Watch a program work** — a sandboxed run, replayed step by step:
+**Watch a program work** - a sandboxed run, replayed step by step:
 
 ![Watch it work](docs/media/watch-it-work.gif)
 
@@ -33,7 +33,7 @@ invocation, the exit code and a SHA-256; when a tool cannot provide something, t
 - **Watch a program work**: it runs once in a restricted container; the recorded call/line/return events replay step by step with the call stack and values.
 - **Export a replay** as a single HTML file that plays back with no backend and no network.
 - **Explore 20 curated programs** (5 Python, 5 C, 5 matched C/Python pairs) and an Error Microscope of real compiler diagnostics.
-- **Compare C and Python** on the same problem — without pretending Python has LLVM optimization levels.
+- **Compare C and Python** on the same problem - without pretending Python has LLVM optimization levels.
 
 ## Quick start (Windows 11)
 
@@ -59,12 +59,11 @@ Everything binds to `127.0.0.1`. This is a local tool, not a hosted service.
 Design rules that shape the code:
 
 - **Artifact honesty.** Artifacts are never invented; availability is an explicit state.
-- **Distinct pipelines.** C and Python are separate — bytecode is not machine code.
+- **Distinct pipelines.** C and Python are separate - bytecode is not machine code.
 - **Static analysis never executes code.** Execution happens only inside the sandbox.
 
 More: [architecture](docs/ARCHITECTURE.md) · [security notes](docs/SECURITY.md) ·
-[API contracts](docs/API_CONTRACTS.md) · [technical report (draft)](docs/REPORT.md) ·
-[original specification](docs/SPECIFICATION.md).
+[API contracts](docs/API_CONTRACTS.md) · [user guide](docs/USER_GUIDE.md).
 
 ## Verifying it yourself
 
@@ -82,3 +81,7 @@ backend/.venv/bin/python eval/fidelity_study.py
 - C execution traces are function-level (call/return); only Python traces carry line events.
 - Source ↔ IR/asm links depend on `-g` debug info; inlined code is attributed to the callee's source line.
 - The browser tests cover the main journeys, not every panel.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Copyright (c) 2026 Ayush Khanal.

@@ -1,4 +1,4 @@
-# CompileVista Status (M8-G0). Honest reporting only - no false green states.
+# CompileVista Status (Stage 8). Honest reporting only - no false green states.
 $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "cv-common.ps1")
 

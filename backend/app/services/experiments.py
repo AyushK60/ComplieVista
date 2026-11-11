@@ -1,10 +1,10 @@
-"""M6 OptimizationLab / benchmark / pair-comparison orchestrator (ADR-0009).
+"""Stage 6 OptimizationLab / benchmark / pair-comparison orchestrator (ADR-0009).
 
 Reuses the established patterns (single bounded worker thread, argv-array docker
 invocations, restricted baseline flags, run_capped with byte caps, defensive
-reads, forced container cleanup) — NOT a second executor: opt builds compile in
+reads, forced container cleanup) - NOT a second executor: opt builds compile in
 the pinned analyzer image, benchmark timing runs in the pinned runtime image on
-UNINSTRUMENTED binaries, and pair comparison reuses the M4 execution pipeline
+UNINSTRUMENTED binaries, and pair comparison reuses the stage 4 execution pipeline
 (create_execution) end-to-end.
 
 No arbitrary compilation flags: worker flags are fixed and recorded verbatim.
@@ -112,7 +112,7 @@ class _ExperimentRunner:
                           " error_code='DOCKER_UNAVAILABLE', finished_utc=? WHERE id=?",
                           (now_utc(), eid))
             return
-        # F-M7-02: launch OptimizationLab/benchmark containers with the IMMUTABLE
+        # launch OptimizationLab/benchmark containers with the IMMUTABLE
         # image IDs resolved right now, never the mutable tags; fail closed when
         # resolution fails or the tag no longer matches the submission-time ID.
         build_ref = resolve_image_id(ANALYZER_IMAGE)
@@ -148,7 +148,7 @@ class _ExperimentRunner:
         finally:
             remove_disposable_dir(job_dir, ANALYZER_IMAGE)
 
-    # ---------------- M6-A: optimization builds ----------------
+    # ---------------- stage 6-A: optimization builds ----------------
     def _run_opt(self, store: Store, eid: str, job, config: dict,
                  job_dir: Path, build_ref: str) -> None:
         src = self._materialize(store, job["snapshot_id"], job_dir)
@@ -194,7 +194,7 @@ class _ExperimentRunner:
                               (job["target_id"],))
         return row["primary_file"]
 
-    # ---------------- M6-D: benchmarks ----------------
+    # ---------------- stage 6-D: benchmarks ----------------
     def _run_bench(self, store: Store, eid: str, job, config: dict,
                    job_dir: Path, build_ref: str, exec_ref: str) -> None:
         src = self._materialize(store, job["snapshot_id"], job_dir)
@@ -251,7 +251,7 @@ class _ExperimentRunner:
                       " result_sha256=? WHERE id=?",
                       (now_utc(), store.put_artifact(bench_p.read_bytes()), eid))
 
-    # ---------------- M6-C: pair comparison (reuses M4 executions) ----------------
+    # ---------------- stage 6-C: pair comparison (reuses stage 4 executions) ----------------
     def _run_compare(self, store: Store, eid: str, job, config: dict) -> None:
         from app.services.curated import CURATED_DIR
         pair_id = config.get("pair_id", "")
@@ -396,7 +396,7 @@ def create_experiment(store: Store, kind: str, snapshot_id: str | None,
                 "existed": True}
     requested_ids = None
     if kind != "compare":
-        # F-M7-02: pin the immutable image identities at submission; the runner
+        # pin the immutable image identities at submission; the runner
         # fails closed if the tags no longer match them at run time.
         build_ref = resolve_image_id(ANALYZER_IMAGE)
         exec_ref = resolve_image_id(RUNTIME_IMAGE)

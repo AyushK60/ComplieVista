@@ -6,11 +6,11 @@ import { Locals, TreeNode, retRepr, localsRepr, buildTree, aggregate, AggNode, a
 /* ————————————————— Execution Observatory (trace theater) ————————————————— */
 
 const GUIDE_STEPS = [
-  { cap: "step 1 · the first call", body: "Execution starts at the outermost frame. Every card below is a call the tracer actually recorded — click one to inspect it." },
-  { cap: "step 2 · the recursive relationship", body: "Expanding the call shows its children: the recursive calls. Depth grows with each nesting level — this is the call stack becoming visible." },
+  { cap: "step 1 · the first call", body: "Execution starts at the outermost frame. Every card below is a call the tracer actually recorded - click one to inspect it." },
+  { cap: "step 2 · the recursive relationship", body: "Expanding the call shows its children: the recursive calls. Depth grows with each nesting level - this is the call stack becoming visible." },
   { cap: "step 3 · arguments change", body: "Each recursive call receives a smaller argument (shown right on the call card). The same function, different frames, different values." },
   { cap: "step 4 · the base case returns", body: "At the deepest level the function returns without calling itself again. The base case is where unwinding begins." },
-  { cap: "step 5 · returns propagate", body: "Each frame hands its result to its parent — watch the return values flow up the tree toward the original call." },
+  { cap: "step 5 · returns propagate", body: "Each frame hands its result to its parent - watch the return values flow up the tree toward the original call." },
   { cap: "step 6 · the output", body: "The original call finishes and the program prints. Open the Output tab to see the recorded stdout." },
 ];
 
@@ -150,7 +150,7 @@ export default function TraceTheater({ events, job, loading, onSelectLine, activ
   if (!events.length) {
     return <div className="unavailable"><span className="glyph">◍</span>
       This run produced no trace events{job.language === "c"
-        ? " — the C trace shim records function calls/returns only; this target emitted none."
+        ? " - the C trace shim records function calls/returns only; this target emitted none."
         : "."}</div>;
   }
 
@@ -173,7 +173,7 @@ export default function TraceTheater({ events, job, loading, onSelectLine, activ
           </button>
         ))}
         {job.language === "c" && (
-          <span className="muted">C shim records call/return only (no line events, no locals — policy)</span>
+          <span className="muted">C shim records call/return only (no line events, no locals - policy)</span>
         )}
       </div>
 
@@ -326,7 +326,7 @@ function CallDetail({ events, tree, selIdx, onSelect, onSelectLine }: {
       <div className="calldetail panel" aria-label="call detail">
         <div className="theater-pane-h">Call detail</div>
         <p className="muted" style={{ padding: "10px 14px" }}>
-          Select a call in the structure — its recorded arguments, return value,
+          Select a call in the structure - its recorded arguments, return value,
           ancestry and event span appear here.
         </p>
       </div>

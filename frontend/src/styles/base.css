@@ -1,4 +1,4 @@
-/* CompileVista — base: reset, type, focus, scrollbars, and the shared components
+/* CompileVista - base: reset, type, focus, scrollbars, and the shared components
  * (buttons, tags, inputs, panels, header). Values come from tokens.css only. */
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }

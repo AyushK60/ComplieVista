@@ -3,7 +3,7 @@ import { Selection } from "./types";
 import StatusBadge from "../../ui/status";
 
 /**
- * Contextual Inspector — explains whatever the user selected in any canvas:
+ * Contextual Inspector - explains whatever the user selected in any canvas:
  * what it is, why it exists, which source produced it, and its exact recorded
  * fields. Explanations are educational copy; fields are verbatim API data.
  */
@@ -20,7 +20,7 @@ export default function Inspector({ selection, onClose, onShowSource }: {
         <div className="panel-h">Contextual Inspector</div>
         <div className="insp-empty">
           <p className="muted">
-            Select anything — a token, an AST node, an instruction, a frame — and its
+            Select anything - a token, an AST node, an instruction, a frame - and its
             story appears here: what it is, which source line produced it, and the
             exact recorded evidence.
           </p>

@@ -4,14 +4,14 @@ import { ExecutionEvent, executions, loadAllEvents } from "../../api";
 import { buildTree, stackAt, TreeNode } from "./ExecutionDock";
 
 /**
- * Visual Program Walkthrough — "Watch This Program Work".
+ * Visual Program Walkthrough - "Watch This Program Work".
  * A beginner-oriented execution scene driven ONLY by the recorded trace:
  *   • the active source line (from real line events),
  *   • the executed flow of the active function (line sequence, loop iteration
- *     counters DERIVED from revisits of a line within one frame — labeled),
+ *     counters DERIVED from revisits of a line within one frame - labeled),
  *   • the call/stack stage (recorded frames),
  *   • the variable stage (locals recorded at call; memory-snapshot diffs where
- *     the cooperative tracer provided them — snapshot-based, labeled),
+ *     the cooperative tracer provided them - snapshot-based, labeled),
  *   • the recorded output (whole-run; per-print timing is not recorded).
  * Navigation steps through MEANINGFUL events (calls, returns, exceptions, and
  * line changes) so a coherent story plays without pressing Next constantly.
@@ -53,12 +53,12 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
         if (j.status !== "COMPLETED") return;
         const evs = await loadAllEvents(executionId);
         const out = await executions.output(executionId);
-        // memory frame snapshots (may not exist for every profile — honest absence)
+        // memory frame snapshots (may not exist for every profile - honest absence)
         let snaps: Array<{ seq: number; payload: Record<string, unknown> }> = [];
         try {
           const m = await executions.memory(executionId, 0, 500);
           snaps = (m.chunks ?? []).map((c) => ({ seq: c.seq, payload: c.payload }));
-        } catch { /* snapshots unavailable — variable stage falls back to call locals */ }
+        } catch { /* snapshots unavailable - variable stage falls back to call locals */ }
         if (!alive) return;
         setLoading(false);
         setEvents(evs);
@@ -97,7 +97,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
   const framesAt = useMemo(() => stackAt(events, curIdx + 1), [events, curIdx]);
   const active: Frame | null = framesAt.length ? framesAt[framesAt.length - 1] : null;
 
-  // loop indicator: DERIVED — the most-revisited line of the active frame.
+  // loop indicator: DERIVED - the most-revisited line of the active frame.
   // Persists while the loop is running (any line of the frame), so the label
   // doesn't flash only when the playhead sits exactly on the loop header.
   const iterations = useMemo(() => {
@@ -213,7 +213,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
   }, [playing, mi, tick, speed, meaningful.length]);
 
   // scroll the active line into view in the source dock (rendered by the
-  // workspace next to this scene — the single, full-height source view)
+  // workspace next to this scene - the single, full-height source view)
   useEffect(() => {
     const ln = cur?.kind === "line" ? Number(cur.payload.line) : active?.line;
     if (ln == null) return;
@@ -236,7 +236,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
   }
   if (!events.length) {
     return <div className="unavailable" style={{ margin: 16 }}><span className="glyph">◍</span>
-      No recorded events for this run — the walkthrough needs a completed traced execution.</div>;
+      No recorded events for this run - the walkthrough needs a completed traced execution.</div>;
   }
 
   const explain = !cur ? "Press play to watch the recorded execution."
@@ -249,7 +249,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
     <div className="walkthrough" role="region" aria-label="visual program walkthrough">
       <div className="wt-head">
         <span className="badge exact">recorded replay</span>
-        <span className="muted">Watch This Program Work — the highlighted source line and every value below come from the recorded run.</span>
+        <span className="muted">Watch This Program Work - the highlighted source line and every value below come from the recorded run.</span>
         <span className="spacer" />
         <span className="muted tech-only">meaningful event {Math.min(mi + 1, meaningful.length)}/{meaningful.length} · seq {curIdx + 1}</span>
       </div>
@@ -260,7 +260,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
             <div className="theater-pane-h">
               What happens now
               {iterations != null && (
-                <span className="chip partial" title="Derived from revisits of this line within the recorded frame — a derived view, not an instrumented counter">
+                <span className="chip partial" title="Derived from revisits of this line within the recorded frame - a derived view, not an instrumented counter">
                   loop pass ×{iterations}
                 </span>
               )}
@@ -305,7 +305,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
               </table>}
           <p className="muted" style={{ padding: "0 14px 10px", fontSize: 11 }}>
             {latestSnap
-              ? "Changes compare the tracer's frame snapshots — snapshot-based, not live."
+              ? "Changes compare the tracer's frame snapshots - snapshot-based, not live."
               : "Values were recorded when this frame was created; mid-call changes are not captured by this profile."}
           </p>
         </div>
@@ -325,7 +325,7 @@ export default function ProgramWalkthrough({ executionId, sourceText, onSelectLi
 
         {/* output */}
         <div className="wt-out panel">
-          <div className="theater-pane-h">Recorded output <span className="muted">(whole run — per-print timing is not recorded)</span></div>
+          <div className="theater-pane-h">Recorded output <span className="muted">(whole run - per-print timing is not recorded)</span></div>
           <pre className="wt-outbody" tabIndex={0} aria-label="program output">{output ?? "(none)"}</pre>
         </div>
       </div>

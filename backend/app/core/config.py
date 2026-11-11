@@ -1,4 +1,4 @@
-"""M1 bounded intake limits (ADR-0004). All values are explicit, documented and tested."""
+"""Stage 1 bounded intake limits (ADR-0004). All values are explicit, documented and tested."""
 from __future__ import annotations
 
 import os
@@ -6,7 +6,7 @@ import os
 LIMITS: dict[str, int] = {
     "paste_max_bytes": 512 * 1024,
     "upload_max_files": 50,
-    "file_max_bytes": 2 * 1024 * 1024,          # per source file (matches M0 staging cap)
+    "file_max_bytes": 2 * 1024 * 1024,          # per source file (matches stage 0 staging cap)
     "snapshot_total_max_bytes": 16 * 1024 * 1024,
     "snapshot_max_files": 2000,
     "snapshot_max_depth": 12,
@@ -17,7 +17,7 @@ LIMITS: dict[str, int] = {
     "github_archive_max_compressed_bytes": 25 * 1024 * 1024,
     "github_api_timeout_s": 20,
     "github_download_timeout_s": 90,
-    "api_max_response_items": 500,               # per M0 convention
+    "api_max_response_items": 500,               # per stage 0 convention
 }
 
 DEFAULT_DATA_DIR = os.environ.get(
@@ -34,4 +34,4 @@ ANALYZER_IMAGE = os.environ.get("COMPILEVISTA_ANALYZER_IMAGE", "compilevista/ana
 RUNTIME_IMAGE = os.environ.get("COMPILEVISTA_RUNTIME_IMAGE", "compilevista/runtime:m4")
 DEBUG_IMAGE = os.environ.get("COMPILEVISTA_DEBUG_IMAGE", "compilevista/debug:m5")
 ANALYSIS_TIMEOUT_S = int(os.environ.get("COMPILEVISTA_ANALYSIS_TIMEOUT_S", "180"))
-ANALYSIS_MAX_CONCURRENT = 1          # single bounded worker for local M2
+ANALYSIS_MAX_CONCURRENT = 1          # single bounded worker for local stage 2

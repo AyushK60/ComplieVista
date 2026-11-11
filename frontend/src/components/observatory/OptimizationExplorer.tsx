@@ -46,7 +46,7 @@ function diffRows(a: string, b: string): Array<{ a: string | null; b: string | n
 const LEVELS = ["O0", "O1", "O2"] as const;
 
 /**
- * Optimization Explorer — genuine per-level Clang builds (recorded flags only),
+ * Optimization Explorer - genuine per-level Clang builds (recorded flags only),
  * side-by-side static artifact comparison and uninstrumented benchmarks.
  * Python honestly has no O-levels; its comparison story lives in the Compare view.
  */
@@ -119,7 +119,7 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
         <div className="unavailable" style={{ margin: 16 }}>
           <span className="glyph">◈</span>
           <div>LLVM -O levels apply to the C pipeline only. <b>Python has no optimization
-            levels</b> — its CPython 3.12 compiler behavior is version-pinned, and
+            levels</b> - its CPython 3.12 compiler behavior is version-pinned, and
             cross-language comparison lives in the Compare view.</div>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
                   <span className="badge derived">changed ×{nChg}</span>
                   <span className="badge blocked">removed ×{nDel}</span>
                   <span className="badge ok">added ×{nAdd}</span>
-                  <span className="muted">row alignment is a reading aid — an IR/asm line never maps 1:1 to a source line or to one machine instruction</span>
+                  <span className="muted">row alignment is a reading aid - an IR/asm line never maps 1:1 to a source line or to one machine instruction</span>
                 </div>
                 <div className="optdiff-side" role="region" tabIndex={0} aria-label={`${levelA} vs ${levelB} side-by-side`}>
                   <div className="optdiff-head"><b>{levelA}</b><b>{levelB}</b></div>
@@ -217,7 +217,7 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
           <p className="muted">
             What this can tell you: how the emitted {kind === "asm" ? "assembly" : "IR"} differs
             between levels (fewer instructions, hoisted constants, eliminated work) and code
-            size changes. What it cannot: per-pass decisions or wall-clock speed — use the
+            size changes. What it cannot: per-pass decisions or wall-clock speed - use the
             benchmark for measured timing on this machine only.
           </p>
         </div>
@@ -253,7 +253,7 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
                       <td><code>{(rec.cpu as Record<string, number>).median_ms} ms</code></td>
                       <td>{rec.checksums_identical
                         ? <span className="badge ok">identical</span>
-                        : <span className="badge blocked">DIFFER — outputs vary</span>}</td>
+                        : <span className="badge blocked">DIFFER - outputs vary</span>}</td>
                     </tr>
                   );
                 })}
@@ -263,8 +263,8 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
               {String(env.cpu_model ?? "cpu n/a")} · kernel {String(env.kernel)} · cgroup cpu {String(env.cgroup_cpu_max)} / mem {String(env.cgroup_memory_max)} ·
               wall and CPU are separate metrics · checksums guard semantics across levels.
               {Object.values(levels).some((l) => l.resolution_warning)
-                ? " ⚠ Some samples are below reliable timer resolution — treat as indicative." : ""}
-              {" "}Numbers describe this container on this machine — never universal speed claims.
+                ? " ⚠ Some samples are below reliable timer resolution - treat as indicative." : ""}
+              {" "}Numbers describe this container on this machine - never universal speed claims.
             </p>
           </div>
         );

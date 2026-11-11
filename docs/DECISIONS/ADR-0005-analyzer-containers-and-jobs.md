@@ -1,12 +1,12 @@
-# ADR-0005 — Restricted analyzer containers and the analysis job lifecycle
+# ADR-0005 - Restricted analyzer containers and the analysis job lifecycle
 
-Status: Accepted (M2)
+Status: Accepted (Stage 2)
 
 ## Context
 
-M1 accepts untrusted code; M2 must analyze it with real Clang/CPython. README §10 and the
-M2 prompt forbid running untrusted source through unrestricted privileged host
-subprocesses. M0 already proved the restrictive Docker baseline and recorded that external
+Stage 1 accepts untrusted code; stage 2 must analyze it with real Clang/CPython. the project notes and the
+Stage 2 prompt forbid running untrusted source through unrestricted privileged host
+subprocesses. Stage 0 already proved the restrictive Docker baseline and recorded that external
 timeouts leave containers alive unless the orchestrator forces cleanup.
 
 ## Decision
@@ -27,7 +27,7 @@ timeouts leave containers alive unless the orchestrator forces cleanup.
    external wall-clock timeout (default 180 s, env-overridable) with **orchestrator-forced
    `docker rm -f` + inspect-verified cleanup**. No Docker socket ever enters a container.
 4. **Job lifecycle**: `QUEUED → RUNNING → COMPLETED | FAILED | CANCELLED | TIMEOUT |
-   BLOCKED` (BLOCKED when Docker is unavailable — honest, not faked). One bounded worker
+   BLOCKED` (BLOCKED when Docker is unavailable - honest, not faked). One bounded worker
    thread (concurrency 1); jobs persist in SQLite (`m2.v1`, additive upgrade from
    `m1.v1`); cancellation works while queued and is recorded as requested while running;
    idempotency on `(snapshot, target, tool fingerprint)` returns an existing
@@ -37,9 +37,9 @@ timeouts leave containers alive unless the orchestrator forces cleanup.
    brace-delimited statements' position only in `range.end` (no `loc.line`); the
    normalizer chains `loc.line → range.end.line → line DERIVED from the exact
    tool-reported offset` and labels the last case DERIVED. CFG edges are DERIVED from real
-   terminators; source→IR/assembly mapping stays UNAVAILABLE in M2.
+   terminators; source→IR/assembly mapping stays UNAVAILABLE in stage 2.
 6. **Stage degradation is per-stage**: e.g. a syntax-error C file yields PARTIAL/ERROR
-   token+AST stages with verbatim diagnostics and no IR/assembly at all — never a faked
+   token+AST stages with verbatim diagnostics and no IR/assembly at all - never a faked
    green pipeline. A truncated AST capture (huge header-heavy TU) degrades only the AST
    stage.
 

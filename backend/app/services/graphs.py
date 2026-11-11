@@ -1,10 +1,10 @@
-"""M3-A graph adapters: typed, versioned graph views derived ONLY from stored
-M2.5 normalized stage items (which themselves derive from real tool outputs).
+"""Stage 3-A graph adapters: typed, versioned graph views derived ONLY from stored
+Stage 2.5 normalized stage items (which themselves derive from real tool outputs).
 
 Graph schema m3.graph.v1. Nothing here invents nodes/edges: AST containment edges
 mirror the captured parent/child structure (EXACT), CFG successor edges mirror real
 terminator data (DERIVED), bytecode jump edges mirror real jump targets (DERIVED).
-Source→IR/assembly mapping remains UNAVAILABLE — no such edges are ever produced.
+Source→IR/assembly mapping remains UNAVAILABLE - no such edges are ever produced.
 """
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def _capped(nodes: list, edges: list) -> tuple[list, list, dict]:
     endpoint_dropped = edges_before - len(endpoint_kept)
     kept_edges = endpoint_kept[:MAX_EDGES]
     cap_dropped = len(endpoint_kept) - len(kept_edges)
-    # F03: ANY omission (endpoint filter or edge cap) sets the edges flag —
+    # F03: ANY omission (endpoint filter or edge cap) sets the edges flag -
     # consumers must never assume the edge set is complete when it is not.
     edges_trunc = endpoint_dropped > 0 or cap_dropped > 0
     omitted = {

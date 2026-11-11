@@ -1,4 +1,4 @@
-# M4 runtime image: executes binaries/harness produced by the analyzer container.
+# Stage 4 runtime image: executes binaries/harness produced by the analyzer container.
 # Deliberately MINIMAL: no compiler, no shell tools beyond the base image, no network.
 FROM ubuntu:24.04
 

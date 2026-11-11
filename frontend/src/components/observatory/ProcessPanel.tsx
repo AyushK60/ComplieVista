@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ObservationStream, executions } from "../../api";
 
 /**
- * ProcessScope — container-side process evidence as a lifecycle scene:
+ * ProcessScope - container-side process evidence as a lifecycle scene:
  * a launch/exit band, the sampled RSS/threads/fds lanes (explicitly sampled,
  * never event data), observed children and exit thread ids. Syscall timelines
  * are UNSUPPORTED by policy and shown as an explained gap.
@@ -62,7 +62,7 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
       samples.map((s, i) => `L ${x(i)} ${yRss(s.rss_kb ?? 0)}`).join(" ") +
       ` L ${x(samples.length - 1)} ${H - pad} Z`
     : "";
-  // step path: each sample holds its value until the next — drawn as steps, not
+  // step path: each sample holds its value until the next - drawn as steps, not
   // smooth interpolation, because the intermediate values were NOT observed
   const stepPath = (get: (s: Record<string, number>) => number) =>
     samples.length
@@ -87,7 +87,7 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
       {samples.length > 0 && (
         <section>
           <h4>Observed resource lanes <span className="badge derived">sampled /proc</span>
-            <span className="muted"> — {samples.length} samples at a stated {String(meta?.sample_interval_ms ?? "?")} ms interval;
+            <span className="muted"> - {samples.length} samples at a stated {String(meta?.sample_interval_ms ?? "?")} ms interval;
               sampled values, not events or guaranteed peaks</span></h4>
           <svg viewBox={`0 0 ${W} ${H}`} className="prochart" role="img"
                aria-label={`RSS area chart over ${samples.length} samples, max ${maxRss} kB`}>
@@ -160,7 +160,7 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
       <div className="unavailable">
         <span className="glyph">◍</span>
         <div>
-          <b>Syscall timeline — not available, by policy.</b> strace/ptrace are disabled in the
+          <b>Syscall timeline - not available, by policy.</b> strace/ptrace are disabled in the
           restricted profile (ADR-0007/0008). The lanes above are periodic /proc samples; no
           individual OS events are inferred from them.
         </div>

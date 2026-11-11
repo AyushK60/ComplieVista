@@ -1,7 +1,7 @@
 import GraphView, { GraphSelection } from "../GraphView";
 import { Selection } from "./types";
 
-/** Bridges the M3 graph engine (xyflow) into the M8 inspector Selection shape.
+/** Bridges the stage 3 graph engine (xyflow) into the stage 8 inspector Selection shape.
  * Explanations are derived only from recorded fields (CV-07 rule preserved). */
 export default function GraphViewWithSel({ analysisId, stage, onSelect, onSelectLine, focusLine, guided, onNavigateStage, fullscreen }: {
   analysisId: string;
@@ -82,7 +82,7 @@ function AST_WHAT(kind: string): string {
 }
 
 function IR_WHAT(kind: string, n: Record<string, unknown>): string {
-  if (kind === "function") return "One function of the LLVM module at this optimization level. Its basic blocks and terminator-derived successors are DERIVED from the .ll text — labeled honestly, not a verified compiler CFG dump.";
+  if (kind === "function") return "One function of the LLVM module at this optimization level. Its basic blocks and terminator-derived successors are DERIVED from the .ll text - labeled honestly, not a verified compiler CFG dump.";
   if (kind === "basic_block") {
     const nin = (n.n_instructions as number | undefined) ?? 0;
     return `A basic block: a straight-line run of ${nin || "its"} IR instruction${nin === 1 ? "" : "s"} ending in a terminator (branch or return). Successor edges come from the terminator operands; the instructions themselves are extracted verbatim from the .ll artifact.`;

@@ -26,7 +26,7 @@ interface CodeObjectRec {
 }
 
 /**
- * Bytecode Observatory — the real CPython instruction stream, grouped by code
+ * Bytecode Observatory - the real CPython instruction stream, grouped by code
  * object, with branch-target arcs drawn only from the disassembler's recorded
  * branch_targets. Offsets, opcodes and positions are EXACT. The code object's
  * constants and name tables come from the real code_object stage. Selecting a
@@ -112,7 +112,7 @@ export default function BytecodeLanes({ items, language, onSelect, onSelectLine,
   const GUIDED_STEPS = [
     "CPython does not run your text: it compiles each scope into a code object. This selector lists the real ones.",
     "Inside a code object, your program is a list of stack-machine instructions. Offsets and opcodes come from the disassembler of the running Python.",
-    "Green and red arcs are real jumps recorded by the disassembler — this is how if/else and loops become control flow.",
+    "Green and red arcs are real jumps recorded by the disassembler - this is how if/else and loops become control flow.",
     "Select a line of your source in the dock: the tool's line table shows which instructions implement it. Not every token maps to one instruction.",
     "The interpreter executes these instructions one at a time on an evaluation stack. Continue to the recorded run to watch frames grow and shrink.",
   ];
@@ -243,7 +243,7 @@ export default function BytecodeLanes({ items, language, onSelect, onSelectLine,
         </div>
       </div>
       <p className="muted bc-note">
-        This is interpreter bytecode, not machine code — CPython 3.12 executes each
+        This is interpreter bytecode, not machine code - CPython 3.12 executes each
         instruction on an evaluation stack. Jump arcs are drawn only where the
         disassembler reported branch targets. A source line usually maps to several
         instructions; the stack itself is not simulated here.
@@ -253,15 +253,15 @@ export default function BytecodeLanes({ items, language, onSelect, onSelectLine,
 }
 
 function BC_WHAT(op: string): string {
-  if (op.startsWith("LOAD_")) return "Pushes a value onto the evaluation stack — a constant, a name lookup, or an attribute.";
+  if (op.startsWith("LOAD_")) return "Pushes a value onto the evaluation stack - a constant, a name lookup, or an attribute.";
   if (op.startsWith("STORE_")) return "Pops the top of the stack and binds it to a name, attribute or subscript.";
   if (op.startsWith("CALL")) return "Invokes a callable, consuming the pushed arguments from the stack.";
   if (op.startsWith("COMPARE") || op.startsWith("CONTAINS") || op.startsWith("IS_OP")) return "Comparison instruction: pops two operands, pushes a boolean result.";
-  if (op.startsWith("BINARY") || op.startsWith("INPLACE") || op === "UNARY_NEGATIVE" || op.startsWith("UNARY_")) return "Arithmetic/logic on stack operands — the actual computation of your expressions.";
+  if (op.startsWith("BINARY") || op.startsWith("INPLACE") || op === "UNARY_NEGATIVE" || op.startsWith("UNARY_")) return "Arithmetic/logic on stack operands - the actual computation of your expressions.";
   if (op.startsWith("JUMP") || op === "FOR_ITER" || op.startsWith("POP_JUMP")) return "Control flow: moves the instruction pointer, implementing if/else, loops and short-circuit logic. The arc shows the disassembler-verified target.";
   if (op === "GET_ITER" || op === "FOR_ITER") return "Iteration protocol: obtains an iterator / advances it, jumping back while elements remain.";
   if (op.startsWith("RETURN") || op === "RETURN_VALUE" || op === "RETURN_CONST") return "Returns from the current frame, handing a value (or None) to the caller.";
-  if (op === "RESUME") return "Frame bookkeeping inserted by CPython 3.11+ — marks where execution can resume/yield for the debugger and generators.";
+  if (op === "RESUME") return "Frame bookkeeping inserted by CPython 3.11+ - marks where execution can resume/yield for the debugger and generators.";
   if (op === "PUSH_NULL" || op === "PRECALL" || op === "CACHE" || op.startsWith("KW_NAMES")) return "Calling-convention plumbing of the CPython 3.11+ instruction set.";
   if (op === "BUILD_LIST" || op === "BUILD_MAP" || op === "BUILD_TUPLE" || op === "BUILD_SET") return "Constructs a collection object from stack items.";
   if (op === "IMPORT_NAME" || op === "IMPORT_FROM") return "The import machinery: resolves and loads a module, binding names.";

@@ -1,11 +1,11 @@
-# CompileVista Security (M0)
+# CompileVista Security (Stage 0)
 
-Authoritative threat model: README §10. This document records the M0-relevant subset and
+Authoritative threat model: the project notes. This document records the stage 0-relevant subset and
 residual risks. Nothing here weakens the README.
 
-## Execution modes (M4, audited by M4QA)
+## Execution modes (Stage 4, audited by stage 4 review)
 
-- Static analysis: never executes source (M0–M3 unchanged).
+- Static analysis: never executes source (Stage 0–stage 3 unchanged).
 - Curated/pasted execution: restricted containers only; explicit user action required;
   admission checks target eligibility + provenance. GitHub-imported code: 403 fail-closed.
 - Runtime image: minimal (no compiler), pinned id per execution; build image separate.
@@ -13,16 +13,15 @@ residual risks. Nothing here weakens the README.
   GDB/ptrace UNSUPPORTED by policy (ADR-0007).
 - Python tracing via `sys.settrace` with bounded safe_locals (no user `__repr__`).
 - All previous constraints unchanged; Docker socket never enters containers.
-- **M4QA hardening (2026-11-01)**: timeouts force-remove containers (no ghosts);
+- **Stage 4 review hardening (2026-11-01)**: timeouts force-remove containers (no ghosts);
   container-written output files are size-capped in-container (stdout 1 MB, trace
   5000 events) AND read through defensive host-side caps; cancel commits its flag
   before killing containers and is honoured before container launch; both job
   orchestrators share a robust, loud-on-failure disposable-dir cleanup; POST
   /executions and /analyses enforce the same streaming body caps as the other
-  endpoints. See docs/TEST_EVIDENCE/M4QA.md for reproductions (1.75 GB stdout and
-  442 MB C trace in 10 s pre-repair).
+  endpoints. Before these caps, a program could produce 1.75 GB of stdout or a 442 MB C trace in 10 s.
 
-## Memory & process evidence (M5, ADR-0008)
+## Memory & process evidence (Stage 5, ADR-0008)
 
 - Capture rides the existing restricted containers (no second executor, no new
   privileges). C heap evidence via allocator interposition (no ptrace); Python
@@ -50,7 +49,7 @@ residual risks. Nothing here weakens the README.
 | Docker daemon / socket | **Host-equivalent privilege.** Accessible only to trusted orchestration; never mounted into or passed to any container |
 | Job staging dir `/home/khana/.cache/compilevista` | Disposable, non-executable data; validated paths only |
 
-## M0 invariant: static inspection never executes fixtures
+## Stage 0 invariant: static inspection never executes fixtures
 
 The CPython adapter uses `tokenize` / `ast.parse` / `compile` / `dis` only. `compile()`
 does not run top-level code. No fixture is imported, no `exec`/`eval`, no user-defined
@@ -61,13 +60,13 @@ does not run top-level code. No fixture is imported, no `exec`/`eval`, no user-d
 
 - Reject absolute paths, `..` segments, Windows drive letters, backslash tricks, NUL bytes,
   and non-regular files (symlinks/devices) before copying.
-- Per-file and total size caps; file-count cap; archive handling is **out of M0 scope**
-  (M1) and explicitly not implemented here.
+- Per-file and total size caps; file-count cap; archive handling is **out of stage 0 scope**
+  (Stage 1) and explicitly not implemented here.
 - Hash everything (SHA-256); snapshot hash binds outputs to inputs.
 
-## Docker baseline (feasibility only — NOT a safety claim)
+## Docker baseline (feasibility only - NOT a safety claim)
 
-Curated M0 containers run with: no network, read-only rootfs, size-capped tmpfs,
+Curated stage 0 containers run with: no network, read-only rootfs, size-capped tmpfs,
 `--cap-drop ALL`, `no-new-privileges`, default seccomp, non-root UID, memory/CPU/pids/fsize
 limits, no ports, `--rm`, external timeout, pre/post container-count cleanup check.
 Tested only against trivial curated fixtures with deterministic outputs plus one
@@ -75,14 +74,13 @@ deliberately looping fixture proving wall-clock timeout + cleanup.
 
 ## Residual risks / not yet proven (explicit)
 
-1. **No adversarial escape testing in M0** — fork bombs, syscall abuse, container escape
-   probes, malformed tool outputs are M4 admission tests (README §10).
+1. **No adversarial escape testing in stage 0** - fork bombs, syscall abuse, container escape
+   probes, malformed tool outputs are stage 4 admission tests (the project notes).
 2. **Docker-in-WSL2 shares one kernel** with the analysis worker; seccomp is the default
-   profile; AppArmor/LSM customization unverified in M0.
+   profile; AppArmor/LSM customization unverified in stage 0.
 3. **ptrace/GDB inside containers: UNSUPPORTED** by current profile (deliberate).
-4. **Localhost-only binding** protects the M0 API; any networked demo requires the README
-   §21 authenticated/TLS design and a separate review.
+4. **Localhost-only binding** protects the stage 0 API; any networked demo requires the the project notes authenticated/TLS design and a separate review.
 5. **Static analyzers themselves** (clang/python) are exposed to untrusted bytes only
    through bounded files in staging; compiler-attack hardening (caps, timeouts) is present
-   in M0 as timeouts + size caps, and full containment of analysis workers is a later gate.
+   in stage 0 as timeouts + size caps, and full containment of analysis workers is a later gate.
 6. Secrets policy: none exist in the repo; `.env` is ignored; no API keys, no paid APIs.

@@ -36,7 +36,7 @@ export default function CommandPalette({ open, onClose, base }: {
 
   const all = useMemo<Command[]>(() => {
     const demoCmds: Command[] = (catalog ?? []).map((d) => ({
-      id: "demo:" + d.id, group: "Open a demo", title: `${d.id} — ${d.title}`,
+      id: "demo:" + d.id, group: "Open a demo", title: `${d.id} - ${d.title}`,
       keywords: d.concepts.join(" "), run: () => navigate(`/demos/${encodeURIComponent(d.id)}`),
     }));
     return [...dynamic, ...base, ...demoCmds];

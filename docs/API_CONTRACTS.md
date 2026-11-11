@@ -1,6 +1,6 @@
-# API Contracts — M0 surface (`/api/v1`) + M1 source workspace
+# API Contracts - stage 0 surface (`/api/v1`) + stage 1 source workspace
 
-Versioned contracts per README §12; M0 endpoints unchanged, M1 adds the source workspace.
+Versioned contracts per the project notes; stage 0 endpoints unchanged, stage 1 adds the source workspace.
 All responses are JSON, bounded (large bodies truncated with explicit flags), and never
 contain raw local absolute paths.
 
@@ -13,10 +13,10 @@ Observed tool availability, probed once at startup with timeouts:
 "docker": {...}, "objdump": {...}}, "modes": {"read_only_analysis": "AVAILABLE",
 "curated_execution": "PARTIAL", "pasted_execution": "BLOCKED"}, "notes": [...]}`
 Availability values use the ADR-0002 enum; honest `BLOCKED`/`UNSUPPORTED` labels are
-mandatory (e.g. pasted execution is `BLOCKED` until the M4 gate).
+mandatory (e.g. pasted execution is `BLOCKED` until the stage 4 gate).
 
 ## GET /api/v1/analyses
-List of registered M0 proof analyses: `[{"id": "m0-c", "language": "c", ...}, {"id": "m0-python", "language": "python", ...}]`
+List of registered stage 0 proof analyses: `[{"id": "m0-c", "language": "c", ...}, {"id": "m0-python", "language": "python", ...}]`
 
 ## GET /api/v1/analyses/{id}
 Manifest header: schema version, language, source snapshot SHA-256, tool versions, stage
@@ -31,19 +31,19 @@ Response: `{"analysis_id", "stage", "availability", "counts": {...}, "items": [.
 
 `items` are normalized typed records (tokens with exact source offsets; IR function/block
 inventory; dis instructions with positions). Where a mapping cannot be substantiated the
-record says `UNAVAILABLE` — the API never fabricates linkage.
+record says `UNAVAILABLE` - the API never fabricates linkage.
 
 ## Errors
 Structured, non-leaf paths: `404 {"error": {"code": "NOT_FOUND", "message": "unknown analysis id"}}`,
 `400` for malformed stage names, `503` when a backing tool is unavailable. No stack traces.
 
-## Out of M0 scope (must not be faked)
-`POST /api/v1/executions`, `/comparisons`, `/sessions` — remain unimplemented; the README
+## Out of stage 0 scope (must not be faked)
+`POST /api/v1/executions`, `/comparisons`, `/sessions` - remain unimplemented; the README
 job lifecycle governs their later design.
 
 ---
 
-# M1 additions (schema `m1.v1`, ADR-0004)
+# Stage 1 additions (schema `m1.v1`, ADR-0004)
 
 ## GET /api/v1/limits
 Discloses every bounded intake limit (bytes, counts, ratios, timeouts) for UI and tests.
@@ -59,7 +59,7 @@ Response: `{project_id, snapshot_id, existed, file_count, rejected[], rejected_c
 Idempotent per `(project, combined_sha256)`.
 
 ## POST /api/v1/imports/github
-`{"url": "https://github.com/OWNER/REPO", "ref"?: "branch|tag|sha"}` — strict URL
+`{"url": "https://github.com/OWNER/REPO", "ref"?: "branch|tag|sha"}` - strict URL
 validation (https, exact github.com host, no userinfo/port/query/fragment/traversal),
 metadata + full commit SHA via api.github.com, tarball only from codeload.github.com
 pinned to the SHA, redirect-host allowlist, streaming byte caps, rate-limit typed errors.
@@ -69,23 +69,23 @@ policy_version, download_ms}`. Nothing retrieved is executed or built.
 ## GET /api/v1/projects · /projects/{id} · /projects/{id}/targets
 Project listing with snapshot identities; targets carry `status`
 (`STATIC_ANALYZABLE | COMPILATION_CANDIDATE | EXECUTABLE_CANDIDATE | BLOCKED |
-UNSUPPORTED`; `READY_FOR_CONTROLLED_EXECUTION` is never emitted in M1), machine-readable
+UNSUPPORTED`; `READY_FOR_CONTROLLED_EXECUTION` is never emitted in stage 1), machine-readable
 `reasons[]` each tagged `verified: true|false`, and `ready_for_controlled_execution:
-false` always in M1.
+false` always in stage 1.
 
 ## GET /api/v1/projects/{id}/snapshots/{sid} · …/files/{fid}
 Snapshot files (rel paths, sizes, encodings, digests, intake diagnostics) and bounded
 file text (`text` ≤ 200 KB with `text_truncated`; binary files return `text: null`).
 
 ## Errors
-All M1 failures return `{"error": {"code", "message"}}` with typed codes, e.g.
+All stage 1 failures return `{"error": {"code", "message"}}` with typed codes, e.g.
 `INVALID_URL, REPO_NOT_FOUND, RATE_LIMITED, REDIRECT_DISALLOWED, ARCHIVE_TOO_LARGE,
 BOMB_RATIO, PATH_TRAVERSAL, PAYLOAD_TOO_LARGE, NO_ACCEPTABLE_FILES, MALFORMED_ARCHIVE`.
 
 
 ---
 
-# M4 execution endpoints
+# Stage 4 execution endpoints
 
 ## POST /api/v1/executions
 `{"snapshot_id", "target_id"}` → admission (eligibility + origin); returns
@@ -107,10 +107,10 @@ Active cancellation: QUEUED → CANCELLED; RUNNING → `docker rm -f` + CANCEL_R
 
 ---
 
-# M5 memory/process endpoints (schema `m5.v1`, ADR-0008)
+# Stage 5 memory/process endpoints (schema `m5.v1`, ADR-0008)
 
 `POST /api/v1/executions` accepts an optional `"profile"`: `"standard"` (default)
-or `"debug"` — the debug profile is refused with 403 `DEBUG_PROFILE_BLOCKED`
+or `"debug"` - the debug profile is refused with 403 `DEBUG_PROFILE_BLOCKED`
 unless the snapshot content hash is in the curated allowlist and the language is
 C (ADR-0008); unknown profiles → 400 `INVALID_PROFILE`.
 
@@ -119,8 +119,8 @@ Schema `m5.memory.v1`: `{"execution_id", "status", "schema", "language",
 "profile", "total", "artifact_sha256", "chunks": [{seq, payload, sha256}],
 "count", "kinds", "next_after", "limitations[]"}`.
 Chunk payloads are typed records with `kind` and an honest observation class:
-Python — `frame_snapshot` (call+return, id()-based `obj_id`), `alias`,
-`object_graph` (bounded, caps recorded), `tracemalloc`, `gc`; C — `alloc`,
+Python - `frame_snapshot` (call+return, id()-based `obj_id`), `alias`,
+`object_graph` (bounded, caps recorded), `tracemalloc`, `gc`; C - `alloc`,
 `free`, `realloc`, `mem_meta`, `unavailable` (frame locals, policy), `debug_stop`
 (curated gdb profile only; `tool: "gdb"`, ASLR caveat); plus `meta` truncated
 markers. Browsing never re-runs code.
@@ -129,7 +129,7 @@ markers. Browsing never re-runs code.
 Schema `m5.process.v1`: same envelope plus `host_pid` (best-effort, may be null),
 `exit_code`, `duration_ms`. Payload kinds: `proc_meta` (container pid namespace,
 kernel, stated sample interval + metric definitions), `proc_sample`
-(RSS/VM/threads/fds at the stated interval — sampled, not event data),
+(RSS/VM/threads/fds at the stated interval - sampled, not event data),
 `proc_children` (observed child pids), `proc_exit` (exit code, thread ids),
 `meta` truncated markers. Syscall timelines are UNSUPPORTED by policy and never
 emitted.
@@ -138,14 +138,14 @@ emitted.
 Now also carries `profile`, `host_pid`, `memory_count`, `process_count` and the
 memory/process artifact digests.
 
-## Limits (M5 additions)
+## Limits (Stage 5 additions)
 Memory stream ≤3000 records, process stream ≤240 samples (in-container, with
 in-band truncated markers); host-side reads capped 4 MB and stored bounded
 (2000 rows/stream, checksummed, content-addressed artifacts).
 
 ---
 
-# M6 experiment endpoints (schema `m6.v1`, ADR-0009)
+# Stage 6 experiment endpoints (schema `m6.v1`, ADR-0009)
 
 ## GET /api/v1/pairs
 The 5 pair specs (add/conditional/recursion/arraysum/sort) with `expected_stdout`
@@ -162,7 +162,7 @@ verified by host toolchains and both sources included (small fixtures).
   {wall_ms,cpu_ms}], checksums, checksums_identical, resolution_warning,
   wall{median,min,max,stdev,n}, cpu{...}}}, levels_semantics_equivalent}`.
   Warmup excluded; n ≥ 5; wall and CPU are separate metrics.
-- `compare`: runs BOTH sides through the real M4 execution pipeline and checks
+- `compare`: runs BOTH sides through the real stage 4 execution pipeline and checks
   the verified expected output. Stage `compare`: `{pair, concept, expected_stdout,
   sides{c,python:{execution_id, status, exit_code, duration_ms, image_id, stdout,
   expected_match}}, match}`.
@@ -188,7 +188,7 @@ memory 256 MB; pids 64; cpus 0.5; stdout/stderr 1 MB each.
 
 ---
 
-# M7 demo library endpoints (schema `m7.demos.v1`)
+# Stage 7 demo library endpoints (schema `m7.demos.v1`)
 
 ## GET /api/v1/demos
 The versioned demo manifest: exactly 20 logical programs (5 Python-only,
@@ -198,19 +198,19 @@ matrix, limits and Simple/Detailed/Technical guided stories. Error Microscope
 fixtures are NOT part of the 20.
 
 ## POST /api/v1/demos/{id}/run · /analyze · /optimize
-Run the demo through the real M4 execution pipeline (idempotent per content
-hash — browse never re-executes); analyze via the M2 static pipeline; optimize
+Run the demo through the real stage 4 execution pipeline (idempotent per content
+hash - browse never re-executes); analyze via the stage 2 static pipeline; optimize
 creates an OptimizationLab experiment (C targets only, else 400
 NOT_APPLICABLE). C-05 uses the content-hash-gated `demo-link` profile
 (multi-TU compile+link; 403 DEMO_LINK_BLOCKED for anything else).
-M8 addition (non-breaking field): the analyze response also carries
+Stage 8 addition (non-breaking field): the analyze response also carries
 `snapshot_id` and `target_id` (already computed internally) so the observatory
 can deep-link to demo source without executing anything.
 
 ## GET /api/v1/demos/{id}/report
 Sanitized session report (`m7.demo.report.v1`): file digests, snapshot hash,
 recorded executions (status/exit/digests/image), capabilities and limits.
-No source text, no host paths — safe to export.
+No source text, no host paths - safe to export.
 
 ## GET /api/v1/demos/errors · POST /api/v1/demos/errors/{id}/run
 Error Microscope: 4 genuine diagnostic fixtures (syntax/semantic/link/runtime)

@@ -45,10 +45,16 @@ docker-credentials/
 .DS_Store
 Thumbs.db
 
-# --- M8-G0 one-click launcher state (pid files, logs, ownership state) ---
+# --- stage 8 one-click launcher state (pid files, logs, ownership state) ---
 .local/
 pv_*.json
 
 # the home and catalog figures import these recorded-data files; keep them tracked
 !frontend/src/data/
 !frontend/src/data/**
+
+# e2e screenshots and reports
+e2e/screenshots/
+
+# local agent instructions
+AGENTS.md

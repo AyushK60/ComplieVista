@@ -42,5 +42,5 @@ export function irSentence(r: CmpRow): string {
 }
 
 export function asmSentence(r: CmpRow, kind: Kind): string {
-  return `In assembly the line links to ${r.asm[0]} instruction(s) at -O0 and ${r.asm[1]} at -O2 — ${KIND_LABEL[kind]}.`;
+  return `In assembly the line links to ${r.asm[0]} instruction(s) at -O0 and ${r.asm[1]} at -O2 - ${KIND_LABEL[kind]}.`;
 }

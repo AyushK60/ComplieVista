@@ -1,7 +1,7 @@
-"""Generate sandbox/fixtures/demos/manifest.json — exactly 20 real programs.
+"""Generate sandbox/fixtures/demos/manifest.json - exactly 20 real programs.
 
 Hashes computed from the fixture files; expected outputs are the HOST-verified
-values (scripts/dev/m7_verify_demos.sh + the M6 pair verification).
+values (scripts/dev/m7_verify_demos.sh + the stage 6 pair verification).
 """
 import hashlib
 import json
@@ -85,7 +85,7 @@ demos.append(demo(
           "The replay timeline shows depth increasing to 12 and unwinding; each frame "
           "has its own `n` (see locals). The 465 count includes both leaf and inner "
           "calls (2*F(13)-1).",
-          "Tree recursion: calls(fib)=2*F(13)-1=465. Depth cap is 64 — this program "
+          "Tree recursion: calls(fib)=2*F(13)-1=465. Depth cap is 64 - this program "
           "peaks at 12, so the full tree is recorded."),
     CAP_PY,
     ["Do not confuse CALLS (465) with max depth (12)."]))
@@ -97,9 +97,9 @@ demos.append(demo(
     "counter=15,17\npairs=0,4\nsuspended=yes\ncaught=scope demo\nfinally=finally-ran",
     story("A closure keeps private state, a generator pauses twice, and an exception "
           "is caught with a finally block.",
-          "The generator's frame_id stays STABLE across suspensions (M5QA fix): a "
+          "The generator's frame_id stays STABLE across suspensions (Stage 5 review fix): a "
           "yield is a suspension, not a frame death. The manual next() consumes one "
-          "value (pairs=0,4 — the 2 is skipped), demonstrating the iterator protocol "
+          "value (pairs=0,4 - the 2 is skipped), demonstrating the iterator protocol "
           "vs the for-loop protocol. The closure's `count` survives between calls.",
           "Generator resumption re-fires 'call' events (CPython semantics); "
           "CO_GENERATOR frames are not popped at yield. Exception records name the "
@@ -116,13 +116,13 @@ demos.append(demo(
     story("Two threads compute results into preassigned slots; a small class "
           "accumulates a total.",
           "join() makes the outcome deterministic because each thread writes its OWN "
-          "slot — the output does not depend on scheduling. The recorded trace shows "
-          "only the main thread (sys.settrace is per-thread) — an honest limitation.",
+          "slot - the output does not depend on scheduling. The recorded trace shows "
+          "only the main thread (sys.settrace is per-thread) - an honest limitation.",
           "Worker threads are NOT traced (settrace is thread-local); results are "
           "index-addressed to avoid order dependence. GIL interleaving is not "
           "observed and not claimed."),
     CAP_PY,
-    ["Thread interleaving is unobservable in the trace — scheduling limitations "
+    ["Thread interleaving is unobservable in the trace - scheduling limitations "
      "are declared, not hidden."]))
 
 demos.append(demo(
@@ -147,12 +147,12 @@ demos.append(demo(
     story("Macros and #if select the build path at COMPILE time; the loop's CFG has "
           "a header, body and exit block.",
           "The preprocess stage shows SCALE(i) expanded to ((i) * 2); DEMO_MODE=2 "
-          "makes the #else branch dead at compile time — the #else code is never "
+          "makes the #else branch dead at compile time - the #else code is never "
           "compiled, which the IR/ASM absence shows.",
           "CFG: for-header → if → two successors → latch → exit. Basic-block "
           "inventory comes from real clang IR/ASM, not a generic diagram."),
     CAP_C,
-    ["#if pruning is a compile-time effect — the trace cannot show it at runtime."]))
+    ["#if pruning is a compile-time effect - the trace cannot show it at runtime."]))
 
 demos.append(demo(
     "C-03", "B", "Pointers and arrays on the stack",
@@ -162,26 +162,26 @@ demos.append(demo(
           "walks the array.",
           "The IR shows pointer dereferences as loads/stores; swap's effects are "
           "visible in the output (first/last exchanged). Pointer arithmetic stays "
-          "in bounds — the demo never walks past the array.",
-          "Array decay: sum_slice receives int* — same machine representation as "
+          "in bounds - the demo never walks past the array.",
+          "Array decay: sum_slice receives int* - same machine representation as "
           "&arr[0]. Address instability (ASLR) applies to any recorded addresses."),
     CAP_C,
-    ["Out-of-bounds arithmetic would be UB — this demo stays in bounds by design."]))
+    ["Out-of-bounds arithmetic would be UB - this demo stays in bounds by design."]))
 
 demos.append(demo(
     "C-04", "B", "Structs and dynamic memory (malloc/free, correct path)",
     "advanced", ["structs", "malloc", "free", "lifetimes"],
     ["demos/C-04.c"], "C-04.c", "total=66 last=ok",
     story("Three struct records are allocated on the heap, filled, summed and "
-          "freed — correctly.",
+          "freed - correctly.",
           "The allocator interposition records the malloc(3*sizeof(record_t)) with "
           "its real size and the matching free: outstanding returns to zero. NULL is "
           "checked before use (no UB on OOM).",
-          "sizeof(record_t) includes tail padding for the char[8] tag — check the "
+          "sizeof(record_t) includes tail padding for the char[8] tag - check the "
           "interposed size (3*24) rather than assuming field sums."),
     CAP_C,
     ["Sanitizer availability varies; correct-path malloc/free here means NO "
-     "diagnostics are expected — absence of findings is not proof of coverage."]))
+     "diagnostics are expected - absence of findings is not proof of coverage."]))
 
 demos.append(demo(
     "C-05", "B", "Multi-file C project: header + 2 translation units",
@@ -192,9 +192,9 @@ demos.append(demo(
           "main TU uses it. The LINKER connects them.",
           "Both TUs are compiled separately (two compile steps in the build record), "
           "then linked. The linked binary's symbol table contains math_sum_series "
-          "and math_gcd defined (T) — that is the cross-TU resolution evidence.",
+          "and math_gcd defined (T) - that is the cross-TU resolution evidence.",
           "Analysis covers the primary TU's stages; the LINK step evidence (symbols "
-          "of the final binary) is what proves cross-TU linkage — static analysis of "
+          "of the final binary) is what proves cross-TU linkage - static analysis of "
           "one TU never assumes the other executes independently."),
     {"analysis": "AVAILABLE for the primary TU (main.c); the second TU is compiled "
                  "and linked, not independently analyzed",
@@ -208,7 +208,7 @@ demos.append(demo(
      "runs single-file only."],
     tus=["main.c", "math_utils.c"]))
 
-# Group C: matched pairs (reuse the M6 pair fixtures — host-verified)
+# Group C: matched pairs (reuse the stage 6 pair fixtures - host-verified)
 pair_meta = [
     ("PAIR-01", "add", "Addition and basic functions", "very easy",
      ["arithmetic", "functions"],
@@ -224,7 +224,7 @@ pair_meta = [
     ("PAIR-04", "arraysum", "Array/list aggregation", "advanced",
      ["arrays", "lists", "traversal"],
      "Same aggregation over 1000 values; C uses a fixed array, Python a list "
-     "comprehension — concept match, not stage match."),
+     "comprehension - concept match, not stage match."),
     ("PAIR-05", "sort", "Insertion sort with modulo checksum", "challenging",
      ["sorting", "algorithms"],
      "Same insertion sort; checksum uses % 1000000007 so C has NO signed overflow "
@@ -241,9 +241,9 @@ for pid, base, title, difficulty, concepts, detail in pair_meta:
         story(f"The C side of the {pid} pair. {detail}",
               f"Compare with the Python side via the Compare page: matched inputs, "
               f"expected output {expected.strip()!r} verified with host toolchains.",
-              "Concepts synchronize across languages — stages do NOT (IR vs "
+              "Concepts synchronize across languages - stages do NOT (IR vs "
               "bytecode). Trace call/return pairs come from the same instrumentation "
-              "as M4."),
+              "as stage 4."),
         CAP_C,
         ["Paired with " + pid + "-PY; run both via the Compare page for the "
          "side-by-side view."]))
@@ -254,7 +254,7 @@ for pid, base, title, difficulty, concepts, detail in pair_meta:
         f"{pid}-PY", "C", f"{title} (Python side)", difficulty, concepts,
         [f"pairs/{py_file}"], f"pairs/{py_file}", expected,
         story(f"The Python side of the {pid} pair. {detail}",
-              f"Expected output {expected.strip()!r} — identical to the C side by "
+              f"Expected output {expected.strip()!r} - identical to the C side by "
               f"construction and verified against host toolchains.",
               "Group C demos use CPython 3.12 bytecode; specialization happens at "
               "runtime and is not part of static evidence."),

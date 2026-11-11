@@ -5,7 +5,7 @@ execution with no backend, no network and no external assets: the real source, t
 recorded events (call / line / return / exception / exit), the real captured output and
 the provenance of the run are embedded as JSON; a small vanilla-JS player renders them.
 
-Honesty rules (project contract): the file replays a *recording* — it never runs code and
+Honesty rules (project contract): the file replays a *recording* - it never runs code and
 never invents events. Python traces carry line events; the C trace only records function
 call/return, and the player says so instead of faking line stepping. Output is the final
 captured stdout/stderr, not time-aligned to steps. Truncation flags are shown.

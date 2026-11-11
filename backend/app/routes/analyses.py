@@ -19,7 +19,7 @@ def register(app: FastAPI, store: Store) -> None:
 
     @app.post("/api/v1/analyses")
     async def create_job(request: Request) -> dict:
-        request._receive = _capped_receive_call(request, 1024 * 1024)  # noqa: SLF001 (M4QA-04)
+        request._receive = _capped_receive_call(request, 1024 * 1024)  # noqa: SLF001
         try:
             body = json.loads((await request.body()).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -57,7 +57,7 @@ def register(app: FastAPI, store: Store) -> None:
                 "created_utc": job["created_utc"], "finished_utc": job["finished_utc"],
                 "duration_ms": job["duration_ms"],
                 "ready_for_controlled_execution": False,
-                "note": "static analysis only; no runtime execution occurs (M4 gate)",
+                "note": "static analysis only; no runtime execution occurs (Stage 4 gate)",
                 "stages": [{"stage": s["stage"], "availability": s["availability"],
                             "observation_class": s["observation_class"],
                             "exit_code": s["exit_code"],
@@ -106,7 +106,7 @@ def register(app: FastAPI, store: Store) -> None:
 
     @app.get("/api/v1/analyses/{analysis_id}/stages/{stage}/graph")
     def stage_graph(analysis_id: str, stage: str) -> dict:
-        """M3-A typed graph view (schema m3.graph.v1) derived from stored stage items."""
+        """Stage 3-A typed graph view (schema m3.graph.v1) derived from stored stage items."""
         from app.services.graphs import GraphError, build_graph
         try:
             return build_graph(store, analysis_id, stage)

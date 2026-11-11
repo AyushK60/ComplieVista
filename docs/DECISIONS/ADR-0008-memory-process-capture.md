@@ -1,10 +1,10 @@
-# ADR-0008 — MemoryScope & ProcessScope evidence capture (M5)
+# ADR-0008 - MemoryScope & ProcessScope evidence capture (Stage 5)
 
-Status: Accepted (M5)
+Status: Accepted (Stage 5)
 
 ## Decision
 
-1. **Capture rides the existing execution workers** (M5-F): the Python trace
+1. **Capture rides the existing execution workers** (Stage 5-F): the Python trace
    harness and the C shim write additional bounded streams (`memory.jsonl`,
    `process.jsonl`) next to the existing trace, inside the same pinned restricted
    containers. There is no second executor and no extra privilege.
@@ -22,7 +22,7 @@ Status: Accepted (M5)
    omits `-finstrument-functions` because the entry hook shifts gdb breakpoints
    ahead of argument setup (garbage args were observed). gdb stops carry the
    ASLR/Heisenberg caveat on every record. Pasted/untrusted code NEVER runs
-   under gdb (gdb parses untrusted DWARF/ELF — attack surface); it receives an
+   under gdb (gdb parses untrusted DWARF/ELF - attack surface); it receives an
    explicit `unavailable` record instead (403 `DEBUG_PROFILE_BLOCKED` at
    admission).
 4. **Python memory evidence is id()-based.** Frame snapshots at call AND return
@@ -42,19 +42,19 @@ Status: Accepted (M5)
 7. **Bounds and honesty.** Host side reads all container files through defensive
    caps (4 MB) and stores bounded checksummed rows (`execution_observations`,
    capped 2000 per stream per execution, artifacts content-addressed). Value
-   previews use the M4 safe-value rules plus a name-based secret redaction rule
+   previews use the stage 4 safe-value rules plus a name-based secret redaction rule
    (`pass/secret/token/key/pwd/credential` substrings are never previewed).
    `len()` is called only on builtins (a class defining `__len__` crashed the
-   first harness — regression fixed and covered by the network-adversarial
+   first harness - regression fixed and covered by the network-adversarial
    fixture which imports socket).
 8. **Schema `m5.v1`**: additive columns (`profile`, `host_pid`, `memory_*`,
    `process_*`) + `execution_observations` table; API
    `GET /api/v1/executions/{id}/memory` and `.../process` (paginated,
    checksummed, versioned `m5.memory.v1` / `m5.process.v1`). Browsing never
    re-runs code.
-9. **M5QA amendment — no instrumentation side effects, faithful identity.**
+9. **Stage 5 review amendment - no instrumentation side effects, faithful identity.**
    Value previews use EXACT type checks (primitive subclasses may override
-   `__repr__`; calling it inside the tracer is a side-effect channel —
+   `__repr__`; calling it inside the tracer is a side-effect channel -
    reproduced and fixed). Exception records identify the exception INSTANCE
    from CPython 3.12's tuple arg; `str()` is evaluated only for builtin-module
    exception types, so user `__str__` never runs inside the tracer. Generator

@@ -7,7 +7,7 @@ import { loadRecent, recentUrl } from "../lib/recent";
 import { prefetch } from "../lib/prefetch";
 
 /**
- * Demo Library — a learning gallery over the exact 20-program inventory
+ * Demo Library - a learning gallery over the exact 20-program inventory
  * (5 Python-only, 5 C-only, 5 matched pairs). Organized for choosing by what
  * you want to understand: Explore Python / Explore C / Compare both languages,
  * with concept and difficulty filters. Each card states what the program
@@ -109,9 +109,9 @@ export default function DemoLibrary() {
   });
 
   const groups: Array<[string, string, DemoEntry[]]> = [
-    ["Explore Python", "Five programs interpreted by CPython 3.12 — from fundamentals to recursion, closures and the runtime itself.", filtered.filter((d) => demoLang(d) === "python" && d.group === "A")],
-    ["Explore C", "Five programs compiled with Clang/LLVM 18 — memory you manage yourself, optimization you can watch happen.", filtered.filter((d) => demoLang(d) === "c" && d.group === "B")],
-    ["Compare both languages", "Matched pairs: the same problem taken down both pipelines, each stage synchronized by concept — never pretended equivalent.", filtered.filter((d) => d.group === "C").sort((a, b) => a.id.localeCompare(b.id))],
+    ["Explore Python", "Five programs interpreted by CPython 3.12 - from fundamentals to recursion, closures and the runtime itself.", filtered.filter((d) => demoLang(d) === "python" && d.group === "A")],
+    ["Explore C", "Five programs compiled with Clang/LLVM 18 - memory you manage yourself, optimization you can watch happen.", filtered.filter((d) => demoLang(d) === "c" && d.group === "B")],
+    ["Compare both languages", "Matched pairs: the same problem taken down both pipelines, each stage synchronized by concept - never pretended equivalent.", filtered.filter((d) => d.group === "C").sort((a, b) => a.id.localeCompare(b.id))],
   ];
 
   const launch = async (d: DemoEntry, mode: "analyze" | "run" | "watch") => {
@@ -185,7 +185,7 @@ export default function DemoLibrary() {
             </a>
           </div>
           <p className="muted dd-actionhelp">
-            <strong>Explore</strong> shows the compilation stages — nothing runs.{" "}
+            <strong>Explore</strong> shows the compilation stages - nothing runs.{" "}
             <strong>Watch</strong> runs it once in a sandbox, then replays it step by step.{" "}
             <strong>Run</strong> opens the full execution, memory and process observatory.
           </p>
@@ -340,7 +340,7 @@ export default function DemoLibrary() {
       <section className="dl-errors">
         <h2>Error Microscope <span className="muted">— real diagnostic fixtures, not part of the 20</span></h2>
         <p className="muted">Genuine clang/CPython diagnostics: syntax, semantic, link and runtime errors. Each card shows
-          <b> where in the journey the error is detected</b> — before the program ever runs, or during it.</p>
+          <b> where in the journey the error is detected</b> - before the program ever runs, or during it.</p>
         <div className="errgrid">
           {(fixtures.data ?? []).map((f) => {
             const phase = f.kind === "runtime"

@@ -1,4 +1,4 @@
-/* CompileVista — the Workspace graph in the title-sequence world: flat cut-paper blocks, the same
+/* CompileVista - the Workspace graph in the title-sequence world: flat cut-paper blocks, the same
  * colour roles as the home tree (declarations cobalt, statements ink, expressions saffron, names
  * cream, literals clay), implicit nodes dashed, no side stripes. Loaded after observatory.css. */
 .graphwrap { --g-cobalt: #3a4fb5; --g-ink: #1d1814; --g-saffron: #d9a02a; --g-cream: #efe6d2; --g-clay: #d98a70; --g-edge: rgba(239, 230, 210, 0.6); }

@@ -1,4 +1,4 @@
-# CompileVista one-click Stop (M8-G0).
+# CompileVista one-click Stop (Stage 8).
 # Gracefully stops ONLY what this launcher started and can verify by recorded
 # identity (WSL pid + cmdline + cwd). Reused/externally-owned servers are NEVER
 # killed. Idempotent: safe to run repeatedly, or when nothing was ever started.
@@ -46,7 +46,7 @@ try {
                 continue
             }
             # The REAL process group comes from /proc (a vite listener's group
-            # is its npm leader's pid, not its own - reproduced M8-G0).
+            # is its npm leader's pid, not its own - reproduced stage 8).
             $pgid = Get-WslProcPgid -ProcId ([int]$entry.pid)
             Write-CvStep "${svc}: stopping process group $pgid (pid $($entry.pid))..."
             [void](Invoke-Wsl -ShCommand "kill -TERM -$pgid 2>/dev/null; kill -TERM $($entry.pid) 2>/dev/null; true" -TimeoutSec 20)

@@ -34,6 +34,6 @@ describe("optLearnModel", () => {
     expect(irSentence(cmp.rows[1])).toBe("At -O0 this line links to 2 LLVM IR instruction(s); at -O2 it links to 0.");
   });
   it("states counts and the kind label for assembly", () => {
-    expect(asmSentence(cmp.rows[1], "removed")).toContain("1 instruction(s) at -O0 and 0 at -O2 — no code at -O2");
+    expect(asmSentence(cmp.rows[1], "removed")).toContain("1 instruction(s) at -O0 and 0 at -O2 - no code at -O2");
   });
 });

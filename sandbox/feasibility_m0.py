@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M0 Deliverable F — controlled-execution FEASIBILITY probe (not a safety claim).
+"""Stage 0 Deliverable F - controlled-execution FEASIBILITY probe (not a safety claim).
 
 Runs two curated trivial fixtures under the ADR-0003 restrictive Docker baseline:
   --network none, --read-only rootfs, size-capped tmpfs /tmp, --cap-drop ALL,
@@ -8,7 +8,7 @@ Runs two curated trivial fixtures under the ADR-0003 restrictive Docker baseline
 Plus a deliberate infinite-loop probe proving the external wall-clock timeout kills
 the run and leaves no container behind. Records image RepoDigests for immutability.
 
-This does NOT authorize pasted-code execution and is not adversarial validation (M4).
+This does NOT authorize pasted-code execution and is not adversarial validation (Stage 4).
 """
 from __future__ import annotations
 
@@ -84,7 +84,7 @@ def docker_run(name: str, image: str, digest: str | None, staged_src: str,
         rc, out, err = proc.returncode, proc.stdout, proc.stderr
     except subprocess.TimeoutExpired as e:
         # External timeout kills the docker CLI but NOT the container: the orchestrator
-        # must enforce process-tree termination itself (README §10). Record both facts.
+        # must enforce process-tree termination itself (the project notes). Record both facts.
         rc, out, err = -1, e.stdout or b"", e.stderr or b""
         killed_by_timeout = True
         rm = sh(["docker", "rm", "-f", cname], timeout=60)

@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""M6-A C optimization build worker — runs INSIDE the pinned analyzer container.
+"""Stage 6-A C optimization build worker - runs INSIDE the pinned analyzer container.
 
 Builds ONE immutable source at -O0/-O1/-O2 (allowlisted flags only, recorded
 verbatim) with NO trace instrumentation (bench/compare builds are uninstrumented;
-M4's instrumented builds remain separate). Per level, under out/<O>/:
+Stage 4's instrumented builds remain separate). Per level, under out/<O>/:
   ir.ll (-S -emit-llvm), asm.s (-S), obj.o (-c), app (linked), symbols.txt
   (llvm-nm-18 -S), sizes, per-step durations, digests.
 Manifest out/manifest.json records clang version/target, flags, digests,
 durations and stderr tails. Optimization remarks: captured with -Rpass=.* when
 the compiler actually emits them (availability recorded honestly).
 
-Omitted/empty artifacts stay absent — availability is explicit, never faked.
+Omitted/empty artifacts stay absent - availability is explicit, never faked.
 """
 from __future__ import annotations
 

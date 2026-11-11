@@ -1,3 +1,3 @@
-"""CompileVista backend (M0)."""
+"""CompileVista backend."""
 
 __version__ = "0.1.0"

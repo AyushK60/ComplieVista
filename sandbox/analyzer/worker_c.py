@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""M2 trusted C analyzer worker — runs INSIDE the pinned, network-less container.
+"""Stage 2 trusted C analyzer worker - runs INSIDE the pinned, network-less container.
 
 Reads only /work/<file> (staged snapshot copy), writes only /out. Fixed allowlisted
-flag sets only — no user-supplied flags exist on this path. Emits raw stage outputs
+flag sets only - no user-supplied flags exist on this path. Emits raw stage outputs
 plus an incrementally-updated manifest.json so a killed run keeps completed stages.
 """
 from __future__ import annotations

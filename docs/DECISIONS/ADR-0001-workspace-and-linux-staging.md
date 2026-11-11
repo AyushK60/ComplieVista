@@ -1,22 +1,20 @@
-# ADR-0001 — Workspace, path spelling, and Linux-native job staging
+# ADR-0001 - Workspace, path spelling, and Linux-native job staging
 
-Status: Accepted (M0)
+Status: Accepted (Stage 0)
 Supersedes: none
 
 ## Context
 
-The README documents the canonical path as `E:\CompileVista`, but the real, verified Windows
-directory — and the ZCode project the agent must operate in — is **`E:\ComplieVista`**
-(missing the "l"). The README's own Path Note (§3) instructs: use the actual verified path
-consistently; never rename or move the user's folder without permission.
+The project folder on Windows is `E:\ComplieVista` (the folder name has a typo). It is used
+as it is and is not renamed.
 
 Cross-OS operations over `/mnt/e` (9P protocol) are known to be slow for file-watching and
-metadata-heavy workloads, and are explicitly listed as a risk in README §19.
+metadata-heavy workloads.
 
 ## Decision
 
 1. **One authoritative repository: `E:\ComplieVista` ↔ `/mnt/e/ComplieVista`.** Verified in
-   M0 by direct listing. No rename, no move, no second checkout. The product name remains
+   Stage 0 by direct listing. No rename, no move, no second checkout. The product name remains
    **CompileVista** regardless of the folder spelling. All milestone prompts, scripts and
    ADRs reference the verified path.
 2. **Linux-native immutable job staging.** Analysis copies inputs once into
@@ -30,18 +28,18 @@ metadata-heavy workloads, and are explicitly listed as a risk in README §19.
    rejects hostile input before any copy.
 5. **Path conversion.** Windows↔WSL conversion is done with explicit, tested mapping
    (`E:\X` → `/mnt/e/X`), cross-checked with `wslpath` in tests; no untrusted filename is
-   ever interpolated into a shell string — tools receive argv arrays only.
+   ever interpolated into a shell string - tools receive argv arrays only.
 
 ## Performance evidence
 
-Measured in M0 (see `docs/TEST_EVIDENCE/M0.md`): staged-copy of the M0 fixture tree
+Measured early on: staged-copy of the fixture tree
 `/mnt/e → /home` vs direct reads from `/mnt/e`, with timings. Decision fallback if Vite
 watching over `/mnt/e` is inadequate: run the **frontend dev server** with chokidar polling
-or a verified Windows-native Node — the authoritative repository still never moves.
+or a verified Windows-native Node - the authoritative repository still never moves.
 
 ## Consequences
 
 - Tool I/O happens on ext4 (fast, consistent), while provenance still points at the
   immutable snapshot hash rather than a mutable working tree.
 - Cost: one copy per job (bounded, measured); acceptable for analysis jobs.
-- Risk: staging under `$HOME` consumes disk — bounded by per-job size caps and cleanup.
+- Risk: staging under `$HOME` consumes disk - bounded by per-job size caps and cleanup.

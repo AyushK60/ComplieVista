@@ -9,7 +9,7 @@ import { cpp } from "@codemirror/lang-cpp";
 /**
  * Code editor for pasted source (CodeMirror 6): line numbers, syntax highlighting, undo,
  * indentation, bracket matching. Loaded lazily so the editor never weighs on first paint.
- * It only edits text — nothing is executed or analyzed until the user clicks.
+ * It only edits text - nothing is executed or analyzed until the user clicks.
  *
  * Presentation: the editor is an ink plate in both themes and uses the same code colours as
  * every other code surface (identifiers sky, keywords violet, numbers apricot, strings mint).

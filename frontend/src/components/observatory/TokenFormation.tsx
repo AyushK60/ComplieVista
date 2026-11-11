@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { confBadge, Selection, TokenItem } from "./types";
 
 /**
- * Token Formation — the signature lexical canvas (porcelain revision).
+ * Token Formation - the signature lexical canvas (porcelain revision).
  * Every chip is a token the real tool reported (clang -dump-tokens /
  * CPython tokenize), laid out on its exact source line with faithful
- * inter-token spacing. `col` is 1-based for C, 0-based for Python — both are
+ * inter-token spacing. `col` is 1-based for C, 0-based for Python - both are
  * converted to a 0-based character offset here and the source text fills the
  * gaps, so whitespace is never invented.
  *
@@ -104,7 +104,7 @@ export default function TokenFormation({ tokens, sourceText, language, truncated
         }
         const lead = Math.max(0, offs[0] ?? 0);
         // a token is "virtual" when the source at its reported offset does not
-        // actually contain its text (CPython ENCODING et al.) — never fake it
+        // actually contain its text (CPython ENCODING et al.) - never fake it
         const virtual = toks.map((t, i) => {
           if (isInvis(t.kind)) return false;
           const lineText = sourceLines[ln - 1] ?? "";
@@ -115,7 +115,7 @@ export default function TokenFormation({ tokens, sourceText, language, truncated
   }, [tokens, sourceLines, language]);
 
   // default focus: pick once per token set (re-picks when the source text
-  // arrives — deep-linked snapshots load the file asynchronously)
+  // arrives - deep-linked snapshots load the file asynchronously)
   useEffect(() => {
     const ln = pickFocusLine(rows, sourceLines);
     setFocusLine(ln);
@@ -170,13 +170,13 @@ export default function TokenFormation({ tokens, sourceText, language, truncated
   const focusText = focusLine != null ? (sourceLines[focusLine - 1] ?? "").trim() : null;
 
   const GUIDED_STEPS: Array<{ cap: string; body: React.ReactNode }> = [
-    { cap: "step 1 · the concept", body: <>This is your program exactly as the toolchain received it. To a compiler, it is not code yet — just characters. The <b>lexer</b> is about to read every one of them.</> },
+    { cap: "step 1 · the concept", body: <>This is your program exactly as the toolchain received it. To a compiler, it is not code yet - just characters. The <b>lexer</b> is about to read every one of them.</> },
     { cap: "step 2 · one expression", body: focusText
-      ? <>Let’s start small. This statement — <code>{focusText.slice(0, 60)}</code> — is one complete thought. Keep it in mind; we’ll watch what the lexer does to it.</>
+      ? <>Let’s start small. This statement - <code>{focusText.slice(0, 60)}</code> - is one complete thought. Keep it in mind; we’ll watch what the lexer does to it.</>
       : <>Let’s start with one short statement and watch what the lexer does to it.</> },
-    { cap: "step 3 · segmentation", body: <>The lexer split it into <b>tokens</b>: the smallest units that still mean something. Whitespace is gone — it only separated tokens; the grey gaps mark where it was. Click any token to see its exact source position.</> },
-    { cap: "step 4 · categories", body: <>Every token belongs to a category — <b>keywords</b>, <b>names</b>, <b>literals</b>, <b>operators</b> — shown in the legend. Click a legend chip to filter; this is the vocabulary the parser is about to consume.</> },
-    { cap: "step 5 · into the parser", body: <>The lexer emits this flat stream — nothing nested yet. The <b>parser</b> turns it into a tree. Continue to the Syntax Tree stage to watch it happen.</> },
+    { cap: "step 3 · segmentation", body: <>The lexer split it into <b>tokens</b>: the smallest units that still mean something. Whitespace is gone - it only separated tokens; the grey gaps mark where it was. Click any token to see its exact source position.</> },
+    { cap: "step 4 · categories", body: <>Every token belongs to a category - <b>keywords</b>, <b>names</b>, <b>literals</b>, <b>operators</b> - shown in the legend. Click a legend chip to filter; this is the vocabulary the parser is about to consume.</> },
+    { cap: "step 5 · into the parser", body: <>The lexer emits this flat stream - nothing nested yet. The <b>parser</b> turns it into a tree. Continue to the Syntax Tree stage to watch it happen.</> },
   ];
 
   return (
@@ -298,7 +298,7 @@ export default function TokenFormation({ tokens, sourceText, language, truncated
         {hiddenRowCount > 0 && (
           <button className="btn ghost" style={{ margin: "8px 0 0 36px" }}
                   onClick={() => setScope("full")}>
-            … {hiddenRowCount} more source line{hiddenRowCount === 1 ? "" : "s"} in this file — show the full token stream
+            … {hiddenRowCount} more source line{hiddenRowCount === 1 ? "" : "s"} in this file - show the full token stream
           </button>
         )}
       </div>
@@ -324,7 +324,7 @@ export default function TokenFormation({ tokens, sourceText, language, truncated
         {truncated && <span className="chip blocked">truncated</span>}
       </div>
       <p className="muted tf-note">
-        The lexer never sees whitespace — the grey gaps show where it was, and why it
+        The lexer never sees whitespace - the grey gaps show where it was, and why it
         exists only for humans. Hover a token to locate it in the source; click to inspect.
       </p>
       {confBadge("EXACT") && <span className="tech-only prov">mapping_confidence: EXACT (tool-reported positions)</span>}
@@ -348,11 +348,11 @@ function tokClass(kind: string, text: string): string {
 
 function TOKEN_WHAT(kind: string, text: string): string {
   const k = kind.toLowerCase();
-  if (k.includes("keyword")) return `A reserved word of the language. The lexer recognizes it before any parsing happens — “${text}” can never be used as a name.`;
+  if (k.includes("keyword")) return `A reserved word of the language. The lexer recognizes it before any parsing happens - “${text}” can never be used as a name.`;
   if (k.includes("string")) return "A string literal: the exact bytes your program will see at runtime, captured verbatim by the lexer.";
   if (k.includes("number") || k.includes("int") || k.includes("float")) return "A numeric literal. The lexer records its text; the parser later decides its type and value.";
-  if (k.includes("op") || k.includes("punct") || k.includes("delimiter")) return "A punctuation or operator token — the glue of the grammar. Brackets delimit scope, operators describe computation.";
+  if (k.includes("op") || k.includes("punct") || k.includes("delimiter")) return "A punctuation or operator token - the glue of the grammar. Brackets delimit scope, operators describe computation.";
   if (k === "newline" || k === "indent" || k === "dedent") return "A layout token: for Python, indentation IS syntax, so the tokenizer emits INDENT/DEDENT/NEWLINE tokens that the parser consumes.";
-  if (k.includes("identifier") || k === "name") return `An identifier — a name your program uses. After lexing it is just text (“${text}”); the parser and semantic phases decide what it refers to.`;
+  if (k.includes("identifier") || k === "name") return `An identifier - a name your program uses. After lexing it is just text (“${text}”); the parser and semantic phases decide what it refers to.`;
   return "A token reported by the toolchain's lexer, with its exact source position.";
 }

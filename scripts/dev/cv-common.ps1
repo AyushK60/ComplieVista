@@ -1,6 +1,6 @@
-# CompileVista local launcher - shared library (M8-G0).
+# CompileVista local launcher - shared library (Stage 8).
 # Pure ASCII, Windows PowerShell 5.1 compatible. No Administrator requirement.
-# Safety rules (M8-G0 contract): never kill a process we did not start and
+# Safety rules (Stage 8 contract): never kill a process we did not start and
 # verified by recorded identity; never use taskkill /IM, pkill -f, or blanket
 # docker stop; ports occupied by unknown owners are reported, never stolen.
 
@@ -197,7 +197,7 @@ function Get-CvCommit {
 function Get-WslProcPgid {
     # Real process-group id of a Linux pid (from /proc/<pid>/stat field 5).
     # Never assume pgid == pid: a spawned npm leader's listening vite child has
-    # pgid == the npm pid, not its own (reproduced M8-G0).
+    # pgid == the npm pid, not its own (reproduced stage 8).
     param([Parameter(Mandatory = $true)][int]$ProcId)
     $r = Invoke-Wsl -ShCommand "awk '{print \$5}' /proc/$ProcId/stat 2>/dev/null" -TimeoutSec 20
     $v = 0

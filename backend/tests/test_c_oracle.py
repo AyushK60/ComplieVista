@@ -1,6 +1,6 @@
 """Independent Clang oracle tests: re-run the real toolchain, compare to the manifest.
 
-These call clang/objdump again and compare against evidence/m0/c/manifest.json —
+These call clang/objdump again and compare against evidence/m0/c/manifest.json -
 the manifest is never compared with itself. Fixture paths are absolute because
 clang -E and -dump-tokens embed the path they were given, and the proof script
 used absolute paths.

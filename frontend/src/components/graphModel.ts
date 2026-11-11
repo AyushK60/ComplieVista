@@ -3,7 +3,7 @@
  * limits, labels and subtree collapse. Kept separate so they can be unit-tested.
  */
 
-// ---- node categories (restrained, semantic — never a rainbow) ----
+// ---- node categories (restrained, semantic - never a rainbow) ----
 export function nodeCategory(raw: Record<string, unknown>): string {
   const k = String(raw.kind ?? "");
   if (raw.group === "cfg") return k === "function" ? "cat-decl" : "cat-block";

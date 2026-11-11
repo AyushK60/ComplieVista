@@ -1,4 +1,4 @@
-// Thin typed API client for the M1 workspace. Structured errors are surfaced, never swallowed.
+// Thin typed API client for the stage 1 workspace. Structured errors are surfaced, never swallowed.
 export type ErrorBody = { code: string; message: string };
 
 export class ApiError extends Error {
@@ -42,7 +42,7 @@ export const api = {
     return fetch("/api/v1/sources", { method: "POST", body: form }).then(unwrap<IngestResult>);
   },
 
-  /** M6-C: paste a pair side and return its first target reference. */
+  /** paste a pair side and return its first target reference. */
   createSnapshotFromPaste: async (language: string, filename: string, content: string) => {
     const r = await api.paste(language, filename, content);
     const targets = await fetch(
@@ -223,7 +223,7 @@ export interface ExecutionJob {
   duration_ms: number | null;
   profile?: string; host_pid?: number | null;
   memory_count?: number | null; process_count?: number | null;
-  /* M8-G0 trace trust (F-M7-01/02): honest labeling, never a green default. */
+  /* Stage 8 trace trust (finding/02): honest labeling, never a green default. */
   trace_trust?: "CURATED_COOPERATIVE" | "UNTRUSTED_TARGET" | null;
   trace_channel?: string | null;
   trace_integrity?: "CONSISTENT" | "SUSPECT" | null;
@@ -236,7 +236,7 @@ export interface ExecutionEvent {
 export interface ExecutionOutput {
   exit_code: number | null; stdout: string | null; stderr: string | null; truncated: boolean;
 }
-/** M5: typed observation chunks (m5.memory.v1 / m5.process.v1). */
+/** typed observation chunks (m5.memory.v1 / m5.process.v1). */
 export interface ObservationChunk {
   seq: number; payload: Record<string, unknown>; sha256: string;
 }
@@ -291,7 +291,7 @@ export function loadAllEvents(executionId: string): Promise<ExecutionEvent[]> {
   return p;
 }
 
-/** M6: OptimizationLab / benchmarks / pair comparison. */
+/** OptimizationLab / benchmarks / pair comparison. */
 export interface ExperimentStage {
   stage: string; availability: string;
   result: Record<string, unknown>;
@@ -344,7 +344,7 @@ export const pairs = {
   list: () => fetch("/api/v1/pairs").then(unwrap<{ pairs: PairSpec[] }>),
 };
 
-/** M7: Demo Library + Error Microscope. */
+/** Demo Library + Error Microscope. */
 export interface DemoEntry {
   id: string; group: string; title: string; difficulty: string;
   concepts: string[];

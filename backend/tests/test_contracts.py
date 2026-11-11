@@ -1,4 +1,4 @@
-"""Contract tests: M0 manifests must validate against the ADR-0002 typed schema."""
+"""Contract tests: Stage 0 manifests must validate against the ADR-0002 typed schema."""
 import json
 
 import pytest

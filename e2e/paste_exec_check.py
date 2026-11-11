@@ -1,4 +1,4 @@
-"""Pasted-code execution check against the running stack (M4 gate: restricted containers).
+"""Pasted-code execution check against the running stack (Stage 4 gate: restricted containers).
 
 Pastes fresh programs through the same API the UI uses, runs them, and verifies stdout, exit code and
 trace; then runs three defensive probes of the sandbox itself (network, filesystem write, runaway loop)

@@ -1,13 +1,13 @@
-// M4-C/M5 C trace shim. Compiled WITHOUT -finstrument-functions (clang 18 has none);
+// Stage 4-C/Stage 5 C trace shim. Compiled WITHOUT -finstrument-functions (clang 18 has none);
 // user code compiled with -finstrument-functions links this. Provides three evidence
 // streams, all OBSERVED inside the run, no ptrace, no debugger, no extra privileges:
 //
-//   $CV_TRACE_OUT  one JSON line per instrumented call/return (M4; capped 5000 events,
-//                  then a {"kind":"meta","truncated": true} marker — M4QA-03).
-//   $CV_MEM_OUT    malloc/free/calloc/realloc interposition records (M5-B): real
+//   $CV_TRACE_OUT  one JSON line per instrumented call/return (Stage 4; capped 5000 events,
+//                  then a {"kind":"meta","truncated": true} marker - stage 4 review-03).
+//   $CV_MEM_OUT    malloc/free/calloc/realloc interposition records (Stage 5-B): real
 //                  addresses, sizes and lifetime order as executed. Capped 5000
 //                  events, then a truncated marker. Logging uses raw write(2) only.
-//   $CV_PROC_OUT   /proc sampler thread (M5-D): RSS/VM/threads/fds at a stated
+//   $CV_PROC_OUT   /proc sampler thread (Stage 5-D): RSS/VM/threads/fds at a stated
 //                  interval (capped 240 samples), thread ids, exit record.
 //
 // Address instability caveat is attached by the orchestrator (ASLR per run).
@@ -31,7 +31,7 @@ static FILE *trace_file = NULL;
 static unsigned long events_written = 0;
 static int cap_marker_written = 0;
 
-/* M8-G0: authoritative final record written at process exit so the orchestrator
+/* authoritative final record written at process exit so the orchestrator
    can verify the file stream it reads is complete (event count + truncation).
    The traced program shares the container and could in principle write to the
    same file; the orchestrator treats count mismatches as integrity SUSPECT. */
@@ -84,7 +84,7 @@ void __cyg_profile_func_exit(void *fn, void *call_site) {
     trace_write("return", fn);
 }
 
-/* ---------------- M5-B allocator interposition ---------------- */
+/* ---------------- stage 5-B allocator interposition ---------------- */
 
 static void *(*real_malloc)(size_t);
 static void (*real_free)(void *);
@@ -240,7 +240,7 @@ void *realloc(void *old, size_t size) {
     return p;
 }
 
-/* ---------------- M5-D process sampler (container-side) ---------------- */
+/* ---------------- stage 5-D process sampler (container-side) ---------------- */
 
 static int proc_fd = -1;
 static int proc_samples = 0;

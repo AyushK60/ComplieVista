@@ -7,7 +7,7 @@ import TokenFormation, { SourceSpan } from "./TokenFormation";
 import BytecodeLanes from "./BytecodeLanes";
 import GraphViewWithSel from "./GraphSelectionBridge";
 
-/** StageCanvas — renders the selected compilation stage with the visualization
+/** StageCanvas - renders the selected compilation stage with the visualization
  * its data deserves. Availability is taken from the backend, never assumed. */
 export default function StageCanvas({ analysisId, stageData, sourceText, language, onSelect, onSelectLine, activeLine, onHoverSpan, guided, onNavigateStage, fullscreen, sourceFocusLine }: {
   analysisId: string;
@@ -106,15 +106,15 @@ export default function StageCanvas({ analysisId, stageData, sourceText, languag
       ) : s.stage === "diagnostics" ? (
         <Diagnostics items={items} onSelect={onSelect} onSelectLine={onSelectLine} />
       ) : s.stage === "preprocess" ? (
-        <RawExcerpt analysisId={analysisId} stage={s.stage} intro="The preprocessor's output — one translation unit of expanded C source." />
+        <RawExcerpt analysisId={analysisId} stage={s.stage} intro="The preprocessor's output - one translation unit of expanded C source." />
       ) : s.stage === "object" ? (
         <div className="unavailable"><span className="glyph">◈</span>
           Object file recorded: <code>{String(s.counts.object_sha256 ?? "").slice(0, 24)}…</code> ·{" "}
           {String(s.counts.bytes ?? "?")} bytes. The binary is digest-recorded but never served
-          for execution — see Disassembly for its instructions.</div>
+          for execution - see Disassembly for its instructions.</div>
       ) : (
         <div className="unavailable"><span className="glyph">◍</span>
-          This stage produced no normalized items{items.length ? ` (${items.length} unhandled)` : ""} —
+          This stage produced no normalized items{items.length ? ` (${items.length} unhandled)` : ""} -
           check the raw tool output{Object.keys(s.counts).length ? ` or counts (${JSON.stringify(s.counts)})` : ""}.</div>
       )}
     </div>
@@ -198,7 +198,7 @@ function AssemblyView({ items, counts, onSelect, language }: {
     <div className="asmview">
       <p className="muted">
         {String(counts.function_labels ?? items.length)} function labels ·{" "}
-        {String(counts.lines ?? "—")} lines of assembly (static artifact — not an
+        {String(counts.lines ?? "—")} lines of assembly (static artifact - not an
         executed-instruction count). Source→assembly mapping is{" "}
         <StatusBadge code="UNAVAILABLE" /> in this pipeline; the
         full listing is in the raw view.

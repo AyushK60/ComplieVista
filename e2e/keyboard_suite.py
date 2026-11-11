@@ -67,9 +67,9 @@ def audit(page: Page, label: str, limit: int = 120) -> None:
         prev_top = info["top"]
     ok(stops >= 3, f"{label}: {stops} focus stops reached by Tab")
     ok(stops < limit, f"{label}: Tab does not trap focus (left the page controls within {limit} presses)")
-    ok(not no_ring, f"{label}: every focus stop has a visible indicator" + (f" — missing on {no_ring[:4]}" if no_ring else ""))
-    ok(not off, f"{label}: focused control is scrolled into view" + (f" — off-screen: {off[:3]}" if off else ""))
-    ok(not jumps, f"{label}: tab order does not jump back up the page" + (f" — jumps: {jumps[:3]}" if jumps else ""))
+    ok(not no_ring, f"{label}: every focus stop has a visible indicator" + (f" - missing on {no_ring[:4]}" if no_ring else ""))
+    ok(not off, f"{label}: focused control is scrolled into view" + (f" - off-screen: {off[:3]}" if off else ""))
+    ok(not jumps, f"{label}: tab order does not jump back up the page" + (f" - jumps: {jumps[:3]}" if jumps else ""))
 
 
 def main() -> None:

@@ -4,7 +4,7 @@ import { PairSpec, api, experiments, pairs } from "../api";
 import DemoThumb, { hasThumb } from "../components/DemoThumb";
 
 /**
- * Dual-Language Observatory — the two pipelines shown as what they are: two
+ * Dual-Language Observatory - the two pipelines shown as what they are: two
  * independent machines synchronized by concept, never by equivalence. The C
  * rail (Source → Tokens → AST → LLVM IR → Assembly → Runtime, Clang/LLVM) and
  * the Python rail (Source → Tokens → AST → Bytecode → Interpreter, CPython)
@@ -17,11 +17,11 @@ const TERMINAL = ["COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "BLOCKED"];
 const C_STAGES = ["Source", "Tokens", "AST", "LLVM IR", "Assembly", "Runtime"];
 const PY_STAGES = ["Source", "Tokens", "AST", "Bytecode", "Interpreter"];
 
-/** Honest per-concept semantic notes (static copy — no data claims). */
+/** Honest per-concept semantic notes (static copy - no data claims). */
 function diffNote(concept: string): string {
   const c = concept.toLowerCase();
   if (c.includes("recursion")) {
-    return "C recursion uses the native call stack with a fixed depth budget; Python raises RecursionError at its own (higher, adjustable) limit. Frames carry different data — C locals live in stack memory, Python frames are heap objects.";
+    return "C recursion uses the native call stack with a fixed depth budget; Python raises RecursionError at its own (higher, adjustable) limit. Frames carry different data - C locals live in stack memory, Python frames are heap objects.";
   }
   if (c.includes("branch") || c.includes("conditional")) {
     return "C branching compiles to conditional jumps in machine code; Python compiles to POP_JUMP_* bytecodes over an evaluation stack. Same semantics, different machines.";
@@ -162,7 +162,7 @@ export default function Compare() {
       <div className="cmp-head">
         <h1>The same idea, two machines.</h1>
         <p className="muted">
-          Two <b>independent</b> pipelines — Clang/LLVM 18 and CPython 3.12 — synchronized by
+          Two <b>independent</b> pipelines - Clang/LLVM 18 and CPython 3.12 - synchronized by
           concept. The middle stages are deliberately <b>not aligned</b>: LLVM IR is a typed SSA
           representation for a compiler backend; CPython bytecode is a stack-machine program for
           an interpreter. Pretending otherwise would be the most misleading thing this page
@@ -209,7 +209,7 @@ export default function Compare() {
           <h2>Two pipelines, one concept <span className="chip">{selected.id}</span></h2>
           <div className="dualmap bezel">
             <div className="dualmap-row">
-              <div className="dualmap-label"><span className="world-dot c" />C — compiled</div>
+              <div className="dualmap-label"><span className="world-dot c" />C - compiled</div>
               <StageChain stages={C_STAGES} side="c" />
             </div>
             <div className="dualmap-gap" aria-hidden>
@@ -217,7 +217,7 @@ export default function Compare() {
               <span className="dm-noalign">— no equivalent stage —</span>
             </div>
             <div className="dualmap-row">
-              <div className="dualmap-label"><span className="world-dot py" />Python — interpreted</div>
+              <div className="dualmap-label"><span className="world-dot py" />Python - interpreted</div>
               <StageChain stages={PY_STAGES} side="py" />
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function Compare() {
       {result && selected && (
         <div className="cmp-rails">
           <p className={"cmp-verdict " + (result.match ? "ok" : "err")}>
-            {result.match ? "✓ both rails produced the expected output" : "✗ mismatch — inspect the rails"}
+            {result.match ? "✓ both rails produced the expected output" : "✗ mismatch - inspect the rails"}
             {expId ? <span className="muted"> · experiment {expId}</span> : null}
             {selected && !busy ? <button type="button" className="btn sm" style={{ marginLeft: 12 }} onClick={() => runPair(selected, true)}>Run again</button> : null}
           </p>
@@ -267,7 +267,7 @@ export default function Compare() {
                   </div>
                   <pre className="excerpt">{String(s.stdout ?? "(no stdout)")}</pre>
                   <p className="muted rail-note">
-                    Container wall time includes runtime startup — <b>not comparable</b> between
+                    Container wall time includes runtime startup - <b>not comparable</b> between
                     languages and <b>not</b> an algorithm benchmark.
                     {link
                       ? <> <Link to={link}>Open the {side === "c" ? "C" : "Python"} pipeline in the observatory →</Link></>
@@ -278,7 +278,7 @@ export default function Compare() {
             })}
           </div>
           <p className="muted">
-            Both rails must produce the expected output for a match — but the languages remain
+            Both rails must produce the expected output for a match - but the languages remain
             independently implemented: different runtimes, different memory models, different
             compilation stories. Timing comparisons belong to OptimizationLab benchmarks (C only)
             or the recorded per-run durations, never container wall clocks.

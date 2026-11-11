@@ -1,4 +1,4 @@
-"""G0 evidence: before-state screenshots of PY-02 Watch view + PY-02/C AST view.
+"""Before-state screenshots of the PY-02 Watch view and the PY-02/C AST view.
 Real stack, real demos. Viewports: 1920x1080, 1366x768, 390x844.
 Run: backend/.venv/bin/python e2e/repair_g0_before.py   (repo root, stack running)
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 REPO = Path(__file__).resolve().parents[1]
-SHOTS = REPO / "docs" / "TEST_EVIDENCE" / "repair_watch_ast" / "before"
+SHOTS = REPO / "e2e" / "screenshots" / "repair_watch_ast" / "before"
 BASE = "http://127.0.0.1:5173"
 CONSOLE_ERRORS: list[str] = []
 
@@ -18,7 +18,7 @@ CONSOLE_ERRORS: list[str] = []
 def shot(page, name: str) -> None:
     SHOTS.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(SHOTS / name), full_page=False)
-    print(f"  screenshot: docs/TEST_EVIDENCE/repair_watch_ast/before/{name}")
+    print(f"  screenshot: e2e/screenshots/repair_watch_ast/before/{name}")
 
 
 def open_demo(page, demo_id: str) -> None:
@@ -70,7 +70,7 @@ def ast(page, demo_id: str) -> None:
 def main() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        # 1920x1080 — Watch
+        # 1920x1080 - Watch
         page = browser.new_page(viewport={"width": 1920, "height": 1080})
         page.on("console", lambda m: CONSOLE_ERRORS.append(m.text) if m.type == "error" else None)
         page.on("pageerror", lambda e: CONSOLE_ERRORS.append(str(e)))

@@ -1,4 +1,4 @@
-@rem CompileVista one-click Start - M8-G0 (no admin, no execution-policy change)
+@rem CompileVista one-click Start - stage 8 (no admin, no execution-policy change)
 @echo off
 setlocal
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\dev\Start.ps1" %*

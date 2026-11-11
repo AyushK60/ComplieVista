@@ -14,8 +14,8 @@ from app.store.db import Store
 MODES = {
     "read_only_analysis": "AVAILABLE",
     "curated_execution": "PARTIAL",
-    "pasted_execution": "PARTIAL",   # M4 gate passed (restricted containers, admission
-                                     # checked); M4QA audit confirms containment. GitHub-
+    "pasted_execution": "PARTIAL",   # Stage 4 gate passed (restricted containers, admission
+                                     # checked); stage 4 review audit confirms containment. GitHub-
                                      # imported and public-hosted execution stay BLOCKED.
 }
 
@@ -34,7 +34,7 @@ def register(app: FastAPI, store: Store) -> None:
         return {"tools": probe_tools(), "modes": MODES,
                 "notes": ["Observed inside WSL Ubuntu 24.04 via direct tool probes at startup.",
                           "curated_execution=PARTIAL: single-file C/Python in restricted "
-                          "containers (M4), audited by M4QA.",
+                          "containers (Stage 4), audited by stage 4 review.",
                           "pasted_execution=PARTIAL: same restricted containers, eligible "
                           "paste/upload targets only; GitHub-imported and public-hosted "
-                          "execution remain BLOCKED (M9 review)."]}
+                          "execution remain BLOCKED (Stage 9 review)."]}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M0 Deliverable C — genuine CPython 3.12 proof (tokenize / ast / compile / dis).
+"""Stage 0 Deliverable C - genuine CPython 3.12 proof (tokenize / ast / compile / dis).
 
 Stdlib only. Static inspection ONLY: the fixture is parsed and compiled to a code
 object for inspection, but never executed (no exec/eval/import; compile() does not

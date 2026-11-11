@@ -23,7 +23,7 @@ import { Selection, STAGE_BLURBS } from "../components/observatory/types";
 import { Command, isTypingTarget, useCommands } from "../state/commands";
 
 /**
- * M8 Observatory — one cohesive source-to-execution environment.
+ * Stage 8 Observatory - one cohesive source-to-execution environment.
  * Source Dock | Journey Navigator + Visual Canvas | Contextual Inspector,
  * with the Execution & Systems dock under the canvas. Stages and availability
  * always come from the real analysis job; nothing is invented or auto-run.
@@ -52,7 +52,7 @@ export default function Workspace() {
   const [mode, setMode] = useState<Mode>("paste");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // entries the intake refused (hostile ZIP paths, oversize files…) — always reported to the user
+  // entries the intake refused (hostile ZIP paths, oversize files…) - always reported to the user
   const [rejected, setRejected] = useState<IngestResult["rejected"]>([]);
   const [language, setLanguage] = useState("python");
   const [filename, setFilename] = useState("demo.py");
@@ -88,7 +88,7 @@ export default function Workspace() {
     return v >= 260 && v <= 560 ? v : 340;
   });
   const [canvasFull, setCanvasFull] = useState(false);
-  // view switch: compilation stages, the recorded run, or the optimization lab —
+  // view switch: compilation stages, the recorded run, or the optimization lab -
   // siblings in one viewport-oriented workspace instead of a scrolling page
   const [view, setView] = useState<"compile" | "execution" | "walkthrough" | "memory" | "optimization">(
     () => (/^(diff|lesson|quiz)$/.test(new URLSearchParams(window.location.search).get("view") ?? "")
@@ -180,7 +180,7 @@ export default function Workspace() {
           if (demoId) {
             const all = await demos.list();
             const d = all.demos.find((x) => x.id === demoId);
-            if (d) setDemoMeta(`${d.id} — ${d.title}`);
+            if (d) setDemoMeta(`${d.id} - ${d.title}`);
           }
         } catch { /* demo deep-link best effort */ }
       })();
@@ -438,7 +438,7 @@ export default function Workspace() {
                 Load code
               </button>
               <p className="muted">Your code is stored as a read-only snapshot. Next you choose
-                whether to analyze it or run it — nothing runs until you click.</p>
+                whether to analyze it or run it - nothing runs until you click.</p>
             </div>
           )}
           {mode === "upload" && (
@@ -524,7 +524,7 @@ export default function Workspace() {
             <>
               <button className="btn run" onClick={() => startRun()}>Run in restricted container</button>
               <button className="btn ghost" onClick={() => startRun("debug")}
-                      title="MemoryScope debugger capture — curated allowlisted C fixtures only (ADR-0008); other code is refused with an explanation.">
+                      title="MemoryScope debugger capture - curated allowlisted C fixtures only (ADR-0008); other code is refused with an explanation.">
                 Debug run (curated)
               </button>
             </>
@@ -565,7 +565,7 @@ export default function Workspace() {
       {analyzableTarget && analyzableTarget !== runnableTarget && analyzableTarget.reasons.length > 0 && (
         <ul className="obs-reasons tech-only">
           {analyzableTarget.reasons.slice(0, 3).map((r: Reason, i: number) => (
-            <li key={i}><code>{r.code}</code> — {r.detail} <em>[{r.verified ? "verified" : "detected"}]</em></li>
+            <li key={i}><code>{r.code}</code> - {r.detail} <em>[{r.verified ? "verified" : "detected"}]</em></li>
           ))}
         </ul>
       )}
@@ -575,7 +575,7 @@ export default function Workspace() {
           {" "}— not added to the snapshot and never executed:
           <ul>
             {rejected.map((r, i) => (
-              <li key={i}><code>{r.entry}</code> — {r.reason_code}{r.detail ? ` (${r.detail})` : ""}</li>
+              <li key={i}><code>{r.entry}</code> - {r.reason_code}{r.detail ? ` (${r.detail})` : ""}</li>
             ))}
           </ul>
         </div>
@@ -592,11 +592,11 @@ export default function Workspace() {
             <div className="obs-next panel" role="note">
               <h2>Your code is loaded. What next?</h2>
               <ul>
-                <li><strong>Analyze with {lang === "c" ? "Clang/LLVM 18" : "CPython 3.12"}</strong> — see the real
+                <li><strong>Analyze with {lang === "c" ? "Clang/LLVM 18" : "CPython 3.12"}</strong> - see the real
                   tokens, syntax tree{lang === "c" ? ", LLVM IR and assembly" : ", code objects and bytecode"}.
                   Nothing is executed.</li>
                 {runnableTarget && (
-                  <li><strong>Run in restricted container</strong> — execute it once in a sandbox and replay the
+                  <li><strong>Run in restricted container</strong> - execute it once in a sandbox and replay the
                     recorded call stack, variables and output.</li>
                 )}
               </ul>

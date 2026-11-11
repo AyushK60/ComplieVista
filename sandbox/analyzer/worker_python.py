@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M2 trusted CPython analyzer worker — runs INSIDE the pinned, network-less container.
+"""Stage 2 trusted CPython analyzer worker - runs INSIDE the pinned, network-less container.
 
 Static inspection ONLY via tokenize/ast/symtable/compile/dis. Never imports or
 executes analyzed source; compile() does not run top-level code. Writes
@@ -64,7 +64,7 @@ def main() -> None:
     text = src.decode(encoding, "replace")
     manifest["source_encoding"] = encoding
 
-    # P1 tokens (tokenize itself can raise on broken source — record it, never crash)
+    # P1 tokens (tokenize itself can raise on broken source - record it, never crash)
     t0 = time.perf_counter()
     toks = []
     tok_error = None
@@ -162,7 +162,7 @@ def main() -> None:
                           "consts_noncode": [repr(c) for c in co.co_consts
                                              if not isinstance(c, type(co))],
                           "depth": depth})
-        # Version-pinned branch semantics (M3.5 CV-03): targets come from
+        # Version-pinned branch semantics (Stage 3.5 CV-03): targets come from
         # dis.hasjabs/hasjrel of the RUNNING interpreter (3.12), never substring
         # matching. Conditional branches, FOR_ITER and SEND also fall through.
         ins_list = list(dis.get_instructions(co, show_caches=False))

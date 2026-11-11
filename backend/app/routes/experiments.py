@@ -10,14 +10,14 @@ from app.store.db import Store
 
 
 def register(app: FastAPI, store: Store) -> None:
-    # ---------------- M6: experiments (OptimizationLab / benchmarks / pairs) ----
+    # ---------------- stage 6: experiments (OptimizationLab / benchmarks / pairs) ----
     @app.get("/api/v1/pairs")
     def list_pairs() -> dict:
-        """M6-C pair specs: matched-input C/Python fixtures with independently
+        """Stage 6-C pair specs: matched-input C/Python fixtures with independently
         verified expected outputs; sources included so the UI can run a real
         paired comparison end-to-end."""
         from pathlib import Path
-        from app.services.curated import _REPO_ROOT  # repo root (verified in M5)
+        from app.services.curated import _REPO_ROOT  # repo root (verified in stage 5)
         base = _REPO_ROOT / "sandbox" / "fixtures" / "pairs"
         manifest = json.loads((base / "manifest.json").read_text("utf-8"))
         for pair in manifest.get("pairs", []):

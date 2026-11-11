@@ -1,7 +1,7 @@
-"""M1 metadata store: SQLite (stdlib sqlite3) + content-addressed artifact files.
+"""Stage 1 metadata store: SQLite (stdlib sqlite3) + content-addressed artifact files.
 
 ADR-0004: stdlib sqlite3 with an explicit schema_version table instead of
-SQLAlchemy/Alembic for M1 — the schema is small, versioned and migrated by a
+SQLAlchemy/Alembic for stage 1 - the schema is small, versioned and migrated by a
 single guarded upgrade function; ORM/migrations are deferred to a later ADR if
 the schema grows. Content-addressed artifact store keeps exact source bytes
 immutable; the DB references digests, never host paths, toward the API/UI.
@@ -115,8 +115,8 @@ _SCHEMA = [
 
 
 def combined_hash(files: dict[str, bytes]) -> str:
-    """Canonical snapshot content hash (sorted sha256-name lines, M1). The curated
-    debug-profile allowlist (app.services.curated) derives from this — keep one
+    """Canonical snapshot content hash (sorted sha256-name lines, stage 1). The curated
+    debug-profile allowlist (app.services.curated) derives from this - keep one
     implementation."""
     return hashlib.sha256(
         "\n".join(
@@ -150,8 +150,8 @@ class Store:
                 # version because all tables/columns use IF NOT EXISTS and later
                 # columns are added via guarded ALTER. This must remain true for
                 # every future schema bump (audit T3: restart recovery).
-                # (M4QA-07: the old code kept an unreachable SCHEMA_MISMATCH branch
-                # after this UPDATE — dead code, removed.)
+                # (stage 4 review-07: the old code kept an unreachable SCHEMA_MISMATCH branch
+                # after this UPDATE - dead code, removed.)
                 self._conn.execute("UPDATE meta SET value=? WHERE key='schema_version'",
                                    (SCHEMA_VERSION,))
             # Additive column upgrades (guarded; safe on fresh and upgraded stores).
@@ -159,7 +159,7 @@ class Store:
                 "PRAGMA table_info(analysis_stages)").fetchall()}
             if "invocation_json" not in cols:
                 self._conn.execute("ALTER TABLE analysis_stages ADD COLUMN invocation_json TEXT")
-            # m5.v1: MemoryScope/ProcessScope evidence columns (M5-F, additive).
+            # m5.v1: MemoryScope/ProcessScope evidence columns (Stage 5-F, additive).
             ecols = {r["name"] for r in self._conn.execute(
                 "PRAGMA table_info(executions)").fetchall()}
             for stmt in (
@@ -169,7 +169,7 @@ class Store:
                 "ALTER TABLE executions ADD COLUMN process_sha256 TEXT",
                 "ALTER TABLE executions ADD COLUMN memory_count INTEGER",
                 "ALTER TABLE executions ADD COLUMN process_count INTEGER",
-                # m8g0.v1: image pinning + trace trust (F-M7-01/02, additive).
+                # m8g0.v1: image pinning + trace trust (finding/02, additive).
                 "ALTER TABLE executions ADD COLUMN requested_image_ids TEXT",
                 "ALTER TABLE executions ADD COLUMN build_image_id TEXT",
                 "ALTER TABLE executions ADD COLUMN trace_trust TEXT",
