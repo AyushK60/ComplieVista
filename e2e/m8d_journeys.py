@@ -4,6 +4,7 @@ Run: backend/.venv/bin/python e2e/m8d_journeys.py   (repo root, stack running)
 """
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 
@@ -185,7 +186,7 @@ def j7_compare(page) -> None:
       [...document.querySelectorAll('.paircard')]
         .find((c) => c.textContent.includes('recursion'))?.click();
     }""")
-    expect(page.locator(".cmp-verdict")).to_be_visible(timeout=150_000)
+    expect(page.locator(".cmp-verdict")).to_be_visible(timeout=int(os.environ.get("E2E_COMPARE_TIMEOUT_MS", "150000")))
     ok(page.locator(".cmp-verdict.ok").count() == 1, "both rails matched")
     shot(page, "j7_compare_1440.png")
 

@@ -17,6 +17,12 @@ undiagnosed (candidate causes: host load, a growing DB with 317 executions and 5
 step for whoever picks this up: time a lone compare with the machine idle, then decide whether to raise the
 limit or investigate the backend.
 
+**Update: m8c and m8d now PASS** (`ALL CHECKS PASSED`; m8c 588 s, m8d 184 s) when run with
+`E2E_COMPARE_TIMEOUT_MS=480000`. The suites now read that variable (default still 150000, so default
+behaviour is unchanged). The earlier failures were the Compare job exceeding the 150 s wait while the host
+was busy (a game was using about a quarter of the CPU; per-side run times for the same recursion pair had
+roughly doubled since 14:51). That cause is likely but was not proven by stopping the load.
+
 ## Fourth pass: learning-layer tests, wording, phone fixes
 
 - `optLearnModel.ts` holds the lesson/quiz logic with 5 unit tests (vitest total 25). A line the compiler

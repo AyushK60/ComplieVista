@@ -7,6 +7,7 @@ Run: backend/.venv/bin/python e2e/m8c_journeys.py   (repo root, stack running)
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 
@@ -190,7 +191,7 @@ def journey_compare(page: Page) -> None:
       [...document.querySelectorAll('.paircard')]
         .find((c) => c.textContent.includes('recursion'))?.click();
     }""")
-    expect(page.locator(".cmp-verdict, .err[role='alert']")).to_be_visible(timeout=150_000)
+    expect(page.locator(".cmp-verdict, .err[role='alert']")).to_be_visible(timeout=int(os.environ.get("E2E_COMPARE_TIMEOUT_MS", "150000")))
     ok(page.locator(".dualmap").is_visible(), "dual pipeline map renders")
     ok(page.locator(".dm-noalign").is_visible(), "no-equivalent-stage honestly marked")
     ok(page.locator(".cmp-sources .srcpane").count() == 2, "both sources side by side")
