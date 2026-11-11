@@ -6,7 +6,7 @@
   "nodes_visible": 22,
   "edges_visible": 21,
   "layout_ms": 0,
-  "initial_zoom": 0.9998393011479455,
+  "initial_zoom": 0.9993493730054206,
   "strategy": "tidy-tree",
   "note": "fundamentals"
  },
@@ -17,7 +17,7 @@
   "nodes_visible": 18,
   "edges_visible": 17,
   "layout_ms": 0,
-  "initial_zoom": 0.9964000668893738,
+  "initial_zoom": 0.9989853152693917,
   "strategy": "tidy-tree",
   "note": "recursion"
  },
@@ -27,8 +27,8 @@
   "nodes_total": 213,
   "nodes_visible": 24,
   "edges_visible": 23,
-  "layout_ms": 0,
-  "initial_zoom": 0.9997865230149137,
+  "layout_ms": 1,
+  "initial_zoom": 0.9996946768200304,
   "strategy": "tidy-tree",
   "note": "advanced"
  },
@@ -39,7 +39,7 @@
   "nodes_visible": 21,
   "edges_visible": 18,
   "layout_ms": 0,
-  "initial_zoom": 0.9999305383290461,
+  "initial_zoom": 0.9999113857773538,
   "strategy": "tidy-tree",
   "note": "basics"
  },
@@ -50,7 +50,7 @@
   "nodes_visible": 11,
   "edges_visible": 15,
   "layout_ms": 1,
-  "initial_zoom": 0.9999816090155187,
+  "initial_zoom": 1.0000114165791194,
   "strategy": "layered-cfg",
   "note": "basics"
  },
@@ -61,7 +61,7 @@
   "nodes_visible": 23,
   "edges_visible": 20,
   "layout_ms": 0,
-  "initial_zoom": 0.999713599965011,
+  "initial_zoom": 0.9996239582157805,
   "strategy": "tidy-tree",
   "note": "pointers"
  },
@@ -72,7 +72,7 @@
   "nodes_visible": 10,
   "edges_visible": 12,
   "layout_ms": 1,
-  "initial_zoom": 0.9999638108182727,
+  "initial_zoom": 0.9999895272962841,
   "strategy": "layered-cfg",
   "note": "pointers"
  },
@@ -83,7 +83,7 @@
   "nodes_visible": 6,
   "edges_visible": 5,
   "layout_ms": 0,
-  "initial_zoom": 0.9996446965722628,
+  "initial_zoom": 0.9997898714444075,
   "strategy": "tidy-tree",
   "note": "multi-file"
  },
@@ -94,7 +94,7 @@
   "nodes_visible": 21,
   "edges_visible": 18,
   "layout_ms": 0,
-  "initial_zoom": 0.9998178923058233,
+  "initial_zoom": 0.9988340129344333,
   "strategy": "tidy-tree",
   "note": "after expand"
  },
@@ -105,7 +105,7 @@
   "nodes_visible": 23,
   "edges_visible": 20,
   "layout_ms": 0,
-  "initial_zoom": 0.9998315909670589,
+  "initial_zoom": 0.9996103846515659,
   "strategy": "tidy-tree",
   "note": "1920x1080"
  }
