@@ -169,6 +169,7 @@ export default function SourceLinkView({ experimentId }: { experimentId: string 
               total asm instructions linked: {cmp.totals.asm[0]} → {cmp.totals.asm[1]}
             </span>
           </div>
+          <div style={{ overflowX: "auto" }} role="region" tabIndex={0} aria-label="per-line comparison table">
           <table className="insp-fields" aria-label="per-line comparison">
             <thead><tr><td>line</td><td>source</td><td>IR O0→O2</td><td>asm O0→O2</td><td></td></tr></thead>
             <tbody>
@@ -190,6 +191,7 @@ export default function SourceLinkView({ experimentId }: { experimentId: string 
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

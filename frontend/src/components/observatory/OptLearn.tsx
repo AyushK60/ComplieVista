@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { experiments, LineMap } from "../../api";
+import { asmSentence, irSentence, Kind, kindOf, KIND_LABEL, lessonSteps, quizRows as pickQuizRows } from "./optLearnModel";
 
 /**
  * Learning layer over the real -O0 vs -O2 line map: a per-line diff, a step-by-step lesson
@@ -10,19 +11,6 @@ import { experiments, LineMap } from "../../api";
  */
 export type LearnView = "off" | "diff" | "lesson" | "quiz";
 type Cmp = NonNullable<LineMap["compare_O0_O2"]>;
-type Kind = "removed" | "shrunk" | "grown" | "new" | "same";
-
-function kindOf(c: Cmp, line: number): Kind {
-  if (c.removed.includes(line)) return "removed";
-  if (c.new.includes(line)) return "new";
-  if (c.grown.includes(line)) return "grown";
-  if (c.shrunk.includes(line)) return "shrunk";
-  return "same";
-}
-const KIND_LABEL: Record<Kind, string> = {
-  removed: "no code at -O2", shrunk: "fewer asm at -O2", grown: "more asm at -O2",
-  new: "only at -O2", same: "same asm count",
-};
 const KIND_BADGE: Record<Kind, string> = {
   removed: "blocked", shrunk: "derived", grown: "ok", new: "ok", same: "",
 };
@@ -68,12 +56,9 @@ export default function OptLearn({ experimentId, map, srcLines, view, line, setL
   const [onlyChanged, setOnlyChanged] = useState(true);
 
   const changed = useMemo(() => (cmp?.rows ?? []).filter((r) => kindOf(cmp!, r.line) !== "same"), [cmp]);
-  // lesson: the most-changed lines first (largest asm delta), bounded for a classroom run
-  const steps = useMemo(() => [...changed]
-    .sort((a, b) => Math.abs(b.asm[1] - b.asm[0]) - Math.abs(a.asm[1] - a.asm[0]) || a.line - b.line)
-    .slice(0, 8).sort((a, b) => a.line - b.line), [changed]);
+  const steps = useMemo(() => (cmp ? lessonSteps(cmp) : []), [cmp]);
   // quiz: lines that have asm at -O0 (so a prediction is meaningful)
-  const quizRows = useMemo(() => (cmp?.rows ?? []).filter((r) => r.asm[0] > 0 || r.asm[1] > 0), [cmp]);
+  const quizRows = useMemo(() => (cmp ? pickQuizRows(cmp) : []), [cmp]);
   const qRow = quizRows.length ? quizRows[(quizPos * 7 + 3) % quizRows.length] : undefined;
 
   // keep the shared line/focus in step with the lesson
@@ -171,8 +156,8 @@ export default function OptLearn({ experimentId, map, srcLines, view, line, setL
     const k = kindOf(cmp, s.line);
     const phaseText = [
       `Source line ${s.line}: ${lineText(s.line) || "(blank)"}`,
-      `At -O0 this line links to ${s.ir[0]} LLVM IR instruction(s); at -O2 it links to ${s.ir[1]}.`,
-      `In assembly the line links to ${s.asm[0]} instruction(s) at -O0 and ${s.asm[1]} at -O2 — ${KIND_LABEL[k]}.`,
+      irSentence(s),
+      asmSentence(s, k),
     ];
     const last = stepIdx >= steps.length - 1 && phase === 2;
     const next = () => { if (phase < 2) setPhase(phase + 1); else if (stepIdx < steps.length - 1) { setStepIdx(stepIdx + 1); setPhase(0); } };

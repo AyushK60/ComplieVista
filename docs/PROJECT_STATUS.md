@@ -2,6 +2,17 @@
 
 Updated: 11 November 2026 (Petrol & Coral redesign, presentation only)
 
+## Fourth pass: learning-layer tests, wording, phone fixes
+
+- `optLearnModel.ts` holds the lesson/quiz logic with 5 unit tests (vitest total 25). A line the compiler
+  linked no IR instruction to no longer reads "0 IR instructions".
+- `e2e/learning_suite.py` (new): diff, lesson, quiz, share link reopening the lesson, print media and PDF,
+  and no horizontal scroll at 375 and 768 px. PASS.
+- Fixed a real 336 px overflow on a phone-width workspace with a run (five view tabs now wrap; the per-line
+  comparison table scrolls inside its own region; line-link panes use minmax(0, 1fr)).
+- C demo thumbnails (real token and syntax-node counts) were already in place from an earlier pass.
+- Still out of scope: Rust/Java; pasted-code execution is governed by the M4 gate (see SECURITY.md).
+
 ## Third pass: Memory and process view, keyboard audit (frontend + one e2e suite)
 
 - New workspace tab **Memory and process** (`MemoryProcessView.tsx`, shown once a run exists, deep link
