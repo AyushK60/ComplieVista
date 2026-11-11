@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PairSpec, api, experiments, pairs } from "../api";
+import Specimen from "../components/Specimen";
 
 /**
  * Dual-Language Observatory — the two pipelines shown as what they are: two
@@ -135,6 +136,7 @@ export default function Compare() {
         {specs.map((p) => (
           <button key={p.id} className={"paircard panel" + (selected?.id === p.id ? " active" : "")}
                   onClick={() => runPair(p)} disabled={status === "running"}>
+            <Specimen d={{ id: p.id.toUpperCase(), concepts: [p.concept] }} />
             <code>{p.id}</code>
             <h3>{p.concept}</h3>
             <p className="muted">expected output: <code>{p.expected_stdout}</code></p>

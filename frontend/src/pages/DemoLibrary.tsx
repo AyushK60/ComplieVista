@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DemoEntry, DemoRunResult, demos, errorFixtures } from "../api";
 import { Button, EmptyState, Skeleton } from "../ui";
+import Specimen from "../components/Specimen";
+import { loadRecent, recentUrl } from "../lib/recent";
+import { prefetch } from "../lib/prefetch";
 
 /**
  * Demo Library — a learning gallery over the exact 20-program inventory
@@ -13,10 +16,6 @@ import { Button, EmptyState, Skeleton } from "../ui";
  */
 
 type Lang = "all" | "python" | "c";
-const CONCEPT_ICONS: Record<string, string> = {
-  recursion: "⑃", pointers: "➚", memory: "◫", optimization: "⚡", sorting: "⇅",
-  tokens: "␣", "call stack": "▤", bytecode: "◈", "control flow": "⑂",
-};
 const DIFF_ORDER: Record<string, number> = { introductory: 0, intermediate: 1, advanced: 2 };
 /** The catalog uses two vocabularies (the single-language demos say introductory/
  * intermediate/advanced, the matched pairs say very easy … challenging). The UI groups
@@ -52,99 +51,6 @@ function teaches(d: DemoEntry): string {
   return s.length > 150 ? s.slice(0, 147) + "…" : s;
 }
 
-/* ——— specimen: a small ink-screen preview, varied but consistent ——— */
-function Specimen({ d }: { d: DemoEntry }) {
-  const concepts = d.concepts.join(" ").toLowerCase();
-  const seed = [...d.id].reduce((a, c) => a + c.charCodeAt(0), 0);
-  const id = d.id.replace(/[^A-Z0-9-]/gi, "");
-  let art: React.ReactNode;
-  if (concepts.includes("recursion") || concepts.includes("call stack")) {
-    const w = 2 + (seed % 2);
-    art = (
-      <svg viewBox="0 0 260 84" className="dcs-svg">
-        {[0, 1].slice(0, w).map((i) => (
-          <g key={i}>
-            <path className="dc-wire" stroke="rgba(244,174,104,.5)" d={`M60 ${14 + i * 6} C 90 ${30 + i * 8}, 90 ${44 + i * 6}, ${62 + i * 74} ${62}`} />
-            <rect x={34 + i * 118} y={54} width={52} height={18} rx={5} fill="rgba(244,174,104,.1)" stroke="rgba(244,174,104,.55)" />
-            <text x={60 + i * 118} y={67} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">f({4 - i * 2})</text>
-          </g>
-        ))}
-        <rect x={34} y={6} width={52} height={18} rx={5} fill="rgba(244,174,104,.16)" stroke="rgba(244,174,104,.7)" />
-        <text x={60} y={19} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">f({6 + (seed % 3)})</text>
-      </svg>
-    );
-  } else if (concepts.includes("sorting") || concepts.includes("loop") || concepts.includes("array")) {
-    const n = 7;
-    art = (
-      <svg viewBox="0 0 260 84">
-        {Array.from({ length: n }, (_, i) => {
-          const h = 16 + ((seed * (i + 3)) % 52);
-          return <rect key={i} x={16 + i * 34} y={78 - h} width={22} height={h} rx={3}
-            fill={i % 2 ? "rgba(134,200,238,.35)" : "rgba(134,200,238,.18)"} stroke="rgba(134,200,238,.6)" />;
-        })}
-      </svg>
-    );
-  } else if (concepts.includes("pointer") || concepts.includes("memory") || concepts.includes("heap")) {
-    art = (
-      <svg viewBox="0 0 260 84">
-        <rect x={18} y={30} width={46} height={24} rx={5} fill="rgba(196,168,244,.14)" stroke="rgba(196,168,244,.6)" />
-        <text x={41} y={45} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">ptr</text>
-        <path className="dc-wire" stroke="rgba(196,168,244,.6)" d="M64 42 C 96 42, 96 42, 124 42" />
-        <path d="M120 38 L128 42 L120 46" className="dc-wire" stroke="rgba(196,168,244,.6)" />
-        <rect x={130} y={22} width={62} height={40} rx={5} fill="rgba(196,168,244,.1)" stroke="rgba(196,168,244,.5)" strokeDasharray="3 2" />
-        <text x={161} y={46} textAnchor="middle" fontSize="9" fill="#aebfc8" fontFamily="var(--font-mono)">0x7f…</text>
-        <rect x={206} y={30} width={40} height={24} rx={5} fill="rgba(110,214,166,.12)" stroke="rgba(110,214,166,.55)" />
-        <text x={226} y={45} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">free</text>
-      </svg>
-    );
-  } else if (concepts.includes("optimization") || concepts.includes("benchmark")) {
-    art = (
-      <svg viewBox="0 0 260 84">
-        {["-O0", "-O1", "-O2"].map((o, i) => (
-          <g key={o}>
-            <rect x={16} y={12 + i * 24} width={150 - i * 28} height={14} rx={4}
-              fill="rgba(244,174,104,.28)" stroke="rgba(244,174,104,.55)" />
-            <text x={172 - i * 28 + 8} y={23 + i * 24} fontSize="9" fill="#aebfc8" fontFamily="var(--font-mono)">{o}</text>
-          </g>
-        ))}
-      </svg>
-    );
-  } else if (concepts.includes("bytecode") || concepts.includes("token")) {
-    const ops = ["LOAD", "STORE", "CALL", "RETURN"];
-    art = (
-      <svg viewBox="0 0 260 84">
-        {ops.map((o, i) => (
-          <g key={o}>
-            <rect x={16 + (i % 2) * 120} y={12 + Math.floor(i / 2) * 30} width={96} height={20} rx={5}
-              fill="rgba(244,174,104,.1)" stroke="rgba(244,174,104,.4)" />
-            <text x={64 + (i % 2) * 120} y={26 + Math.floor(i / 2) * 30} textAnchor="middle" fontSize="9"
-              fill="#f4ae68" fontFamily="var(--font-mono)">{o} {i}</text>
-          </g>
-        ))}
-      </svg>
-    );
-  } else {
-    // control flow / branching / default: branch arcs
-    art = (
-      <svg viewBox="0 0 260 84">
-        <path className="dc-wire" stroke="rgba(134,200,238,.6)" d="M20 42 H 96" />
-        <path className="dc-wire" stroke="rgba(134,200,238,.45)" d="M96 42 C 120 42, 120 20, 144 20 H 200" />
-        <path className="dc-wire" stroke="rgba(134,200,238,.45)" d="M96 42 C 120 42, 120 64, 144 64 H 200" />
-        <rect x={70} y={32} width={52} height={20} rx={5} fill="rgba(134,200,238,.12)" stroke="rgba(134,200,238,.55)" />
-        <text x={96} y={45} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">if</text>
-        <text x={214} y={23} fontSize="9" fill="#aebfc8" fontFamily="var(--font-mono)">true</text>
-        <text x={214} y={67} fontSize="9" fill="#aebfc8" fontFamily="var(--font-mono)">else</text>
-      </svg>
-    );
-  }
-  return (
-    <div className="dc-screen screen on-ink" aria-hidden>
-      {art}
-      <span className="dcs-caption">{id} · specimen</span>
-    </div>
-  );
-}
-
 export default function DemoLibrary() {
   const navigate = useNavigate();
   const [catalog, setCatalog] = useState<{ demos: DemoEntry[] | null; error: string | null; loading: boolean }>(
@@ -157,6 +63,7 @@ export default function DemoLibrary() {
   const [concept, setConcept] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [showAllConcepts, setShowAllConcepts] = useState(false);
+  const [recent] = useState(() => loadRecent().slice(0, 3));
   // The open demo lives in the URL (/demos/:demoId) so it can be shared and the
   // browser back button returns to the gallery.
   const { demoId } = useParams();
@@ -220,8 +127,7 @@ export default function DemoLibrary() {
 
   const open = all.find((d) => d.id === openId) ?? null;
 
-  // opening a demo must start at its heading, not wherever the gallery was scrolled
-  useEffect(() => { window.scrollTo(0, 0); }, [openId]);
+  // scroll position on open, back and forward is handled once, in AppShell
 
   if (openId && !open && !catalog.loading && catalog.demos) {
     return (
@@ -328,6 +234,7 @@ export default function DemoLibrary() {
                       onClick={() => setLang(l)}>{l}</button>
             ))}
           </div>
+          <span className="muted dl-count" aria-live="polite">{filtered.length} of {all.length} programs</span>
         </div>
         <div className="dl-concepts">
           <span className="dl-diff-lab muted" style={{ fontSize: 11, fontFamily: "var(--font-mono)", alignSelf: "center", marginRight: 2 }}>concept</span>
@@ -335,7 +242,7 @@ export default function DemoLibrary() {
             <button key={c} className={`conceptchip ${concept === c ? "active" : ""}`}
                     aria-pressed={concept === c}
                     onClick={() => setConcept(concept === c ? null : c)}>
-              {CONCEPT_ICONS[c] ?? ""} {c}
+              {c}
             </button>
           ))}
           {concepts.length > sharedConcepts.length && (
@@ -357,6 +264,19 @@ export default function DemoLibrary() {
         </div>
       </div>
 
+      {recent.length > 0 && !catalog.loading && (
+        <section className="dl-recent" aria-label="recent sessions">
+          <p className="label">Pick up where you left off</p>
+          <ul>
+            {recent.map((r) => (
+              <li key={r.key}>
+                <a href={recentUrl(r)}><b>{r.title}</b><span className="chip">{r.language === "c" ? "C" : "Python"}</span></a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {catalog.loading && !catalog.demos && <Skeleton rows={6} label="Loading demo catalog" />}
       {!catalog.loading && catalog.error && !catalog.demos && (
         <p className="err" role="alert">
@@ -377,7 +297,8 @@ export default function DemoLibrary() {
           <p className="dl-grouplede">{lede}</p>
           <div className="dl-grid">
             {demos_.map((d) => (
-              <button key={d.id} className="democard panel" onClick={() => setOpenId(d.id)}>
+              <button key={d.id} className="democard panel" onClick={() => setOpenId(d.id)}
+                      onMouseEnter={() => prefetch("/workspace")} onFocus={() => prefetch("/workspace")}>
                 <Specimen d={d} />
                 <div className="dc-body">
                   <div className="dc-top">

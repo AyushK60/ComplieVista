@@ -118,6 +118,15 @@ select.input, .obs-ingest select {
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 
+/* bare selects (code object picker, filters): same look as inputs, compact */
+select:not(.input) {
+  appearance: none; -webkit-appearance: none; min-height: 30px; padding: 3px 28px 3px 10px; cursor: pointer;
+  background-color: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); border-radius: var(--r-s); font-size: var(--fs-label);
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%), linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+select:not(.input):hover { border-color: var(--ink-3); }
+
 /* ——— surfaces ——— */
 .panel { background: var(--surface); border: var(--hairline); border-radius: var(--r-m); }
 .panel-h {

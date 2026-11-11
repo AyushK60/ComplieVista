@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { NavLink, Link, useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { useMode } from "../state/mode";
 import { useTheme } from "../state/theme";
 import { Command, isTypingTarget } from "../state/commands";
 import CommandPalette, { ShortcutsHelp } from "./CommandPalette";
 import { Icon } from "../ui";
+import { prefetch } from "../lib/prefetch";
 
 const TITLES: Array<[string, string]> = [
   ["/demos", "Demo Library"],
@@ -24,7 +25,8 @@ const LINKS: Array<[string, string]> = [
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useMode();
   const [theme, , toggleTheme] = useTheme();
-  const { pathname } = useLocation();
+  const { pathname, key } = useLocation();
+  const navType = useNavigationType();
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -36,6 +38,33 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, [pathname]);
+
+  // Scroll: a new page opens at the top; Back and Forward return to where you were.
+  const saved = useRef(new Map<string, number>());
+  const keyRef = useRef(key);
+  const first = useRef(true);
+  useEffect(() => {
+    const on = () => saved.current.set(keyRef.current, window.scrollY);
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+  useEffect(() => {
+    keyRef.current = key;
+    if (first.current) { first.current = false; return; }
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (navType === "POP") {
+      const y = saved.current.get(key) ?? 0;
+      let tries = 0;
+      const tick = () => { // the page may still be loading its content: retry briefly
+        window.scrollTo({ top: y, behavior: "instant" });
+        if (Math.abs(window.scrollY - y) > 2 && tries++ < 20) timer = setTimeout(tick, 60);
+      };
+      tick();
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    return () => { if (timer) clearTimeout(timer); };
+  }, [key, navType]);
 
   useEffect(() => {
     const hit = TITLES.find(([p]) => pathname === p || pathname.startsWith(p + "/"));
@@ -85,6 +114,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Link to="/" className="brand"><span className="brand-mark" aria-hidden />CompileVista</Link>
         {LINKS.map(([to, label]) => (
           <NavLink key={to} to={to} end={to === "/"}
+                   onMouseEnter={() => prefetch(to)} onFocus={() => prefetch(to)}
                    className={({ isActive }) => isActive ? "navlink active" : "navlink"}>
             {label}
           </NavLink>
@@ -104,7 +134,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </nav>
-      {children}
+      <div key={pathname.split("/")[1] || "home"} className="route-fade">{children}</div>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} base={base} />
       <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
     </>

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Link, Route, Routes, useLocation } from "react-router-dom";
 import AppShell from "./components/AppShell";
 import Home from "./pages/Home";
 import { Skeleton } from "./ui";
@@ -21,11 +21,31 @@ function NotFound() {
   );
 }
 
+/** Loading placeholder shaped like the page that is about to appear. */
+function RouteFallback() {
+  const { pathname } = useLocation();
+  const kind = pathname.startsWith("/workspace") ? "ws" : pathname.startsWith("/demos") ? "lib" : "page";
+  return (
+    <main className={"obs obs-empty skel-route skel-" + kind} aria-busy="true" aria-label="Loading page">
+      {kind === "lib" ? (
+        <div className="skel-lib">
+          <i className="skel-title" />
+          {Array.from({ length: 6 }, (_, i) => <i key={i} className="skel-card" />)}
+        </div>
+      ) : kind === "ws" ? (
+        <div className="skel-ws"><i /><i /><i /></div>
+      ) : (
+        <div style={{ width: "min(560px, 90vw)" }}><Skeleton rows={5} label="Loading page" /></div>
+      )}
+    </main>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AppShell>
-        <Suspense fallback={<main className="obs obs-empty"><div style={{ width: "min(560px, 90vw)" }}><Skeleton rows={5} label="Loading page" /></div></main>}>
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/workspace" element={<Workspace />} />
