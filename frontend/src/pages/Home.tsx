@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Capabilities, Health } from "../api";
 import TitleSequence from "../components/hero/TitleSequence";
-import { AstFigure, LowerFigure, RunFigure } from "../components/figures/Figures";
+import { AstFigure, LowerFigure, RunFigure, TokensFigure } from "../components/figures/Figures";
 
 /**
  * Landing page. One real figure up top (the hero), then three short, quiet sections:
@@ -13,20 +13,12 @@ import { AstFigure, LowerFigure, RunFigure } from "../components/figures/Figures
 const C_STAGES = ["Preprocess", "Tokens", "Syntax tree", "LLVM IR", "Optimization", "Assembly", "Object + link", "Execution"];
 const PY_STAGES = ["Tokens", "Syntax tree", "Code objects", "Bytecode", "Execution", "Memory + processes"];
 
-type Chapter = { n: string; title: string; text: string; src: string; w: number; h: number; alt: string; cap: string; dark?: string };
+type Chapter = { n: string; title: string; text: string };
 const INSPECT: Chapter[] = [
-  { n: "01", title: "Tokens", text: "The exact pieces the lexer produces, each with its kind and source position.",
-    src: "/media/tokens.jpg", w: 966, h: 163, alt: "Python source line 9 to 11 split into tokens: def, accumulate, parentheses, names and numbers, each in its own box.",
-    cap: "Real output · PY-02 · CPython tokenize" },
-  { n: "02", title: "Syntax trees", text: "Clang's own tree for one function: pick a line and the nodes it became light up.",
-    src: "/media/ast.jpg", w: 1012, h: 829, alt: "A syntax tree graph: a FunctionDef node named accumulate selected, with its children Assign, For and Return on the right.",
-    cap: "Real output · PY-02 · ast.parse" },
-  { n: "03", title: "IR and bytecode", text: "LLVM IR and assembly for C, code objects and bytecode for Python, linked to your source lines.",
-    src: "/media/bytecode.jpg", w: 958, h: 481, alt: "Python bytecode instructions grouped by source line, with jump arcs on the left.",
-    cap: "Real output · PY-02 · dis" },
-  { n: "04", title: "Recorded runs", text: "A sandboxed run replayed event by event: call stack, variables, memory and output.",
-    src: "/media/run-light.jpg", dark: "/media/run-dark.jpg", w: 1000, h: 470, alt: "The execution observatory: a call structure with the module and accumulate calls, a stack scene and a replay bar.",
-    cap: "Real output · PY-02 · sys.settrace in a sandbox" },
+  { n: "01", title: "Tokens", text: "The exact pieces the lexer produces, each with the kind it recorded, in Python and in C." },
+  { n: "02", title: "Syntax trees", text: "Clang's own tree for one function: pick a line and the nodes it became light up." },
+  { n: "03", title: "IR and bytecode", text: "LLVM IR and assembly for C, bytecode for Python, linked to your source lines." },
+  { n: "04", title: "Recorded runs", text: "A sandboxed run replayed event by event: the call stack, its variables and the output." },
 ];
 
 export default function Home() {
@@ -92,11 +84,7 @@ export default function Home() {
                 <h3>{c.title}</h3>
                 <p>{c.text}</p>
               </div>
-              {c.n === "02" ? <AstFigure /> : c.n === "03" ? <LowerFigure /> : c.n === "04" ? <RunFigure /> : (
-              <figure className="ch-fig">
-                <img src={c.src} width={c.w} height={c.h} alt={c.alt} loading="lazy" decoding="async" />
-                <figcaption>{c.cap}</figcaption>
-              </figure>)}
+              {c.n === "01" ? <TokensFigure /> : c.n === "02" ? <AstFigure /> : c.n === "03" ? <LowerFigure /> : <RunFigure />}
             </div>
           </article>
         ))}

@@ -63,7 +63,15 @@ def register(app: FastAPI, store: Store) -> None:
             "SELECT stage, availability, result_json, artifact_sha256, duration_ms"
             " FROM experiment_stages WHERE experiment_id=? ORDER BY stage",
             (experiment_id,))
+        # how many experiments are still ahead of this one on the single worker (queued or running,
+        # created earlier); lets the UI say "2 ahead of you" instead of a silent wait
+        ahead = 0
+        if job["status"] == "QUEUED":
+            ahead = store.query_one(
+                "SELECT COUNT(*) AS n FROM experiments WHERE status IN ('QUEUED','RUNNING')"
+                " AND created_utc < ? AND id != ?", (job["created_utc"], experiment_id))["n"]
         return {"id": job["id"], "kind": job["kind"], "status": job["status"],
+                "queue_ahead": ahead,
                 "config": json.loads(job["config_json"]),
                 "source_combined_sha256": job["source_combined_sha256"],
                 "error_code": job["error_code"],

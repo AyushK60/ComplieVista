@@ -75,7 +75,7 @@ def journey_demo_detail(page: Page, demo_id: str, title_part: str) -> None:
     ok(page.locator(".dd-story p").count() == 3 and
        all(t.strip() for t in page.locator(".dd-story p").all_inner_texts()),
        f"{demo_id}: three guided stories present")
-    ok("Capability matrix" in page.locator(".demo-detail").inner_text(),
+    ok("capability matrix" in page.locator(".demo-detail").inner_text().lower(),  # headings are set in capitals by CSS
        f"{demo_id}: capability matrix shown")
     page.get_by_role("button", name="Run (observatory)").click()
     page.wait_for_url(re.compile(r"/workspace\?.*execution="), timeout=180000)

@@ -55,7 +55,7 @@ for d in cat:
         "excerpt_from": sig + 1,
         "tokens": [{"kind": t["kind"], "text": t["text"]} for t in first],
         "tree": tree,
-        "counts": {"tokens": len(toks) if lang == "python" and not tok.get("truncated") else None, "ast_nodes": len(ast["items"]) if not ast.get("truncated") else None},
+        "counts": {"tokens": (len(toks) if not tok.get("truncated") else None) if lang == "python" else tok["counts"].get("tokens_primary_file"), "ast_nodes": len(ast["items"]) if not ast.get("truncated") else None},
         "prov": {"analysis_id": a, "tokens_sha256": tok.get("raw_artifact_sha256"), "ast_sha256": ast.get("raw_artifact_sha256")},
     }
     print(did, len(toks), len(ast["items"]), len(tree))

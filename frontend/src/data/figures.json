@@ -760,5 +760,277 @@
    }
   ],
   "stdout": "area=10\nscaled=7\nkind=valid\n"
+ },
+ "tokens": {
+  "python": {
+   "demo": "PY-02",
+   "language": "python",
+   "rows": [
+    {
+     "n": 9,
+     "text": "def accumulate(values: list[int]) -> dict:",
+     "tokens": [
+      {
+       "kind": "NAME",
+       "text": "def"
+      },
+      {
+       "kind": "NAME",
+       "text": "accumulate"
+      },
+      {
+       "kind": "OP",
+       "text": "("
+      },
+      {
+       "kind": "NAME",
+       "text": "values"
+      },
+      {
+       "kind": "OP",
+       "text": ":"
+      },
+      {
+       "kind": "NAME",
+       "text": "list"
+      },
+      {
+       "kind": "OP",
+       "text": "["
+      },
+      {
+       "kind": "NAME",
+       "text": "int"
+      },
+      {
+       "kind": "OP",
+       "text": "]"
+      },
+      {
+       "kind": "OP",
+       "text": ")"
+      },
+      {
+       "kind": "OP",
+       "text": "->"
+      },
+      {
+       "kind": "NAME",
+       "text": "dict"
+      },
+      {
+       "kind": "OP",
+       "text": ":"
+      }
+     ]
+    },
+    {
+     "n": 10,
+     "text": "    total = 0",
+     "tokens": [
+      {
+       "kind": "NAME",
+       "text": "total"
+      },
+      {
+       "kind": "OP",
+       "text": "="
+      },
+      {
+       "kind": "NUMBER",
+       "text": "0"
+      }
+     ]
+    },
+    {
+     "n": 11,
+     "text": "    evens = []",
+     "tokens": [
+      {
+       "kind": "NAME",
+       "text": "evens"
+      },
+      {
+       "kind": "OP",
+       "text": "="
+      },
+      {
+       "kind": "OP",
+       "text": "["
+      },
+      {
+       "kind": "OP",
+       "text": "]"
+      }
+     ]
+    }
+   ],
+   "analysis_id": "dedbd127725c4d9ea39d83d3cf63f132",
+   "tokens_sha256": "ee43937e71d17903ab2c79958847bfce2711d9c3323b9f94e68b035b8069cb0f",
+   "counts": {
+    "tokens": 166,
+    "tokenize_error": null
+   }
+  },
+  "c": {
+   "demo": "C-01",
+   "language": "c",
+   "rows": [
+    {
+     "n": 5,
+     "text": "static int clamp(int v, int lo, int hi) {",
+     "tokens": [
+      {
+       "kind": "static",
+       "text": "static"
+      },
+      {
+       "kind": "int",
+       "text": "int"
+      },
+      {
+       "kind": "identifier",
+       "text": "clamp"
+      },
+      {
+       "kind": "l_paren",
+       "text": "("
+      },
+      {
+       "kind": "int",
+       "text": "int"
+      },
+      {
+       "kind": "identifier",
+       "text": "v"
+      },
+      {
+       "kind": "comma",
+       "text": ","
+      },
+      {
+       "kind": "int",
+       "text": "int"
+      },
+      {
+       "kind": "identifier",
+       "text": "lo"
+      },
+      {
+       "kind": "comma",
+       "text": ","
+      },
+      {
+       "kind": "int",
+       "text": "int"
+      },
+      {
+       "kind": "identifier",
+       "text": "hi"
+      },
+      {
+       "kind": "r_paren",
+       "text": ")"
+      },
+      {
+       "kind": "l_brace",
+       "text": "{"
+      }
+     ]
+    },
+    {
+     "n": 6,
+     "text": "    if (v < lo) return lo;",
+     "tokens": [
+      {
+       "kind": "if",
+       "text": "if"
+      },
+      {
+       "kind": "l_paren",
+       "text": "("
+      },
+      {
+       "kind": "identifier",
+       "text": "v"
+      },
+      {
+       "kind": "less",
+       "text": "<"
+      },
+      {
+       "kind": "identifier",
+       "text": "lo"
+      },
+      {
+       "kind": "r_paren",
+       "text": ")"
+      },
+      {
+       "kind": "return",
+       "text": "return"
+      },
+      {
+       "kind": "identifier",
+       "text": "lo"
+      },
+      {
+       "kind": "semi",
+       "text": ";"
+      }
+     ]
+    },
+    {
+     "n": 7,
+     "text": "    if (v > hi) return hi;",
+     "tokens": [
+      {
+       "kind": "if",
+       "text": "if"
+      },
+      {
+       "kind": "l_paren",
+       "text": "("
+      },
+      {
+       "kind": "identifier",
+       "text": "v"
+      },
+      {
+       "kind": "greater",
+       "text": ">"
+      },
+      {
+       "kind": "identifier",
+       "text": "hi"
+      },
+      {
+       "kind": "r_paren",
+       "text": ")"
+      },
+      {
+       "kind": "return",
+       "text": "return"
+      },
+      {
+       "kind": "identifier",
+       "text": "hi"
+      },
+      {
+       "kind": "semi",
+       "text": ";"
+      }
+     ]
+    }
+   ],
+   "analysis_id": "166af2c049b44a20b06b294f7b5dbcfe",
+   "tokens_sha256": "9914ea748d8feb364d4a91f74c653717372c9dfae8fe1a44b714cec001353c46",
+   "counts": {
+    "tokens": 3074,
+    "tokens_parse_capped": false,
+    "token_files": 13,
+    "tokens_primary_file": 122
+   }
+  }
  }
 }

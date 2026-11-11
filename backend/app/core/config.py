@@ -27,7 +27,9 @@ DEFAULT_DATA_DIR = os.environ.get(
 
 SCHEMA_VERSION = "m8g0.v1"
 IMPORT_POLICY_VERSION = "m1.github.v1"
-ANALYSIS_POLICY_VERSION = "m2.analyzer.v1"
+# v2: the C token stage now parses the whole clang dump (the old 8000-token cap dropped the user's own
+# tokens for header-heavy programs); bumping this makes earlier cached C analyses re-run on demand.
+ANALYSIS_POLICY_VERSION = "m2.analyzer.v2"
 ANALYZER_IMAGE = os.environ.get("COMPILEVISTA_ANALYZER_IMAGE", "compilevista/analyzer:m2")
 RUNTIME_IMAGE = os.environ.get("COMPILEVISTA_RUNTIME_IMAGE", "compilevista/runtime:m4")
 DEBUG_IMAGE = os.environ.get("COMPILEVISTA_DEBUG_IMAGE", "compilevista/debug:m5")

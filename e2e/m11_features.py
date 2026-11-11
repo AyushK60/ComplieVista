@@ -22,35 +22,43 @@ def ok(cond: bool, msg: str) -> None:
 
 
 def journey_hero(page: Page) -> None:
-    print("[journey] hero journey window -> workspace")
+    print("[journey] title sequence hero and recorded-data figures")
     page.goto(BASE + "/")
     expect(page.get_by_role("heading", name=re.compile("Your program"), level=1)).to_be_visible(timeout=15000)
-    rail = page.locator(".jw-rail button")
-    expect(rail.first).to_be_visible(timeout=60000)
-    ok(rail.count() == 5, "the journey has five phases")
-    rail.nth(1).click()
-    expect(page.locator("[data-pane=tokens] .pl-token").first).to_be_visible(timeout=10000)
-    lines = page.locator(".jw-src .pl-line")
-    n = lines.count()
-    ok(n >= 3, f"the window lists the source lines ({n})")
-    lines.nth(0).click()
-    first = page.locator("[data-pane=tokens] .pl-token").all_text_contents()
-    lines.nth(n - 1).click()
-    last = page.locator("[data-pane=tokens] .pl-token").all_text_contents()
-    ok(first != last and len(first) > 0 and len(last) > 0, "selecting a different line changes its tokens")
-    rail.nth(2).click()
-    ok(page.locator("[data-pane=ast] .pl-nodes li").count() > 0, "the same line shows syntax nodes")
-    rail.nth(3).click()
-    ok(page.locator("[data-pane=bytecode] .pl-ins").count() > 0, "and its bytecode")
-    rail.nth(4).click()
-    expect(page.locator("[data-pane=run] .pl-steps li").first).to_be_visible(timeout=60000)
-    ok("area=" in page.locator("[data-pane=run] .pl-stdout").inner_text(), "the execution phase shows a real recorded run and its output")
-    rail.nth(3).click()
-    page.get_by_role("link", name=re.compile("Open this stage in the workspace")).click()
-    expect(page.get_by_role("navigation", name="compilation journey")).to_be_visible(timeout=60000)
-    ok("stage=bytecode" in page.url, "the link opens the stage shown")
-    expect(page.get_by_role("heading", name="Bytecode", level=2)).to_be_visible(timeout=20000)
-    ok(True, "workspace is on the Bytecode stage")
+    fig = page.locator(".ts")
+    expect(fig).to_be_visible(timeout=15000)
+    steps = fig.get_by_role("group", name="Show a step").get_by_role("button")
+    ok(steps.count() == 3, "the title sequence offers three steps (source, tokens, syntax tree)")
+    steps.nth(1).click()
+    ok(fig.get_attribute("data-step") == "1", "pressing Tokens holds the token step")
+    expect(fig.locator(".ts-kind").first).to_be_visible(timeout=5000)
+    ok(fig.locator(".ts-kind").count() >= 4, "tokens show their recorded kinds")
+    steps.nth(2).click()
+    ok(fig.get_attribute("data-step") == "2", "pressing Syntax tree holds the tree step")
+    ok("sha256" in fig.locator("figcaption").inner_text(), "the figure carries its source sha256")
+
+    # the four stage figures are drawn from recorded data and carry provenance
+    page.locator("#stage-01").scroll_into_view_if_needed()
+    ok(page.locator("#stage-01 .fg-tokrows li").count() >= 3, "tokens figure lists source lines")
+    page.locator("#stage-01").get_by_role("tab", name=re.compile("C . clang")).click()
+    ok(page.locator("#stage-01 .fg-toks .tk").count() > 0, "the C tab shows clang's tokens")
+    page.locator("#stage-02").scroll_into_view_if_needed()
+    ok(page.locator("#stage-02 .fg-tree .node").count() >= 15, "syntax tree figure draws Clang's nodes")
+    ok(page.locator("#stage-02 .fg-tree .node.implicit").count() >= 1, "implicit nodes are drawn dashed")
+    page.locator("#stage-03").scroll_into_view_if_needed()
+    for tab, needle in (("C . x86-64", "retq"), ("Python . bytecode", "LOAD_FAST")):
+        page.locator("#stage-03").get_by_role("tab", name=re.compile(tab)).click()
+        ok(needle in page.locator("#stage-03 .fg-list").inner_text(), f"the {tab} tab lists real instructions ({needle})")
+    page.locator("#stage-04").scroll_into_view_if_needed()
+    slider = page.locator("#stage-04 input[type=range]")
+    slider.fill("20")
+    ok("area=10" in page.locator("#stage-04 .fg-out").inner_text(), "the recorded run ends with its real output")
+    for fig_id in ("#stage-01", "#stage-02", "#stage-03", "#stage-04"):
+        ok("Recorded output" in page.locator(f"{fig_id} figcaption").first.inner_text(), f"{fig_id} labels itself as recorded output")
+
+    # the reels show every stage, and the frame names stay readable when lit
+    ok(page.locator(".strip").nth(0).locator(".frames li").count() == 8, "the C reel shows all eight stages")
+    ok(page.locator(".strip").nth(1).locator(".frames li").count() == 6, "the Python reel shows all six stages")
 
 
 def journey_palette(page: Page) -> None:
@@ -117,7 +125,8 @@ def journey_about(page: Page) -> None:
     page.goto(BASE + "/about")
     expect(page.get_by_role("heading", name=re.compile("Real artifacts"), level=1)).to_be_visible(timeout=10000)
     txt = page.locator("main").inner_text()
-    ok("76 / 76" in txt and "What it does not do" in txt, "About states the fidelity result and the limitations")
+    # headings are set in capitals by CSS, and inner_text follows text-transform, so compare case-insensitively
+    ok("76 / 76" in txt and "what it does not do" in txt.lower(), "About states the fidelity result and the limitations")
 
 
 def main() -> int:

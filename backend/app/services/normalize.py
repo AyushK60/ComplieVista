@@ -11,6 +11,7 @@ import json
 import re
 from pathlib import Path
 
+from app.core.config import ANALYSIS_POLICY_VERSION
 from app.store.db import Store, new_id
 
 MAX_ITEMS = 500
@@ -20,7 +21,13 @@ _DIAG_RE = re.compile(r"^(.+?):(\d+):(\d+):\s*(error|warning|note):\s*(.*)$")
 _TOK_RE = re.compile(r"^(\S+)\s+'(.*)'\s+(?:\[.*?\]\s+)?Loc=<([^:>]+):(\d+):(\d+)>?(?:\s.*)?$")
 
 
-def parse_dump_tokens_full(text: str, max_tokens: int = 8000) -> list[dict]:
+# The dump lists included headers first and the user's own file last, so a small cap here silently
+# dropped every token of header-heavy programs (stdio.h and stdlib.h alone exceed 8000). The API
+# still returns at most MAX_ITEMS items, own-file first; this bound is only a memory safety net.
+MAX_PARSED_TOKENS = 2_000_000
+
+
+def parse_dump_tokens_full(text: str, max_tokens: int = MAX_PARSED_TOKENS) -> list[dict]:
     toks = []
     for line in text.splitlines():
         m = _TOK_RE.match(line)
@@ -288,6 +295,7 @@ def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language
             if stage == "tokens" and stderr_text:
                 toks = parse_dump_tokens_full(stderr_text)
                 counts["tokens"] = len(toks)
+                counts["tokens_parse_capped"] = len(toks) >= MAX_PARSED_TOKENS
                 files = {t["file"] for t in toks}
                 counts["token_files"] = len(files)
                 # Same policy as the AST walk (CV-01): the user's own file must
@@ -298,6 +306,7 @@ def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language
                 if primary_base and len(files) > 1:
                     own = [t for t in toks if Path(t["file"]).name == primary_base]
                     rest = [t for t in toks if Path(t["file"]).name != primary_base]
+                    counts["tokens_primary_file"] = len(own)
                     items, truncated = _capped(own + rest)
                 else:
                     items, truncated = _capped(toks)
@@ -407,7 +416,7 @@ def ingest_stage_records(store: Store, analysis_id: str, out_dir: Path, language
             "worker": manifest.get("worker"),
             "tool_versions": manifest.get("tool_versions", {}),
             "image_id": image_id,
-            "policy_version": "m2.analyzer.v1",
+            "policy_version": ANALYSIS_POLICY_VERSION,
         }
 
         store.execute(

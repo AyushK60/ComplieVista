@@ -19,13 +19,13 @@ Nothing is simulated. Every artifact carries tool and version, invocation, exit 
 Windows 11 + WSL2 + Docker Desktop; Setup.cmd / Start.cmd. Everything binds to 127.0.0.1. Pages: Home, Workspace, Demo Library (20 programs), Compare, About.
 
 ## Capabilities and Constraints
-React + TypeScript + Vite, React Flow, CodeMirror 6. Existing facts to preserve on the landing: 76/76 metrics match an independent oracle, 20 real programs, 0 bytes leave the machine; media in frontend/public/media (real output screenshots). No invented claims, customers or benchmarks.
+React + TypeScript + Vite, React Flow, CodeMirror 6. Existing facts to preserve on the landing: 76/76 metrics match an independent oracle, 20 real programs, 0 bytes leave the machine. No invented claims, customers or benchmarks.
 
 ## Brand Commitments
 Name: CompileVista. Honest-evidence voice. No paid APIs or hosted fonts at runtime (fonts via @fontsource).
 
 ## Evidence on Hand
-Real captures: frontend/public/media/{tokens,ast,bytecode,run-light,run-dark}.jpg; docs/media/*.gif; 20 curated demos.
+Recorded tool output baked into frontend/src/data (figures.json, heroSample.json, demoThumbs.json, built by scripts/media); docs/media/*.gif; 20 curated demos.
 
 ## Product Principles
 1. Real artifacts only; label anything unavailable.

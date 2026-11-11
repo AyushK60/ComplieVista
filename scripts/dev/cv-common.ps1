@@ -94,6 +94,17 @@ function Get-WindowsListener {
     return "pid $($conn.OwningProcess)"
 }
 
+function Get-WindowsListenerDetail {
+    # Human-readable "name, pid N, command line" for the Windows listener on a port, for error messages only.
+    param([Parameter(Mandatory = $true)][int]$Port)
+    $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue |
+        Where-Object { $_.OwningProcess -gt 4 } | Select-Object -First 1
+    if (-not $conn) { return "no live owner found (a short-lived WSL port-forwarding remnant; wait a few seconds and retry)" }
+    $p = Get-CimInstance Win32_Process -Filter "ProcessId=$($conn.OwningProcess)" -ErrorAction SilentlyContinue
+    if (-not $p) { return "pid $($conn.OwningProcess)" }
+    return "$($p.Name), pid $($p.ProcessId), $($p.CommandLine)"
+}
+
 function Test-WindowsPortReallyBlocked {
     # $true only when a REAL Windows process (pid > 4) listens on the port.
     # Waits out the transient PID-0 WSL relay remnant (up to ~12 s).

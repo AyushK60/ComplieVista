@@ -128,7 +128,7 @@ try {
         } else {
             if (Test-WindowsPortReallyBlocked -Port $script:BackendPort) {
                 $winOwner = Get-WindowsListener -Port $script:BackendPort
-                throw ("Port $($script:BackendPort) is occupied on WINDOWS by '$winOwner' (not visible in WSL). " +
+                throw ("Port $($script:BackendPort) is occupied on WINDOWS by '$winOwner' [$(Get-WindowsListenerDetail -Port $script:BackendPort)] (not visible in WSL). " +
                        "This launcher never kills unrelated processes. Free the port, then run Start again.")
             }
             if (-not (Test-Path (Join-Path $roots.WinRoot "backend\.venv\bin\uvicorn"))) {
@@ -217,8 +217,8 @@ try {
         } else {
             if (Test-WindowsPortReallyBlocked -Port $script:FrontendPort) {
                 $winOwner = Get-WindowsListener -Port $script:FrontendPort
-                throw ("Port $($script:FrontendPort) is occupied on WINDOWS by '$winOwner'. " +
-                       "This launcher never kills unrelated processes. Free the port, then run Start again.")
+                throw ("Port $($script:FrontendPort) is occupied on WINDOWS by '$winOwner' [$(Get-WindowsListenerDetail -Port $script:FrontendPort)]. " +
+                       "This launcher never kills unrelated processes. Free the port (for example, stop that dev server), then run Start again.")
             }
             if (-not (Test-Path (Join-Path $roots.WinRoot "frontend\node_modules"))) {
                 throw "The frontend dependencies are not installed yet. Double-click Setup.cmd once (it installs everything and checks your prerequisites), then run Start again."

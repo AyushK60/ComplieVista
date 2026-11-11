@@ -5,6 +5,7 @@ import json
 
 from fastapi import FastAPI, Request
 
+from app.core.config import ANALYSIS_POLICY_VERSION
 from app.adapters import evidence
 from app.core.errors import AppError, _capped_receive_call
 from app.services.analyzer import create_analysis, get_runner
@@ -49,7 +50,7 @@ def register(app: FastAPI, store: Store) -> None:
         return {"id": job["id"], "status": job["status"], "language": job["language"],
                 "primary_file": job["primary_file"],
                 "source_combined_sha256": job["source_combined_sha256"],
-                "policy_version": "m2.analyzer.v1",
+                "policy_version": ANALYSIS_POLICY_VERSION,
                 "tool_fingerprint": job["tool_fingerprint"],
                 "image_id": job["image_id"],
                 "error_code": job["error_code"],

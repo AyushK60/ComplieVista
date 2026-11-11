@@ -80,7 +80,7 @@ def journey_demo_selection(page: Page) -> None:
     expect(page.locator(".democard")).to_have_count(20, timeout=30_000)
     ok(page.locator(".dl-group").count() == 3, "gallery organized into three sections")
     ok(page.locator(".democard").count() == 20, "exactly 20 program cards")
-    ok(page.locator(".dc-screen").first.is_visible(), "cards carry visual specimen previews")
+    ok(page.locator(".democard .dth").first.is_visible(), "frames carry real-analysis thumbnails")
     # difficulty filter is real
     page.locator(".dl-difficulty .conceptchip").filter(has_text="introductory").first.click()
     page.wait_for_timeout(200)

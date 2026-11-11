@@ -173,5 +173,34 @@ out["run"] = {
     "steps": steps,
     "stdout": run["stdout"],
 }
+# ---- tokens: real lexer output for a few lines of PY-02 (tokenize) and C-01 (clang -dump-tokens) ----
+def post(p):
+    return json.load(urllib.request.urlopen(urllib.request.Request(base + p, method="POST"), timeout=180))
+
+
+NL = chr(10)
+
+
+def token_frame(demo, lang, lines):
+    r = post(f"/demos/{demo}/analyze")
+    tok = get(f"/analyses/{r['analysis_id']}/stages/tokens")
+    snap = get(f"/projects/demo-library/snapshots/{r['snapshot_id']}")
+    f = snap["files"][0]
+    text = get(f"/projects/demo-library/snapshots/{r['snapshot_id']}/files/{f['id']}")["text"].split(NL)
+    skip = {"NEWLINE", "NL", "INDENT", "DEDENT", "ENDMARKER", "ENCODING", "COMMENT"}
+    rows = []
+    for n in lines:
+        ts = [{"kind": t["kind"], "text": t["text"]} for t in tok["items"]
+              if t["line"] == n and t["kind"] not in skip and NL not in t["text"]
+              and (lang == "python" or (t.get("file") or "").endswith(f["rel_path"].split("/")[-1]))]
+        rows.append({"n": n, "text": text[n - 1], "tokens": ts})
+    return {"demo": demo, "language": lang, "rows": rows, "analysis_id": r["analysis_id"],
+            "tokens_sha256": tok.get("raw_artifact_sha256"), "counts": tok.get("counts")}
+
+
+out["tokens"] = {
+    "python": token_frame("PY-02", "python", [9, 10, 11]),
+    "c": token_frame("C-01", "c", [5, 6, 7]),
+}
 json.dump(out, open("frontend/src/data/figures.json", "w"), indent=1)
 print("ok", len(ir), len(asm), len(rows), len(steps), len(src))

@@ -209,6 +209,14 @@ Pinned image IDs after this milestone (rebuilt from updated sandbox code):
 - Full observer/target trust-domain separation (beyond the framed channel) is
   future work; `UNTRUSTED_TARGET` labeling is the honest interim contract.
 
+## Redesign and fix-first pass (2026-11-11)
+
+Title Sequence redesign (home, Demo Library film catalog, Workspace and Compare restyle; see `DESIGN.md`,
+`PRODUCT.md`) plus the fix-first list: C token cap removed (policy `m2.analyzer.v2`), Compare locking, progress,
+cancel and cache, launcher diagnostics, native home figures from recorded data, stale e2e updated.
+Evidence: `docs/TEST_EVIDENCE/REDESIGN_2026-11-11.md` (224 backend tests, 20 unit tests, axe, 7-width layout and
+all browser journeys passed). Install frontend dependencies from WSL, not Windows npm.
+
 ## Next
 
 **M9 independent audit** (per `docs/REMAINING_M8_M9.md`): independent code +

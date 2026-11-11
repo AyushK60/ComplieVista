@@ -187,7 +187,7 @@ export function RunFigure() {
     return st;
   }, [at, steps]);
   const src = d.source.slice(9, 22);
-  const done = i >= steps.length;
+  const done = i >= steps.length - 1; // the last recorded event is the module returning: the output is complete there
   return (
     <figure className="fg fg-run" onPointerEnter={() => { hold.current = true; }} onPointerLeave={() => { hold.current = false; }}>
       <div className="fg-body fg-two">
@@ -222,6 +222,56 @@ export function RunFigure() {
       <Cap lines={[
         `Recorded output · ${d.provenance.tool}`,
         `${d.provenance.demo} · ${d.provenance.events} events · exit ${d.provenance.exit_code} · trace sha256 ${d.provenance.trace_sha256.slice(0, 10)}…`,
+      ]} />
+    </figure>
+  );
+}
+
+/* ———————————————————— tokens: the lexer's own pieces, each with its recorded kind ———————————————————— */
+type TokRow = { n: number; text: string; tokens: Array<{ kind: string; text: string }> };
+const KW = new Set(["def", "return", "if", "else", "elif", "for", "while", "in", "import", "from", "class", "and", "or", "not", "True", "False", "None", "lambda", "yield", "with", "as", "try", "except", "raise", "pass", "break", "continue", "global", "static", "int", "long", "void", "char", "double", "float", "unsigned"]);
+function tokTone(kind: string, text: string): string {
+  const k = kind.toLowerCase();
+  if (KW.has(text) && (k === "name" || k === text || k === "identifier" || k === "keyword")) return "kw";
+  if (k === "name" || k === "identifier") return "id";
+  if (k === "number" || k.includes("numeric")) return "num";
+  if (k.includes("string")) return "str";
+  return "op";
+}
+const kindLabel = (k: string) => k.replace(/_/g, " ").toLowerCase();
+
+export function TokensFigure() {
+  const [lang, setLang] = useState<"python" | "c">("python");
+  const frame = data.tokens[lang] as unknown as { demo: string; rows: TokRow[]; counts: { tokens: number; tokens_primary_file?: number } };
+  const cyc = useCycle(frame.rows.length, 3200);
+  useEffect(() => { cyc.set(0); cyc.setAuto(!reduceMotion()); }, [lang]); // eslint-disable-line react-hooks/exhaustive-deps
+  const row = frame.rows[cyc.i % frame.rows.length];
+  const total = lang === "c" ? frame.counts.tokens_primary_file : frame.counts.tokens;
+  return (
+    <figure className="fg fg-tokens">
+      <div className="fg-tabs" role="tablist" aria-label="Language">
+        <button type="button" role="tab" aria-selected={lang === "python"} onClick={() => setLang("python")}>Python · tokenize</button>
+        <button type="button" role="tab" aria-selected={lang === "c"} onClick={() => setLang("c")}>C · clang -dump-tokens</button>
+      </div>
+      <ol className="fg-tokrows" aria-label="source lines and their tokens">
+        {frame.rows.map((r, i) => (
+          <li key={r.n} data-on={r === row ? "" : undefined}>
+            <button type="button" onClick={() => cyc.set(i)} aria-pressed={r === row}>
+              <span className="n">{r.n}</span><code>{r.text}</code>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <div className="fg-toks" key={`${lang}-${row.n}`} aria-label={`tokens of line ${row.n}`}>
+        {row.tokens.map((t, i) => (
+          <span key={i} className="tk" data-t={tokTone(t.kind, t.text)} style={{ ["--i" as string]: i }}>
+            <b>{t.text}</b><i>{kindLabel(t.kind)}</i>
+          </span>
+        ))}
+      </div>
+      <Cap lines={[
+        `Recorded output · ${frame.demo} · ${total} tokens in the program's own file`,
+        lang === "python" ? "CPython 3.12 tokenize" : "Clang 18 -fsyntax-only -Xclang -dump-tokens (included-header tokens are excluded here)",
       ]} />
     </figure>
   );

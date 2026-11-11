@@ -298,7 +298,7 @@ export interface ExperimentStage {
   artifact_sha256: string | null; duration_ms: number | null;
 }
 export interface Experiment {
-  id: string; kind: string; status: string; config: Record<string, unknown>;
+  id: string; kind: string; status: string; queue_ahead?: number; config: Record<string, unknown>;
   source_combined_sha256: string | null; error_code: string | null;
   result_sha256: string | null; created_utc: string; finished_utc: string | null;
   duration_ms: number | null; stages: ExperimentStage[];

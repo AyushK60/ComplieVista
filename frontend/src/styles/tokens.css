@@ -32,10 +32,10 @@
   --c-ink-3: #8399a5;
 
   /* ——— the 10%: coral ——— */
-  --signal: #cf4a2d;           /* fills: primary button, selected mark, highlighter */
+  --signal: #d9553a;           /* fills: primary button, selected mark, highlighter */
   --accent: var(--signal);
   --accent-ink: #100d0b;       /* text on a coral fill */
-  --accent-text: #b3240a;      /* coral as text/border on paper (AA on --bg) */
+  --accent-text: #a32108;      /* coral as text/border on paper (AA on --bg) */
   --accent-soft: rgba(207, 74, 45, 0.14);
   --sel: #e8694a;              /* selection on a plate */
   --sel-dim: rgba(255, 107, 74, 0.16);

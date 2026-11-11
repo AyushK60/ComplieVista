@@ -44,6 +44,10 @@ export default function Compare() {
   const [error, setError] = useState<string | null>(null);
   const [deepLinks, setDeepLinks] = useState<{ c: string | null; py: string | null }>({ c: null, py: null });
   const [elapsed, setElapsed] = useState(0);
+  const [ahead, setAhead] = useState(0);
+  // finished comparisons stay for this visit, so reopening a pair is instant (Run again re-runs it)
+  const cache = useRef(new Map<string, { result: Record<string, unknown>; expId: string; links: { c: string | null; py: string | null } }>());
+  const cancelled = useRef(false);
   const resultsRef = useRef<HTMLDivElement | null>(null);
   // a comparison is in flight from the click until the experiment reaches a final state; cards stay
   // locked for all of it, so repeated clicks cannot pile more work onto the single worker
@@ -66,8 +70,20 @@ export default function Compare() {
     return <main className="compare"><p className="muted"><span className="spinner" /> loading pair specs…</p></main>;
   }
 
-  const runPair = async (pair: PairSpec) => {
-    setError(null); setResult(null); setStatus("running"); setDeepLinks({ c: null, py: null });
+  const cancelRun = async () => {
+    cancelled.current = true;
+    if (expId) { try { await experiments.cancel(expId); } catch { /* it may already be finished */ } }
+    setStatus(null);
+  };
+
+  const runPair = async (pair: PairSpec, fresh = false) => {
+    const hit = cache.current.get(pair.id);
+    if (hit && !fresh) {
+      setError(null); setSelected(pair); setResult(hit.result); setExpId(hit.expId); setDeepLinks(hit.links); setStatus("COMPLETED");
+      return;
+    }
+    cancelled.current = false;
+    setError(null); setResult(null); setStatus("running"); setDeepLinks({ c: null, py: null }); setAhead(0);
     setSelected(pair);
     try {
       if (!pair.c_source || !pair.py_source) throw new Error("pair sources unavailable");
@@ -82,6 +98,7 @@ export default function Compare() {
       };
       const [cl, pyl] = await Promise.all([link(c, pair.c_file, "c"), link(py, pair.py_file, "python")]);
       setDeepLinks({ c: cl, py: pyl });
+      if (cancelled.current) return;
       const ref = await experiments.create({
         kind: "compare", config: {
           pair_id: pair.id,
@@ -92,10 +109,14 @@ export default function Compare() {
       const id = ref.experiment_id ?? "";
       setExpId(id);
       for (let i = 0; i < 300; i++) {
+        if (cancelled.current) return;
         const e = await experiments.get(id);
         setStatus(e.status);
+        setAhead(e.queue_ahead ?? 0);
         if (TERMINAL.includes(e.status)) {
-          setResult((e.stages.find((s) => s.stage === "compare")?.result ?? {}) as Record<string, unknown>);
+          const res = (e.stages.find((s) => s.stage === "compare")?.result ?? {}) as Record<string, unknown>;
+          setResult(res);
+          if (e.status === "COMPLETED") cache.current.set(pair.id, { result: res, expId: id, links: { c: cl, py: pyl } });
           return;
         }
         await new Promise((r) => setTimeout(r, 1000));
@@ -173,9 +194,10 @@ export default function Compare() {
         <p className="notice cmp-progress" role="status">
           <span className="spinner" />
           {status === "QUEUED" || status === "running"
-            ? " Preparing both sides and queuing the comparison"
+            ? (ahead > 0 ? ` Queued: ${ahead} comparison${ahead === 1 ? "" : "s"} ahead of this one` : " Preparing both sides and queuing the comparison")
             : " Running both pipelines in sandboxed containers"}
           {" "}· {elapsed}s <span className="muted">(usually 20 to 90 s; the page fills in below as soon as it finishes)</span>
+          <button type="button" className="btn sm" onClick={cancelRun}>Cancel</button>
         </p>
       )}
       {!busy && status && status !== "COMPLETED" && (
@@ -222,6 +244,7 @@ export default function Compare() {
           <p className={"cmp-verdict " + (result.match ? "ok" : "err")}>
             {result.match ? "✓ both rails produced the expected output" : "✗ mismatch — inspect the rails"}
             {expId ? <span className="muted"> · experiment {expId}</span> : null}
+            {selected && !busy ? <button type="button" className="btn sm" style={{ marginLeft: 12 }} onClick={() => runPair(selected, true)}>Run again</button> : null}
           </p>
           <div className="cmp-grid">
             {(["c", "python"] as const).map((side) => {
