@@ -256,3 +256,18 @@ main:focus { outline: none; }
 .topnav.is-home:not(.scrolled) .brand-mark { background: #efe6d2; }
 .topnav.is-home:not(.scrolled) .brand-mark::after { border-color: #a93a26; }
 .topnav.is-home:not(.scrolled) .modeswitch button[aria-pressed="true"] { background: #efe6d2; color: #14110f; }
+
+/* Teacher-mode toggle: stays visible at every width, shrinks instead of overflowing the header */
+.teacherbtn { font: 500 var(--fs-micro)/1 var(--font-mono); color: var(--ink-3); border: var(--hairline); border-radius: var(--r-s); padding: 7px 9px; background: var(--surface); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.teacherbtn:hover { color: var(--ink); border-color: var(--ink-3); }
+.teacherbtn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+@media (max-width: 1180px) { .teacherbtn span:last-child { display: none; } }
+@media (max-width: 1180px) and (min-width: 701px) { .topnav a.navlink { padding: 0 7px; } }
+
+/* phones: the Teacher toggle is a classroom tool, so it gives way; six links fit one row without Home (the brand links home) */
+@media (max-width: 560px) {
+  .teacherbtn { display: none; }
+  .topnav { gap: 0; }
+  .topnav a.navlink { padding: 0 5px; font-size: 12px; }
+  .topnav a.navlink[href="/"] { display: none; }
+}

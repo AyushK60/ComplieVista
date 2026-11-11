@@ -11,6 +11,7 @@ const TITLES: Array<[string, string]> = [
   ["/demos", "Demo Library"],
   ["/workspace", "Source Workspace"],
   ["/compare", "Compare C and Python"],
+  ["/evidence", "Evidence"],
   ["/about", "About and Method"],
 ];
 
@@ -19,6 +20,7 @@ const LINKS: Array<[string, string]> = [
   ["/demos", "Demo Library"],
   ["/workspace", "Workspace"],
   ["/compare", "Compare"],
+  ["/evidence", "Evidence"],
   ["/about", "About"],
 ];
 
@@ -129,7 +131,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   title={theme === "dark" ? "Light theme" : "Dark theme"}>
             <Icon name={theme === "dark" ? "sun" : "moon"} size={15} />
           </button>
-          <button className="kbdhint" aria-pressed={teacher} onClick={toggleTeacher}
+          <button className="teacherbtn" aria-pressed={teacher} onClick={toggleTeacher}
                   title="Teacher mode: larger type, technical panels hidden">
             <span className="kbdtext">Teacher</span>{" "}<span>{teacher ? "on" : "off"}</span>
           </button>

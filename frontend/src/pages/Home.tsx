@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Capabilities, Health } from "../api";
 import TitleSequence from "../components/hero/TitleSequence";
+import OptFigure from "../components/figures/OptFigure";
 import { AstFigure, LowerFigure, RunFigure, TokensFigure } from "../components/figures/Figures";
 
 /**
@@ -30,11 +31,17 @@ export default function Home() {
   }, []);
 
   // the reels run: one frame lights at a time, like a projector gate moving along the strip
+  // paused when the strips are off-screen or the tab is hidden (low-end laptops)
   const [tick, setTick] = useState(0);
+  const stripsRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setInterval(() => setTick((n) => n + 1), 1300);
-    return () => clearInterval(t);
+    let visible = true;
+    const io = typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver(([e]) => { visible = e.isIntersecting; }) : null;
+    if (io && stripsRef.current) io.observe(stripsRef.current);
+    const t = setInterval(() => { if (visible && !document.hidden) setTick((n) => n + 1); }, 1300);
+    return () => { clearInterval(t); io?.disconnect(); };
   }, []);
 
   const toolLine = useMemo(() => {
@@ -63,7 +70,7 @@ export default function Home() {
         </p>
       </header>
 
-      <section className="strips" aria-labelledby="sec-roads">
+      <section className="strips" aria-labelledby="sec-roads" ref={stripsRef}>
         <h2 id="sec-roads">Compiled or interpreted, your code is transformed before it runs.</h2>
         {[["C", "Clang/LLVM 18", C_STAGES], ["Python", "CPython 3.12", PY_STAGES]].map(([name, tool, stages]) => (
           <div className="strip" key={name as string}>
@@ -88,6 +95,13 @@ export default function Home() {
             </div>
           </article>
         ))}
+      </section>
+
+      <section className="optsec" aria-labelledby="sec-opt">
+        <h2 id="sec-opt">What does -O2 delete?</h2>
+        <p className="optsec-lede">The same C program built twice by Clang. Pick a line to see the instructions it became at
+          -O0 and at -O2. <Link to="/demos/C-02">Open it in the workspace</Link> for the guided lesson and quiz.</p>
+        <OptFigure />
       </section>
 
       <section className="roll" aria-label="what was measured">

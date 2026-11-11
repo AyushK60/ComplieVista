@@ -2,6 +2,18 @@
 
 Updated: 11 November 2026 (Petrol & Coral redesign, presentation only)
 
+## Second enhancement pass: home figure, Evidence page, polish (frontend + one script)
+
+- Home: "What does -O2 delete?" figure from a real C-02 -O0/-O2 build (`scripts/media/build_opt_figure.py`
+  writes `frontend/src/data/optDiff.json` with tool, flags, exit codes, SHA-256).
+- `/evidence` page: every recorded stage with command, tool, exit code, SHA-256, counts, limitations
+  (read live from the backend; "not recorded" shown when a field is absent).
+- Home reel pauses when off-screen or the tab is hidden; header fixed for the new Evidence link and
+  Teacher toggle (two rows at 375 px, no overflow at 1024 px).
+- Checked live (Browser pane): evidence table (13 rows), home figure in light and dark, 375 px layout.
+  Not done: axe/e2e suites not re-run; Rust/Java; pasted-code execution (BLOCKED until the M4 gate);
+  token cap and launcher were already fixed in ae4f012.
+
 ## Learning layer: -O0 vs -O2 diff, guided lesson, quiz, teacher mode (frontend only)
 
 Added `frontend/src/components/observatory/OptLearn.tsx`, wired into `SourceLinkView`: a per-line

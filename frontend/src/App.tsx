@@ -7,6 +7,7 @@ import { Skeleton } from "./ui";
 const Workspace = lazy(() => import("./pages/Workspace"));
 const Compare = lazy(() => import("./pages/Compare"));
 const DemoLibrary = lazy(() => import("./pages/DemoLibrary"));
+const Evidence = lazy(() => import("./pages/Evidence"));
 const About = lazy(() => import("./pages/About"));
 
 function NotFound() {
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/workspace" element={<Workspace />} />
           <Route path="/compare" element={<Compare />} />
+          <Route path="/evidence" element={<Evidence />} />
           <Route path="/about" element={<About />} />
           <Route path="/demos" element={<DemoLibrary />} />
           <Route path="/demos/:demoId" element={<DemoLibrary />} />
