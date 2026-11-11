@@ -13,9 +13,10 @@
   "dependencies": {
     "@codemirror/lang-cpp": "^6.0.3",
     "@codemirror/lang-python": "^6.2.1",
-    "@fontsource-variable/fraunces": "^5.3.0",
-    "@fontsource-variable/inter": "^5.3.0",
-    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@codemirror/language": "^6.13.1",
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@lezer/highlight": "^1.2.5",
     "@xyflow/react": "^12.3.5",
     "codemirror": "^6.0.2",
     "react": "^18.3.1",

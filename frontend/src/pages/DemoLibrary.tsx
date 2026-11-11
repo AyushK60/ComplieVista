@@ -64,13 +64,13 @@ function Specimen({ d }: { d: DemoEntry }) {
       <svg viewBox="0 0 260 84" className="dcs-svg">
         {[0, 1].slice(0, w).map((i) => (
           <g key={i}>
-            <path className="dc-wire" stroke="rgba(226,141,128,.5)" d={`M60 ${14 + i * 6} C 90 ${30 + i * 8}, 90 ${44 + i * 6}, ${62 + i * 74} ${62}`} />
-            <rect x={34 + i * 118} y={54} width={52} height={18} rx={5} fill="rgba(226,141,128,.1)" stroke="rgba(226,141,128,.55)" />
-            <text x={60 + i * 118} y={67} textAnchor="middle" fontSize="9" fill="#e9efed" fontFamily="var(--font-mono)">f({4 - i * 2})</text>
+            <path className="dc-wire" stroke="rgba(244,174,104,.5)" d={`M60 ${14 + i * 6} C 90 ${30 + i * 8}, 90 ${44 + i * 6}, ${62 + i * 74} ${62}`} />
+            <rect x={34 + i * 118} y={54} width={52} height={18} rx={5} fill="rgba(244,174,104,.1)" stroke="rgba(244,174,104,.55)" />
+            <text x={60 + i * 118} y={67} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">f({4 - i * 2})</text>
           </g>
         ))}
-        <rect x={34} y={6} width={52} height={18} rx={5} fill="rgba(226,141,128,.16)" stroke="rgba(226,141,128,.7)" />
-        <text x={60} y={19} textAnchor="middle" fontSize="9" fill="#e9efed" fontFamily="var(--font-mono)">f({6 + (seed % 3)})</text>
+        <rect x={34} y={6} width={52} height={18} rx={5} fill="rgba(244,174,104,.16)" stroke="rgba(244,174,104,.7)" />
+        <text x={60} y={19} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">f({6 + (seed % 3)})</text>
       </svg>
     );
   } else if (concepts.includes("sorting") || concepts.includes("loop") || concepts.includes("array")) {
@@ -80,21 +80,21 @@ function Specimen({ d }: { d: DemoEntry }) {
         {Array.from({ length: n }, (_, i) => {
           const h = 16 + ((seed * (i + 3)) % 52);
           return <rect key={i} x={16 + i * 34} y={78 - h} width={22} height={h} rx={3}
-            fill={i % 2 ? "rgba(111,195,184,.35)" : "rgba(111,195,184,.18)"} stroke="rgba(111,195,184,.6)" />;
+            fill={i % 2 ? "rgba(134,200,238,.35)" : "rgba(134,200,238,.18)"} stroke="rgba(134,200,238,.6)" />;
         })}
       </svg>
     );
   } else if (concepts.includes("pointer") || concepts.includes("memory") || concepts.includes("heap")) {
     art = (
       <svg viewBox="0 0 260 84">
-        <rect x={18} y={30} width={46} height={24} rx={5} fill="rgba(185,168,216,.14)" stroke="rgba(185,168,216,.6)" />
-        <text x={41} y={45} textAnchor="middle" fontSize="9" fill="#e9efed" fontFamily="var(--font-mono)">ptr</text>
-        <path className="dc-wire" stroke="rgba(185,168,216,.6)" d="M64 42 C 96 42, 96 42, 124 42" />
-        <path d="M120 38 L128 42 L120 46" className="dc-wire" stroke="rgba(185,168,216,.6)" />
-        <rect x={130} y={22} width={62} height={40} rx={5} fill="rgba(185,168,216,.1)" stroke="rgba(185,168,216,.5)" strokeDasharray="3 2" />
-        <text x={161} y={46} textAnchor="middle" fontSize="9" fill="#b1c3c3" fontFamily="var(--font-mono)">0x7f…</text>
-        <rect x={206} y={30} width={40} height={24} rx={5} fill="rgba(150,198,139,.12)" stroke="rgba(150,198,139,.55)" />
-        <text x={226} y={45} textAnchor="middle" fontSize="9" fill="#e9efed" fontFamily="var(--font-mono)">free</text>
+        <rect x={18} y={30} width={46} height={24} rx={5} fill="rgba(196,168,244,.14)" stroke="rgba(196,168,244,.6)" />
+        <text x={41} y={45} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">ptr</text>
+        <path className="dc-wire" stroke="rgba(196,168,244,.6)" d="M64 42 C 96 42, 96 42, 124 42" />
+        <path d="M120 38 L128 42 L120 46" className="dc-wire" stroke="rgba(196,168,244,.6)" />
+        <rect x={130} y={22} width={62} height={40} rx={5} fill="rgba(196,168,244,.1)" stroke="rgba(196,168,244,.5)" strokeDasharray="3 2" />
+        <text x={161} y={46} textAnchor="middle" fontSize="9" fill="#aebfc8" fontFamily="var(--font-mono)">0x7f…</text>
+        <rect x={206} y={30} width={40} height={24} rx={5} fill="rgba(110,214,166,.12)" stroke="rgba(110,214,166,.55)" />
+        <text x={226} y={45} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">free</text>
       </svg>
     );
   } else if (concepts.includes("optimization") || concepts.includes("benchmark")) {
@@ -103,8 +103,8 @@ function Specimen({ d }: { d: DemoEntry }) {
         {["-O0", "-O1", "-O2"].map((o, i) => (
           <g key={o}>
             <rect x={16} y={12 + i * 24} width={150 - i * 28} height={14} rx={4}
-              fill="rgba(230,168,126,.28)" stroke="rgba(230,168,126,.55)" />
-            <text x={172 - i * 28 + 8} y={23 + i * 24} fontSize="9" fill="#b1c3c3" fontFamily="var(--font-mono)">{o}</text>
+              fill="rgba(244,174,104,.28)" stroke="rgba(244,174,104,.55)" />
+            <text x={172 - i * 28 + 8} y={23 + i * 24} fontSize="9" fill="#aebfc8" fontFamily="var(--font-mono)">{o}</text>
           </g>
         ))}
       </svg>
@@ -116,9 +116,9 @@ function Specimen({ d }: { d: DemoEntry }) {
         {ops.map((o, i) => (
           <g key={o}>
             <rect x={16 + (i % 2) * 120} y={12 + Math.floor(i / 2) * 30} width={96} height={20} rx={5}
-              fill="rgba(230,168,126,.1)" stroke="rgba(230,168,126,.4)" />
+              fill="rgba(244,174,104,.1)" stroke="rgba(244,174,104,.4)" />
             <text x={64 + (i % 2) * 120} y={26 + Math.floor(i / 2) * 30} textAnchor="middle" fontSize="9"
-              fill="#e6a87e" fontFamily="var(--font-mono)">{o} {i}</text>
+              fill="#f4ae68" fontFamily="var(--font-mono)">{o} {i}</text>
           </g>
         ))}
       </svg>
@@ -127,13 +127,13 @@ function Specimen({ d }: { d: DemoEntry }) {
     // control flow / branching / default: branch arcs
     art = (
       <svg viewBox="0 0 260 84">
-        <path className="dc-wire" stroke="rgba(111,195,184,.6)" d="M20 42 H 96" />
-        <path className="dc-wire" stroke="rgba(111,195,184,.45)" d="M96 42 C 120 42, 120 20, 144 20 H 200" />
-        <path className="dc-wire" stroke="rgba(111,195,184,.45)" d="M96 42 C 120 42, 120 64, 144 64 H 200" />
-        <rect x={70} y={32} width={52} height={20} rx={5} fill="rgba(111,195,184,.12)" stroke="rgba(111,195,184,.55)" />
-        <text x={96} y={45} textAnchor="middle" fontSize="9" fill="#e9efed" fontFamily="var(--font-mono)">if</text>
-        <text x={214} y={23} fontSize="9" fill="#b1c3c3" fontFamily="var(--font-mono)">true</text>
-        <text x={214} y={67} fontSize="9" fill="#b1c3c3" fontFamily="var(--font-mono)">else</text>
+        <path className="dc-wire" stroke="rgba(134,200,238,.6)" d="M20 42 H 96" />
+        <path className="dc-wire" stroke="rgba(134,200,238,.45)" d="M96 42 C 120 42, 120 20, 144 20 H 200" />
+        <path className="dc-wire" stroke="rgba(134,200,238,.45)" d="M96 42 C 120 42, 120 64, 144 64 H 200" />
+        <rect x={70} y={32} width={52} height={20} rx={5} fill="rgba(134,200,238,.12)" stroke="rgba(134,200,238,.55)" />
+        <text x={96} y={45} textAnchor="middle" fontSize="9" fill="#e9eff1" fontFamily="var(--font-mono)">if</text>
+        <text x={214} y={23} fontSize="9" fill="#aebfc8" fontFamily="var(--font-mono)">true</text>
+        <text x={214} y={67} fontSize="9" fill="#aebfc8" fontFamily="var(--font-mono)">else</text>
       </svg>
     );
   }

@@ -93,8 +93,8 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
                aria-label={`RSS area chart over ${samples.length} samples, max ${maxRss} kB`}>
             <defs>
               <linearGradient id="rssgrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(103,232,249,.5)" />
-                <stop offset="100%" stopColor="rgba(103,232,249,.02)" />
+                <stop offset="0%" stopColor="rgba(134,200,238,.45)" />
+                <stop offset="100%" stopColor="rgba(134,200,238,.02)" />
               </linearGradient>
             </defs>
             {[0.25, 0.5, 0.75].map((g) => (
@@ -113,7 +113,7 @@ export default function ProcessPanel({ executionId }: { executionId: string }) {
               H - pad - ((s.fds ?? 0) / maxFd) * (H - pad * 2))} />
             {exit && (
               <line x1={W - pad} x2={W - pad} y1={pad - 8} y2={H - pad}
-                    stroke="rgba(176, 69, 59, 0.5)" strokeDasharray="4 3"
+                    stroke="rgba(176, 36, 58, 0.55)" strokeDasharray="4 3"
                     aria-label={`exit ${String(stream.exit_code ?? "?")} at ${String(stream.duration_ms ?? "?")} ms`} />
             )}
             <text x={pad} y={16} className="axislabel">RSS max {maxRss} kB</text>

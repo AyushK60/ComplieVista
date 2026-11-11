@@ -1,162 +1,203 @@
-/* CompileVista design tokens — "Paper & Ink".
+/* CompileVista design tokens — "Petrol & Coral".
  *
- * One idea: a technical manuscript that happens to be alive. Warm paper, near-black ink,
- * ONE accent (ultramarine) for links, selection, focus and active state, and a small muted
- * set of hues that mean something in code and in status (never decoration):
- *   accent  = identifiers / the thing you are looking at
- *   clay    = keywords, runtime, derived values
- *   ochre   = numbers and literals
- *   sage    = strings, exact / verified
- *   brick   = errors, blocked
- *   lilac   = structure (declarations, AST)
- * Code and graphs sit on an ink "plate" in both themes so they read as instruments set into the page.
+ * Direction: a precise instrument. Sand paper and deep petrol, one hot coral signal.
+ * Proportions: ~60% base surface, ~30% petrol (hero band, code plates, structure), ~10% coral.
+ *
+ *   coral (--signal)  = the thing you are looking at: selection, active stage, the one primary
+ *                       action, the highlighter mark. Never decoration, never a data colour.
+ *   data hues         = meaning in code and status only:
+ *                       sky = identifiers · violet = keywords, structure · apricot = numbers
+ *                       mint = strings, exact/verified · amber = derived/partial · crimson = error
+ *
+ * Code and graphs sit on a petrol "plate" in both themes: instruments set into the page.
+ * Decisions live here; the other stylesheets only consume these tokens.
  */
 :root {
   color-scheme: light;
 
-  /* ——— paper ——— */
-  --bg: #f6f3ec;
-  --bg-raised: #fbf9f4;
-  --bg-panel: #fbf9f4;
-  --bg-inset: #ece8de;
-  --line: rgba(20, 24, 28, 0.14);
-  --line-strong: rgba(20, 24, 28, 0.32);
-  --ink: #14181b;
-  --ink-2: #3d454b;
-  --ink-3: #5c646a;
+  /* ——— surfaces: sand paper ——— */
+  --bg: #eeeae1;
+  --surface: #f8f5ee;
+  --surface-2: #e4dfd2;
+  --line: rgba(11, 34, 48, 0.16);
+  --line-strong: rgba(11, 34, 48, 0.38);
+  --ink: #0b2230;
+  --ink-2: #3d525e;
+  --ink-3: #4a5f6b;          /* meta and large text only */
 
-  /* ——— ink plates (code, graphs): dark in both themes ——— */
-  --canvas: #12151a;
-  --canvas-raised: #191d23;
-  --canvas-inset: #0d1014;
-  --canvas-line: rgba(233, 229, 218, 0.12);
-  --canvas-line-strong: rgba(233, 229, 218, 0.28);
-  --c-ink: #e9e5da;
-  --c-ink-2: #b6b2a7;
-  --c-ink-3: #8c8d8a;
+  /* ——— the 30%: petrol band and plates ——— */
+  --band: #0c3547;
+  --band-ink: #f1efe9;
+  --band-ink-2: #b4c4cc;
+  --band-line: rgba(241, 239, 233, 0.16);
+  --canvas: #071f2b;
+  --canvas-raised: #0d2a38;
+  --canvas-inset: #04141c;
+  --canvas-line: rgba(233, 239, 241, 0.12);
+  --canvas-line-strong: rgba(233, 239, 241, 0.28);
+  --c-ink: #e9eff1;
+  --c-ink-2: #aebfc8;
+  --c-ink-3: #8399a5;
 
-  /* ——— accent and semantic hues on paper ——— */
-  --accent: #2a3bd0;
-  --accent-strong: #1f2da8;
-  --teal: var(--accent);               /* legacy name: "the accent" */
-  --clay: #a5481e;
-  --plum: #6a4c93;
-  --moss: #3f6b3a;
-  --ochre: #8a6410;
-  --crimson: #a32a1b;
-  /* small text on tinted fills needs the darker variants (WCAG AA 4.5:1) */
-  --clay-text: #8e3c17;
-  --moss-text: #335a2f;
-  --accent-dim: rgba(42, 59, 208, 0.08);
-  --teal-dim: var(--accent-dim);
-  --clay-dim: rgba(165, 72, 30, 0.1);
-  --plum-dim: rgba(106, 76, 147, 0.1);
-  --moss-dim: rgba(63, 107, 58, 0.1);
-  --crimson-dim: rgba(163, 42, 27, 0.09);
+  /* ——— the 10%: coral ——— */
+  --signal: #ff5533;           /* fills: primary button, selected mark, highlighter */
+  --accent: var(--signal);
+  --accent-ink: #0b2230;       /* text on a coral fill */
+  --accent-text: #a8341a;      /* coral as text/border on paper (AA on --bg) */
+  --accent-soft: rgba(255, 85, 51, 0.14);
+  --sel: #ff6b4a;              /* selection on a plate */
+  --sel-dim: rgba(255, 107, 74, 0.16);
 
-  /* the same hues, tuned for ink plates */
-  --accent-l: #9db1ff;
-  --teal-l: var(--accent-l);
-  --clay-l: #f0a47c;
-  --ochre-l: #e6c16a;
-  --plum-l: #cdb8ee;
-  --moss-l: #a3d3a0;
-  --crimson-l: #f29a8c;
-  --teal-l-dim: rgba(157, 177, 255, 0.14);
-  --clay-l-dim: rgba(240, 164, 124, 0.14);
-  --plum-l-dim: rgba(205, 184, 238, 0.14);
-  --moss-l-dim: rgba(163, 211, 160, 0.14);
-  --crimson-l-dim: rgba(242, 154, 140, 0.14);
+  /* ——— data hues on paper (AA on --bg / --surface) ——— */
+  --sky: #0a5f8c;
+  --violet: #6b46b5;
+  --apricot: #944e00;
+  --mint: #165c3e;
+  --amber: #704a00;
+  --crimson: #b0243a;
+  --sky-dim: rgba(10, 95, 140, 0.1);
+  --violet-dim: rgba(107, 70, 181, 0.1);
+  --mint-dim: rgba(22, 92, 62, 0.1);
+  --amber-dim: rgba(112, 74, 0, 0.12);
+  --crimson-dim: rgba(176, 36, 58, 0.09);
 
-  /* primary buttons are ink on paper (flips in dark) */
-  --teal-solid: var(--ink);
-  --on-solid: var(--bg);
+  /* the same hues tuned for plates */
+  --sky-l: #86c8ee;
+  --violet-l: #c4a8f4;
+  --apricot-l: #f4ae68;
+  --mint-l: #6ed6a6;
+  --amber-l: #e8b84a;
+  --crimson-l: #f58ba0;
+  --sky-l-dim: rgba(134, 200, 238, 0.14);
+  --violet-l-dim: rgba(196, 168, 244, 0.14);
+  --apricot-l-dim: rgba(244, 174, 104, 0.14);
+  --mint-l-dim: rgba(110, 214, 166, 0.14);
+  --crimson-l-dim: rgba(245, 139, 160, 0.14);
 
-  /* ——— legacy aliases (keep meanings) ——— */
-  --cyan: var(--accent); --cyan-dim: var(--accent-dim);
-  --violet: var(--plum); --violet-dim: var(--plum-dim);
-  --mint: var(--moss); --mint-dim: var(--moss-dim);
-  --coral: var(--crimson); --coral-dim: var(--crimson-dim);
-  --amber: var(--clay); --amber-dim: var(--clay-dim);
+  /* ——— semantic roles (DESIGN names) ——— */
+  --ok: var(--mint); --warn: var(--amber); --err: var(--crimson); --info: var(--sky);
 
   /* ——— honesty ——— */
-  --conf-exact: var(--moss);
-  --conf-derived: var(--clay);
+  --conf-exact: var(--mint);
+  --conf-derived: var(--amber);
   --conf-unavailable: var(--ink-3);
 
   /* ——— type ——— */
-  --font-display: "Fraunces Variable", Fraunces, Georgia, "Times New Roman", serif;
-  --font-ui: "Inter Variable", "Inter", system-ui, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-display: "Archivo Variable", Archivo, "Helvetica Neue", Arial, sans-serif;
+  --font-ui: "Archivo Variable", Archivo, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --display-stretch: 80%;
+  --tracking-display: -0.025em;
+  --tracking-caps: 0.12em;
 
-  /* ——— shape: small, honest radii; elevation is a rule, not a glow ——— */
-  --r-s: 4px;
-  --r-m: 6px;
-  --r-l: 8px;
-  --r-bezel: 8px;
-  --shadow-1: 0 1px 0 rgba(20, 24, 28, 0.06);
-  --shadow-2: 0 1px 2px rgba(20, 24, 28, 0.08), 0 12px 28px rgba(20, 24, 28, 0.1);
-
-  /* ——— spacing scale ——— */
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 72px;
-
-  /* ——— type scale: one role per size ——— */
+  /* app scale: one role per size */
   --fs-micro: 11px;   /* overlines, badges */
   --fs-label: 12.5px; /* tabs, buttons, chips, table heads */
   --fs-body: 14px;    /* running text, panels */
   --fs-lead: 15.5px;  /* page intro */
   --fs-title: 18px;   /* panel / stage titles */
-  --fs-page: 22px;    /* page titles */
+  --fs-page: 24px;    /* page titles */
   --fs-code: 12.5px;  /* code and mono data */
+  /* marketing scale */
+  --fs-xl: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --fs-2xl: clamp(2rem, 1.4rem + 2.2vw, 3.25rem);
+  --fs-3xl: clamp(2.75rem, 1.6rem + 4.5vw, 5.5rem);
+  --fs-hero: clamp(3.4rem, 1.2rem + 9vw, 8.5rem);
+  --lh-tight: 0.98; --lh-snug: 1.15; --lh-body: 1.6;
+
+  /* ——— shape: sharp, honest radii; elevation is a rule, not a glow ——— */
+  --r-s: 2px;
+  --r-m: 4px;
+  --r-l: 8px;
+  --r-bezel: 6px;
+  --shadow-1: 0 1px 0 rgba(11, 34, 48, 0.06);
+  --shadow-2: 0 1px 2px rgba(11, 34, 48, 0.1), 0 14px 32px -8px rgba(11, 34, 48, 0.22);
+
+  /* ——— spacing (4/8 grid) ——— */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 72px; --sp-9: 112px;
+  --container: 1240px;
+  --gutter: clamp(1.25rem, 4vw, 3rem);
 
   /* ——— surfaces ——— */
-  --surface: var(--bg-raised);
-  --surface-sunk: var(--bg-inset);
   --hairline: 1px solid var(--line);
-  --bar-h: 52px;
+  --bar-h: 56px;
 
-  /* ——— motion: short and plain ——— */
-  --t-fast: 120ms;
-  --t-med: 220ms;
-  --t-slow: 400ms;
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* ——— motion ——— */
+  --t-fast: 150ms;
+  --t-med: 240ms;
+  --t-slow: 700ms;
+  --t-cinema: 1100ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ═════ legacy names (kept so every existing rule resolves; new code uses the names above) ═════ */
+  --bg-raised: var(--surface);
+  --bg-panel: var(--surface);
+  --bg-inset: var(--surface-2);
+  --surface-sunk: var(--surface-2);
+  --teal: var(--accent-text);          /* "the accent" as text/border on paper */
+  --teal-dim: var(--accent-soft);
+  --accent-dim: var(--accent-soft);
+  --accent-strong: var(--accent-text);
+  --teal-solid: var(--signal);         /* primary fills */
+  --on-solid: var(--accent-ink);
+  --accent-l: var(--sky-l);            /* identifier colour on plates */
+  --teal-l: var(--sky-l);
+  --teal-l-dim: var(--sky-l-dim);
+  --clay: var(--amber);
+  --clay-text: var(--amber);
+  --clay-dim: var(--amber-dim);
+  --clay-l: var(--apricot-l);
+  --clay-l-dim: var(--apricot-l-dim);
+  --ochre: var(--apricot);
+  --ochre-l: var(--apricot-l);
+  --plum: var(--violet);
+  --plum-dim: var(--violet-dim);
+  --plum-l: var(--violet-l);
+  --plum-l-dim: var(--violet-l-dim);
+  --moss: var(--mint);
+  --moss-text: var(--mint);
+  --moss-dim: var(--mint-dim);
+  --moss-l: var(--mint-l);
+  --moss-l-dim: var(--mint-l-dim);
 }
 
 /* mode switching: technical detail is hidden in explore mode */
 html[data-mode="explore"] .tech-only { display: none !important; }
 html[data-mode="technical"] .explore-only { display: none !important; }
 
-/* ——— dark: the same paper, lights off ——— */
+/* ——— dark: the same instrument, lights off ——— */
 html[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f1216;
-  --bg-raised: #151a1f;
-  --bg-panel: #151a1f;
-  --bg-inset: #0b0e11;
-  --line: rgba(233, 229, 218, 0.12);
-  --line-strong: rgba(233, 229, 218, 0.28);
-  --ink: #ece8de;
-  --ink-2: #bab7ac;
-  --ink-3: #8f908c;
+  --bg: #08171f;
+  --surface: #0e2430;
+  --surface-2: #143040;
+  --line: rgba(220, 235, 240, 0.12);
+  --line-strong: rgba(220, 235, 240, 0.3);
+  --ink: #e9eff1;
+  --ink-2: #9fb4bf;
+  --ink-3: #809aa6;
 
-  --canvas: #0a0c0f;
-  --canvas-raised: #11151a;
-  --canvas-inset: #07090b;
+  --band: #0c2a3a;
+  --canvas: #051219;
+  --canvas-raised: #0a1f2b;
+  --canvas-inset: #030c11;
 
-  --accent: #9db1ff;
-  --accent-strong: #b8c6ff;
-  --clay: #f0a47c;
-  --plum: #cdb8ee;
-  --moss: #a3d3a0;
-  --ochre: #e6c16a;
-  --crimson: #f29a8c;
-  --clay-text: #f0a47c;
-  --moss-text: #a3d3a0;
-  --accent-dim: rgba(157, 177, 255, 0.12);
-  --clay-dim: rgba(240, 164, 124, 0.12);
-  --plum-dim: rgba(205, 184, 238, 0.12);
-  --moss-dim: rgba(163, 211, 160, 0.11);
-  --crimson-dim: rgba(242, 154, 140, 0.12);
+  --signal: #ff6b4a;
+  --accent-ink: #08171f;
+  --accent-text: #ff7d5f;
+  --accent-soft: rgba(255, 107, 74, 0.16);
+
+  --sky: #86c8ee;
+  --violet: #c4a8f4;
+  --apricot: #f4ae68;
+  --mint: #6ed6a6;
+  --amber: #e8b84a;
+  --crimson: #f58ba0;
+  --sky-dim: rgba(134, 200, 238, 0.12);
+  --violet-dim: rgba(196, 168, 244, 0.12);
+  --mint-dim: rgba(110, 214, 166, 0.11);
+  --amber-dim: rgba(232, 184, 74, 0.12);
+  --crimson-dim: rgba(245, 139, 160, 0.12);
 
   --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4);
   --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.4), 0 18px 40px rgba(0, 0, 0, 0.5);

@@ -37,8 +37,21 @@ export default function Home() {
     <main className="landing">
       <SpecimenHero />
 
+      <div className="builton" role="note">
+        <span className="label">Built on</span>
+        <span>Clang/LLVM 18</span><span>CPython 3.12</span><span>Docker sandbox</span><span>SHA-256 per stage</span>
+      </div>
+
+      <section className="proof" aria-label="the numbers">
+        <dl>
+          <div><dt>76 / 76</dt><dd>metrics match an independent oracle</dd></div>
+          <div><dt>20</dt><dd>real programs to take apart</dd></div>
+          <div><dt>0</dt><dd>bytes leave your machine</dd></div>
+        </dl>
+      </section>
+
       <section className="sec" aria-labelledby="sec-roads">
-        <p className="sec-no">The pipelines</p>
+        <p className="sec-no">01 — The pipelines</p>
         <h2 id="sec-roads">Compiled or interpreted, your code is transformed before it runs.</h2>
         <dl className="roads">
           <div>
@@ -52,9 +65,11 @@ export default function Home() {
         </dl>
       </section>
 
-      <section className="sec" aria-labelledby="sec-inspect">
-        <p className="sec-no">What you can inspect</p>
-        <h2 id="sec-inspect">Each stage is the tool's own output, never a redrawing.</h2>
+      <section className="sec sec-split" aria-labelledby="sec-inspect">
+        <div className="sec-head">
+          <p className="sec-no">02 — What you can inspect</p>
+          <h2 id="sec-inspect">Each stage is the tool's own output, never a redrawing.</h2>
+        </div>
         <ol className="inspect">
           {INSPECT.map(([n, t, d]) => (
             <li key={n}><span className="ins-n">{n}</span><h3>{t}</h3><p>{d}</p></li>
@@ -63,7 +78,7 @@ export default function Home() {
       </section>
 
       <section className="sec" aria-labelledby="sec-start">
-        <p className="sec-no">Start</p>
+        <p className="sec-no">03 — Start</p>
         <h2 id="sec-start">Pick a way in.</h2>
         <ul className="start">
           <li><Link to="/demos"><span className="st-t">Demo Library</span><span className="st-d">Twenty curated programs, each with a guided path through real artifacts.</span><span className="st-a" aria-hidden>→</span></Link></li>
@@ -73,22 +88,41 @@ export default function Home() {
         </ul>
       </section>
 
+      <section className="cta-band" aria-label="get started">
+        <div className="cta-inner">
+          <p className="cta-h">Open a program and look inside.</p>
+          <Link to="/demos" className="btn big">Explore the demos</Link>
+        </div>
+      </section>
+
       <footer className="site-footer">
         <div className="footer-inner">
-          <p className="prov">
-            <span>
-              system:{" "}
-              {health
-                ? <code>ok · python {health.python_version} · schema {health.schema_version}</code>
-                : <code>backend unreachable</code>}
-            </span>
-            {toolLine && <span>tools: <code>{toolLine}</code></span>}
-          </p>
-          <p className="muted">
-            Explore mode shows the journey; Technical mode (top right) reveals provenance, digests
-            and raw artifacts. Execution is restricted to curated programs in sandboxed containers;
-            imported repository code is never executed.
-          </p>
+          <div className="foot-col foot-sys">
+            <p className="prov">
+              <span>
+                system:{" "}
+                {health
+                  ? <code>ok · python {health.python_version} · schema {health.schema_version}</code>
+                  : <code>backend unreachable</code>}
+              </span>
+              {toolLine && <span>tools: <code>{toolLine}</code></span>}
+            </p>
+            <p className="muted">
+              Explore mode shows the journey; Technical mode (top right) reveals provenance, digests
+              and raw artifacts. Execution is restricted to curated programs in sandboxed containers;
+              imported repository code is never executed.
+            </p>
+          </div>
+          <nav className="foot-col" aria-label="product">
+            <span className="label">Product</span>
+            <Link to="/demos">Demo Library</Link>
+            <Link to="/workspace">Workspace</Link>
+            <Link to="/compare">Compare</Link>
+          </nav>
+          <nav className="foot-col" aria-label="method">
+            <span className="label">Method</span>
+            <Link to="/about">About and limits</Link>
+          </nav>
         </div>
       </footer>
     </main>

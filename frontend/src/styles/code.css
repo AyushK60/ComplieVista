@@ -1,0 +1,43 @@
+/* Shared code colours. Roles are fixed everywhere: identifiers sky, keywords violet,
+ * numbers apricot, strings mint, comments dim. Coral is never a syntax colour. */
+.k-kw, .tok-kw { color: var(--violet-l); }
+.k-id, .tok-name { color: var(--sky-l); }
+.k-num, .tok-num { color: var(--apricot-l); }
+.k-str, .tok-str { color: var(--mint-l); }
+.k-com, .tok-comment { color: var(--c-ink-3); font-style: italic; }
+.k-op, .tok-op { color: var(--c-ink-2); }
+
+.hero-token, .tok {
+  font-family: var(--font-mono); font-size: 13.5px; padding: 4px 10px;
+  border-radius: var(--r-s); border: 1px solid; animation: tokenIn var(--t-med) var(--ease) both;
+}
+@keyframes tokenIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.tok-kw, .hero-token.tok-kw { border-color: color-mix(in srgb, var(--violet-l) 50%, transparent); background: var(--violet-l-dim); }
+.tok-name, .hero-token.tok-name { border-color: color-mix(in srgb, var(--sky-l) 45%, transparent); background: var(--sky-l-dim); }
+.tok-op, .hero-token.tok-op { border-color: var(--canvas-line-strong); background: rgba(233, 239, 241, 0.06); }
+.tok-num, .hero-token.tok-num { border-color: color-mix(in srgb, var(--apricot-l) 45%, transparent); background: var(--apricot-l-dim); }
+.tok-str { border-color: color-mix(in srgb, var(--mint-l) 45%, transparent); background: var(--mint-l-dim); }
+.tok-comment { border-color: var(--canvas-line); background: transparent; }
+
+@keyframes drawEdge { to { stroke-dashoffset: 0; } }
+@keyframes runCursor { 0% { width: 10%; opacity: 0.4; } 50% { width: 60%; opacity: 1; } 100% { width: 90%; opacity: 0.2; } }
+@keyframes blink { 50% { opacity: 0; } }
+
+.bc-co { font-family: var(--font-mono); font-size: 12px; color: var(--c-ink-3); }
+.bc-co b { color: var(--mint-l); font-weight: 600; }
+.bc-lanes { display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+.bc-op {
+  font-family: var(--font-mono); font-size: 12px; color: var(--c-ink-2);
+  background: var(--apricot-l-dim); border: 1px solid color-mix(in srgb, var(--apricot-l) 32%, transparent);
+  padding: 4px 10px; border-radius: var(--r-s); animation: tokenIn var(--t-med) var(--ease) both;
+}
+.bc-demo { flex-direction: column; align-items: stretch; gap: 5px !important; justify-content: center; }
+.bc-line { display: flex; gap: 12px; font-family: var(--font-mono); font-size: 12px; align-items: baseline; }
+.bc-line code { color: var(--c-ink-3); font-size: 10.5px; }
+.bc-line b { color: var(--apricot-l); font-weight: 600; min-width: 118px; }
+.bc-line span { color: var(--c-ink-2); }
+
+.world h3 { display: flex; align-items: center; gap: 10px; font-size: 16px; margin-bottom: 18px; }
+.world-dot { width: 10px; height: 10px; flex-shrink: 0; }
+.world-dot.c { background: var(--amber); }
+.world-dot.py { background: var(--violet); }

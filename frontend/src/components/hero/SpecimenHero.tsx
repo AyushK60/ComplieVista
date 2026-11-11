@@ -360,21 +360,19 @@ function Journey({ d }: { d: Data }) {
 export default function SpecimenHero() {
   const d = useJourney();
   return (
-    <section className="hero" aria-labelledby="hero-h">
-      <div className="hero-grid">
-        <div className="hero-copy">
-          <p className="eyebrow">CompileVista · a compiler observatory</p>
-          <h1 id="hero-h">Your program, <em>taken apart.</em></h1>
-          <p className="hero-lede">Paste a C or Python program and follow it through the real Clang and CPython: tokens, syntax trees, IR, bytecode and a recorded run. Everything on screen is the tools' own output.</p>
-          <div className="hero-ctas">
-            <Link to="/demos" className="btn primary big">Explore the demos</Link>
-            <Link to="/workspace" className="btn big">Paste your own code</Link>
+    <section className="hero band" aria-labelledby="hero-h">
+      <div className="hero-bg" aria-hidden />
+      <div className="hero-inner">
+        <p className="eyebrow hero-in" style={{ ["--d" as string]: "0ms" }}>CompileVista · a compiler observatory</p>
+        <div className="hero-top">
+          <h1 id="hero-h"><span className="hero-line"><span>Your program,</span></span> <span className="hero-line"><em>taken apart.</em></span></h1>
+          <div className="hero-side hero-in" style={{ ["--d" as string]: "320ms" }}>
+            <p className="hero-lede">Paste a C or Python program and follow it through the real Clang and CPython: tokens, syntax trees, IR, bytecode and a recorded run. Everything on screen is the tools' own output.</p>
+            <div className="hero-ctas">
+              <Link to="/demos" className="btn primary big">Explore the demos</Link>
+              <Link to="/workspace" className="btn big">Paste your own code</Link>
+            </div>
           </div>
-          <dl className="hero-facts">
-            <div><dt>76 / 76</dt><dd>metrics match an independent oracle</dd></div>
-            <div><dt>20</dt><dd>real programs to take apart</dd></div>
-            <div><dt>0</dt><dd>bytes leave your machine</dd></div>
-          </dl>
         </div>
 
         {d.state === "failed" ? (

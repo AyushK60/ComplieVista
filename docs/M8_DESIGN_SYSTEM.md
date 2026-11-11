@@ -1,7 +1,33 @@
 # CompileVista Design System — "The Living Compiler"
 
-Status: M8 visual recovery, revision 2 (replaces the rejected Project Phoenix
-"Computational Atlas" midnight theme — see git history for revision 1).
+Status: **superseded in part by the "Petrol & Coral" redesign (November 2026)**; the summary
+below is current, the numbered sections after it describe the earlier porcelain system and are
+kept for history. Source of truth is now `frontend/src/styles/tokens.css`.
+
+## Current system: Petrol & Coral (presentation only; behaviour untouched)
+
+- **Proportions:** ~60% base surface (sand `#EEEAE1` light, `#08171F` dark), ~30% petrol (hero band,
+  code and graph plates, structure), ~10% coral (`--signal` `#FF5533` light, `#FF6B4A` dark).
+- **Coral means one thing:** the thing you are looking at: selection, the active stage, the primary
+  action, the highlighter mark behind one headline word. It is never a data colour. On paper, coral
+  text uses `--accent-text` (AA); on plates, selection uses `--sel`.
+- **Data hues** (fixed roles everywhere): sky = identifiers, violet = keywords and structure,
+  apricot = numbers, mint = strings and EXACT, amber = DERIVED/PARTIAL, crimson = errors/BLOCKED.
+  Paper and plate variants exist for each (`--sky` / `--sky-l`, ...). Status is always text plus colour.
+- **Type:** Archivo (variable, width axis) for display and UI; display is set condensed (`font-stretch`
+  80%), weight 800, tight tracking. IBM Plex Mono for all code and data, ligatures off. Both are
+  self-hosted through `@fontsource` so nothing loads from a third party.
+- **Shape:** radii 2 / 4 / 8px, rectangular tags (no pills), hairline borders, shadow only on floating
+  layers, no gradients on surfaces, one backdrop blur (graph toolbar).
+- **Layout:** home is a petrol hero band with a wide live stage, then ruled, numbered paper sections and
+  one coral call-to-action band. The header floats over the hero and turns solid on scroll. The Demo
+  Library is an index of ruled rows, About sets its hard numbers on rules.
+- **Contrast:** AA in light and dark, verified by `e2e/a11y_suite.py` (axe-core).
+
+---
+
+Earlier revision (replaced the rejected Project Phoenix "Computational Atlas" midnight theme — see git
+history for revision 1):
 
 **Porcelain Instrument × Ink Canvas × Scientific Precision**
 

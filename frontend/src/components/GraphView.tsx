@@ -412,8 +412,8 @@ export default function GraphView({
             </span>
           )}
           {data.collapsedCount > 0 && <span className="cvnode-badge">+{data.collapsedCount}</span>}
-          <Handle type="target" position={horiz ? Position.Left : Position.Top} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />
-          <Handle type="source" position={horiz ? Position.Right : Position.Bottom} style={{ width: 7, height: 7, background: "rgba(216,230,230,0.85)", border: "none" }} isConnectable={false} />
+          <Handle type="target" position={horiz ? Position.Left : Position.Top} style={{ width: 7, height: 7, background: "rgba(233,239,241,0.85)", border: "none" }} isConnectable={false} />
+          <Handle type="source" position={horiz ? Position.Right : Position.Bottom} style={{ width: 7, height: 7, background: "rgba(233,239,241,0.85)", border: "none" }} isConnectable={false} />
         </div>
       );
     },
@@ -667,22 +667,22 @@ export default function GraphView({
           nodesDraggable
         >
           <ZoomReporter onZoom={setZoom} />
-          <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} color="rgba(216, 230, 230, 0.12)" />
+          <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} color="rgba(233, 239, 241, 0.12)" />
           <Controls showInteractive={false} position="bottom-left" />
           {showMinimap && (
             <MiniMap pannable zoomable
                      nodeColor={(n) => {
                        const raw = (n.data as { raw?: Record<string, unknown> })?.raw;
                        const cat = raw ? nodeCategory(raw) : "cat-expr";
-                       return ({ "cat-decl": "#b9a8d8", "cat-stmt": "#84989e",
-                                 "cat-expr": "#6fc3b8", "cat-op": "#6fc3b8",
-                                 "cat-name": "#4e7a75", "cat-literal": "#e6a87e",
-                                 "cat-synthetic": "#4a5a62", "cat-block": "#e6a87e",
-                               } as Record<string, string>)[cat] ?? "#4e7a75";
+                       return ({ "cat-decl": "#c4a8f4", "cat-stmt": "#aebfc8",
+                                 "cat-expr": "#86c8ee", "cat-op": "#86c8ee",
+                                 "cat-name": "#6a95ad", "cat-literal": "#f4ae68",
+                                 "cat-synthetic": "#3a5663", "cat-block": "#e8b84a",
+                               } as Record<string, string>)[cat] ?? "#6a95ad";
                      }}
                      nodeStrokeWidth={0}
-                     maskColor="rgba(23, 33, 38, 0.78)"
-                     style={{ background: "#1d292f", border: "1px solid rgba(216,230,230,0.14)", borderRadius: 8 }}
+                     maskColor="rgba(4, 20, 28, 0.72)"
+                     style={{ background: "#0a1f2b", border: "1px solid rgba(233,239,241,0.14)", borderRadius: 4 }}
                      className="cv-minimap" />
           )}
         </ReactFlow>

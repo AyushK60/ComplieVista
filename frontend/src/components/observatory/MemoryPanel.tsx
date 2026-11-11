@@ -351,7 +351,7 @@ function ObjectGraph({ graph }: { graph: Record<string, unknown> }) {
            aria-label={`object graph: ${nodes.length} nodes, ${edges.length} edges`}>
         <defs>
           <marker id="cv-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L7,3 L0,6 z" fill="rgba(167,139,250,.8)" />
+            <path d="M0,0 L7,3 L0,6 z" fill="rgba(196,168,244,.8)" />
           </marker>
         </defs>
         {[...edgeCount.entries()].map(([k, n], i) => {

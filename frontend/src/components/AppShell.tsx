@@ -28,6 +28,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  // on the home page the header floats over the hero and turns solid once the page scrolls
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 24);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, [pathname]);
 
   useEffect(() => {
     const hit = TITLES.find(([p]) => pathname === p || pathname.startsWith(p + "/"));
@@ -73,7 +81,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         const m = document.querySelector<HTMLElement>("main");
         if (m) { m.setAttribute("tabindex", "-1"); m.focus(); }
       }}>Skip to main content</a>
-      <nav className={"topnav" + ""} aria-label="primary">
+      <nav className={"topnav" + (pathname === "/" ? " is-home" : "") + (scrolled ? " scrolled" : "")} aria-label="primary">
         <Link to="/" className="brand"><span className="brand-mark" aria-hidden />CompileVista</Link>
         {LINKS.map(([to, label]) => (
           <NavLink key={to} to={to} end={to === "/"}
