@@ -2,6 +2,21 @@
 
 Updated: 11 November 2026 (Petrol & Coral redesign, presentation only)
 
+### Suite results after the fourth pass (11-Nov-2026)
+
+PASS: a11y_suite, layout_widths_suite, keyboard_suite, learning_suite, m8, m8b, m9, m10, m11, repair_watch_ast.
+**FAIL (recorded, not fixed): `e2e/m8c_journeys.py` and `e2e/m8d_journeys.py`**, both at the Compare journey:
+`expect(".cmp-verdict").to_be_visible(timeout=150_000)` times out. Reproducer: open `/compare`, click the
+"recursion" pair. Observed cause: the backend `compare` experiment now takes about 165 to 170 s on this
+machine (completed at 15:54:30 after starting 15:51:45; the same experiment took about 93 s at 14:51 the same
+day), which exceeds the suites' hard-coded 150 s limit. The compare finishes COMPLETED, so this looks like
+slowness, not a wrong result, but the rest of the journey after the verdict was NOT verified on this run
+(an extended-timeout attempt was cut off by the shell limit). m8d had passed earlier in this session, before
+the slowdown. No frontend or backend code touched by these passes is on the Compare path; the slowdown is
+undiagnosed (candidate causes: host load, a growing DB with 317 executions and 59 compare experiments). Next
+step for whoever picks this up: time a lone compare with the machine idle, then decide whether to raise the
+limit or investigate the backend.
+
 ## Fourth pass: learning-layer tests, wording, phone fixes
 
 - `optLearnModel.ts` holds the lesson/quiz logic with 5 unit tests (vitest total 25). A line the compiler
