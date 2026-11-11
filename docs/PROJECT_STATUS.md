@@ -9,7 +9,10 @@ Added `frontend/src/components/observatory/OptLearn.tsx`, wired into `SourceLink
 lesson with Next/Back, a predict-then-reveal quiz scored from the real line map, "copy link to this
 step" (`?view=&line=&step=`), Print/PDF poster styles, and a Teacher toggle in the nav. All text states
 counts from the stored compiler output, never reasons. Verified: `tsc`, vitest (20), `vite build`.
-NOT verified: no browser run against a live backend/experiment yet; no e2e suite covers it.
+Live check (manual, Browser pane, C-02 via the real backend, zero console errors): diff, lesson,
+quiz, Teacher toggle and link copy all worked on real -O0/-O2 data. Known gap: a shared link opens the
+workspace but does not yet jump to the Optimization lab, and the experiment must be rebuilt first.
+No e2e suite covers this yet.
 Not started: new languages, pasted-code execution (stays BLOCKED until the M4 gate), evidence page,
 light/mobile/perf passes.
 
