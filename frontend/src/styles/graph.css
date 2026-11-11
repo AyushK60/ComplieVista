@@ -1,0 +1,44 @@
+/* CompileVista — the Workspace graph in the title-sequence world: flat cut-paper blocks, the same
+ * colour roles as the home tree (declarations cobalt, statements ink, expressions saffron, names
+ * cream, literals clay), implicit nodes dashed, no side stripes. Loaded after observatory.css. */
+.graphwrap { --g-cobalt: #3a4fb5; --g-ink: #1d1814; --g-saffron: #d9a02a; --g-cream: #efe6d2; --g-clay: #d98a70; --g-edge: rgba(239, 230, 210, 0.6); }
+
+.cvnode {
+  border: 2px solid var(--g-cream); border-radius: 0; box-shadow: none; padding: 6px 10px 7px;
+  background: var(--g-ink); color: var(--g-cream);
+}
+.cvnode:hover { border-color: #fff; }
+.cvnode.selected { border-color: #ff7a5c; box-shadow: 0 0 0 3px #ff7a5c; }
+.cvnode-kind { font-family: var(--font-ui); font-weight: 700; font-size: 12px; letter-spacing: 0; }
+.cvnode-value, .cvnode-line { color: inherit; opacity: 0.88; }
+
+.cvnode.cat-decl { background: var(--g-cobalt); border-color: var(--g-cream); color: #fff; }
+.cvnode.cat-decl .cvnode-kind { color: #fff; }
+.cvnode.cat-stmt { background: var(--g-ink); border-color: var(--g-cream); color: var(--g-cream); }
+.cvnode.cat-expr, .cvnode.cat-op { background: var(--g-saffron); border-color: #14110f; color: #14110f; }
+.cvnode.cat-op .cvnode-kind, .cvnode.cat-expr .cvnode-kind { color: #14110f; }
+.cvnode.cat-name { background: var(--g-cream); border-color: #14110f; color: #14110f; }
+.cvnode.cat-name .cvnode-kind { color: #14110f; }
+.cvnode.cat-literal { background: var(--g-clay); border-color: #14110f; color: #14110f; }
+.cvnode.cat-literal .cvnode-kind { color: #14110f; }
+.cvnode.cat-block { background: var(--g-saffron); border-color: #14110f; color: #14110f; }
+.cvnode.cat-block .cvnode-kind { color: #14110f; }
+.cvnode.cat-synthetic { background: transparent; border: 2px dashed var(--g-cream); color: var(--g-cream); }
+.cvnode.cat-synthetic .cvnode-kind { color: var(--g-cream); font-style: normal; opacity: 0.9; }
+.cvnode.conf-unavailable { border-style: dashed; opacity: 0.8; }
+.cvnode-toggle, .cvnode-badge { color: inherit; }
+.cvnode-toggle:hover { color: inherit; opacity: 0.7; }
+.react-flow__node.hit .cvnode { border-color: #ff7a5c; box-shadow: 0 0 0 3px rgba(255, 122, 92, 0.55); }
+
+.react-flow__edge.edge-containment path { stroke: var(--g-edge); stroke-width: 2.4; }
+.react-flow__edge.edge-branch path { stroke: var(--g-saffron); stroke-width: 2; stroke-opacity: 0.85; }
+.react-flow__edge.on-path path { stroke: #ff7a5c; stroke-width: 4; }
+
+.graph-legend .lg-dot { border-radius: 0; width: 10px; height: 10px; border: 1px solid rgba(239, 230, 210, 0.5); }
+.lg-dot.cat-decl { background: var(--g-cobalt, #3a4fb5); }
+.lg-dot.cat-stmt { background: #1d1814; border-color: #efe6d2; }
+.lg-dot.cat-expr, .lg-dot.cat-op { background: #d9a02a; }
+.lg-dot.cat-name { background: #efe6d2; }
+.lg-dot.cat-literal { background: #d98a70; }
+.lg-dot.cat-block { background: #d9a02a; }
+.lg-dot.cat-synthetic { background: transparent; border: 1px dashed #efe6d2; }

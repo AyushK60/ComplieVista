@@ -1,0 +1,764 @@
+{
+ "ast": {
+  "provenance": {
+   "tool": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+   "invocation": "clang -Xclang -ast-dump=json (recorded in evidence/m0/c/ast/ast.json)",
+   "source": "demos/m0/c_fixture.c",
+   "source_sha256": "b2fcbfe2b3181e468b60dcb7edece0c41f5b721475e99e239982df84e6e1fa19"
+  },
+  "source": [
+   {
+    "n": 7,
+    "text": "static int scale_and_adjust(int base, int limit) {"
+   },
+   {
+    "n": 8,
+    "text": "    int scaled = base * M0_SCALE;"
+   },
+   {
+    "n": 9,
+    "text": "    if (scaled > limit) {"
+   },
+   {
+    "n": 10,
+    "text": "        return limit;"
+   },
+   {
+    "n": 11,
+    "text": "    }"
+   },
+   {
+    "n": 12,
+    "text": "    return scaled;"
+   },
+   {
+    "n": 13,
+    "text": "}"
+   }
+  ],
+  "tree": {
+   "kind": "FunctionDecl",
+   "line": 7,
+   "name": "scale_and_adjust",
+   "children": [
+    {
+     "kind": "ParmVarDecl",
+     "line": 7,
+     "name": "base"
+    },
+    {
+     "kind": "ParmVarDecl",
+     "line": 7,
+     "name": "limit"
+    },
+    {
+     "kind": "CompoundStmt",
+     "line": 7,
+     "children": [
+      {
+       "kind": "DeclStmt",
+       "line": 8,
+       "children": [
+        {
+         "kind": "VarDecl",
+         "line": 8,
+         "name": "scaled",
+         "children": [
+          {
+           "kind": "BinaryOperator",
+           "line": 8,
+           "name": "*",
+           "children": [
+            {
+             "kind": "ImplicitCastExpr",
+             "line": 8,
+             "name": "LValueToRValue",
+             "implicit": true,
+             "children": [
+              {
+               "kind": "DeclRefExpr",
+               "line": 8,
+               "name": "base"
+              }
+             ]
+            },
+            {
+             "kind": "IntegerLiteral",
+             "line": 8,
+             "name": "3"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "kind": "IfStmt",
+       "line": 9,
+       "children": [
+        {
+         "kind": "BinaryOperator",
+         "line": 9,
+         "name": ">",
+         "children": [
+          {
+           "kind": "ImplicitCastExpr",
+           "line": 9,
+           "name": "LValueToRValue",
+           "implicit": true,
+           "children": [
+            {
+             "kind": "DeclRefExpr",
+             "line": 9,
+             "name": "scaled"
+            }
+           ]
+          },
+          {
+           "kind": "ImplicitCastExpr",
+           "line": 9,
+           "name": "LValueToRValue",
+           "implicit": true,
+           "children": [
+            {
+             "kind": "DeclRefExpr",
+             "line": 9,
+             "name": "limit"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "kind": "CompoundStmt",
+         "line": 9,
+         "children": [
+          {
+           "kind": "ReturnStmt",
+           "line": 10,
+           "children": [
+            {
+             "kind": "ImplicitCastExpr",
+             "line": 10,
+             "name": "LValueToRValue",
+             "implicit": true,
+             "children": [
+              {
+               "kind": "DeclRefExpr",
+               "line": 10,
+               "name": "limit"
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "kind": "ReturnStmt",
+       "line": 12,
+       "children": [
+        {
+         "kind": "ImplicitCastExpr",
+         "line": 12,
+         "name": "LValueToRValue",
+         "implicit": true,
+         "children": [
+          {
+           "kind": "DeclRefExpr",
+           "line": 12,
+           "name": "scaled"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "c_lower": {
+  "provenance": {
+   "tool": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+   "invocations": [
+    "clang -S -emit-llvm -g -O0 (evidence/m0/c/ir/ir_O0.ll)",
+    "clang -S -O0 (evidence/m0/c/assembly/fixture_O0.s)"
+   ],
+   "source_sha256": "b2fcbfe2b3181e468b60dcb7edece0c41f5b721475e99e239982df84e6e1fa19",
+   "ir_link": "EXACT: from the compiler's own !DILocation entries",
+   "asm_link": "DERIVED: this recording has no line table for the assembly; instructions are aligned to the IR statements"
+  },
+  "source": [
+   {
+    "n": 7,
+    "text": "static int scale_and_adjust(int base, int limit) {"
+   },
+   {
+    "n": 8,
+    "text": "    int scaled = base * M0_SCALE;"
+   },
+   {
+    "n": 9,
+    "text": "    if (scaled > limit) {"
+   },
+   {
+    "n": 10,
+    "text": "        return limit;"
+   },
+   {
+    "n": 11,
+    "text": "    }"
+   },
+   {
+    "n": 12,
+    "text": "    return scaled;"
+   },
+   {
+    "n": 13,
+    "text": "}"
+   }
+  ],
+  "ir": [
+   {
+    "text": "define internal i32 @scale_and_adjust(i32 noundef %0, i32 noundef %1) #0 {",
+    "line": null
+   },
+   {
+    "text": "  %3 = alloca i32, align 4",
+    "line": null
+   },
+   {
+    "text": "  %4 = alloca i32, align 4",
+    "line": null
+   },
+   {
+    "text": "  %5 = alloca i32, align 4",
+    "line": null
+   },
+   {
+    "text": "  %6 = alloca i32, align 4",
+    "line": null
+   },
+   {
+    "text": "  store i32 %0, ptr %4, align 4",
+    "line": null
+   },
+   {
+    "text": "  store i32 %1, ptr %5, align 4",
+    "line": null
+   },
+   {
+    "text": "  %7 = load i32, ptr %4, align 4",
+    "line": 8
+   },
+   {
+    "text": "  %8 = mul nsw i32 %7, 3",
+    "line": 8
+   },
+   {
+    "text": "  store i32 %8, ptr %6, align 4",
+    "line": 8
+   },
+   {
+    "text": "  %9 = load i32, ptr %6, align 4",
+    "line": 9
+   },
+   {
+    "text": "  %10 = load i32, ptr %5, align 4",
+    "line": 9
+   },
+   {
+    "text": "  %11 = icmp sgt i32 %9, %10",
+    "line": 9
+   },
+   {
+    "text": "  br i1 %11, label %12, label %14",
+    "line": 9
+   },
+   {
+    "text": "12:                                               ; preds = %2",
+    "line": null
+   },
+   {
+    "text": "  %13 = load i32, ptr %5, align 4",
+    "line": 10
+   },
+   {
+    "text": "  store i32 %13, ptr %3, align 4",
+    "line": 10
+   },
+   {
+    "text": "  br label %16",
+    "line": 10
+   },
+   {
+    "text": "14:                                               ; preds = %2",
+    "line": null
+   },
+   {
+    "text": "  %15 = load i32, ptr %6, align 4",
+    "line": 12
+   },
+   {
+    "text": "  store i32 %15, ptr %3, align 4",
+    "line": 12
+   },
+   {
+    "text": "  br label %16",
+    "line": 12
+   },
+   {
+    "text": "16:                                               ; preds = %14, %12",
+    "line": null
+   },
+   {
+    "text": "  %17 = load i32, ptr %3, align 4",
+    "line": 13
+   },
+   {
+    "text": "  ret i32 %17",
+    "line": 13
+   }
+  ],
+  "asm": [
+   {
+    "text": "pushq  %rbp",
+    "line": 7
+   },
+   {
+    "text": "movq  %rsp, %rbp",
+    "line": 7
+   },
+   {
+    "text": "movl  %edi, -8(%rbp)",
+    "line": 7
+   },
+   {
+    "text": "movl  %esi, -12(%rbp)",
+    "line": 7
+   },
+   {
+    "text": "imull  $3, -8(%rbp), %eax",
+    "line": 8
+   },
+   {
+    "text": "movl  %eax, -16(%rbp)",
+    "line": 8
+   },
+   {
+    "text": "movl  -16(%rbp), %eax",
+    "line": 9
+   },
+   {
+    "text": "cmpl  -12(%rbp), %eax",
+    "line": 9
+   },
+   {
+    "text": "jle  .LBB1_2",
+    "line": 9
+   },
+   {
+    "text": "movl  -12(%rbp), %eax",
+    "line": 10
+   },
+   {
+    "text": "movl  %eax, -4(%rbp)",
+    "line": 10
+   },
+   {
+    "text": "jmp  .LBB1_3",
+    "line": 10
+   },
+   {
+    "text": ".LBB1_2:",
+    "line": 12
+   },
+   {
+    "text": "movl  -16(%rbp), %eax",
+    "line": 12
+   },
+   {
+    "text": "movl  %eax, -4(%rbp)",
+    "line": 12
+   },
+   {
+    "text": ".LBB1_3:",
+    "line": 13
+   },
+   {
+    "text": "movl  -4(%rbp), %eax",
+    "line": 13
+   },
+   {
+    "text": "popq  %rbp",
+    "line": 13
+   },
+   {
+    "text": "retq",
+    "line": 13
+   }
+  ]
+ },
+ "py_lower": {
+  "provenance": {
+   "tool": "CPython 3.12",
+   "invocation": "dis.dis (recorded in evidence/m0/python/bytecode/dis.txt)",
+   "source": "demos/m0/py_fixture.py",
+   "link": "EXACT: the line column of dis itself"
+  },
+  "source": [
+   {
+    "n": 10,
+    "text": "def scale_and_adjust(base: int, limit: int) -> int:"
+   },
+   {
+    "n": 11,
+    "text": "    scaled = base * M0_SCALE"
+   },
+   {
+    "n": 12,
+    "text": "    if scaled > limit:"
+   },
+   {
+    "n": 13,
+    "text": "        return limit"
+   },
+   {
+    "n": 14,
+    "text": "    return scaled"
+   }
+  ],
+  "dis": [
+   {
+    "line": 10,
+    "offset": 0,
+    "op": "RESUME",
+    "arg": "0"
+   },
+   {
+    "line": 11,
+    "offset": 2,
+    "op": "LOAD_FAST",
+    "arg": "0 (base)"
+   },
+   {
+    "line": 11,
+    "offset": 4,
+    "op": "LOAD_GLOBAL",
+    "arg": "0 (M0_SCALE)"
+   },
+   {
+    "line": 11,
+    "offset": 14,
+    "op": "BINARY_OP",
+    "arg": "5 (*)"
+   },
+   {
+    "line": 11,
+    "offset": 18,
+    "op": "STORE_FAST",
+    "arg": "2 (scaled)"
+   },
+   {
+    "line": 12,
+    "offset": 20,
+    "op": "LOAD_FAST",
+    "arg": "2 (scaled)"
+   },
+   {
+    "line": 12,
+    "offset": 22,
+    "op": "LOAD_FAST",
+    "arg": "1 (limit)"
+   },
+   {
+    "line": 12,
+    "offset": 24,
+    "op": "COMPARE_OP",
+    "arg": "68 (>)"
+   },
+   {
+    "line": 12,
+    "offset": 28,
+    "op": "POP_JUMP_IF_FALSE",
+    "arg": "2 (to 34)"
+   },
+   {
+    "line": 13,
+    "offset": 30,
+    "op": "LOAD_FAST",
+    "arg": "1 (limit)"
+   },
+   {
+    "line": 13,
+    "offset": 32,
+    "op": "RETURN_VALUE",
+    "arg": ""
+   },
+   {
+    "line": 14,
+    "offset": 34,
+    "op": "LOAD_FAST",
+    "arg": "2 (scaled)"
+   },
+   {
+    "line": 14,
+    "offset": 36,
+    "op": "RETURN_VALUE",
+    "arg": ""
+   }
+  ]
+ },
+ "run": {
+  "provenance": {
+   "tool": "CPython 3.12 sys.settrace in the runtime container",
+   "demo": "PY-01",
+   "execution_id": "aee6a405ec0b427fbcc8a1708108f847",
+   "exit_code": 0,
+   "source_sha256": "0d09fafd567f8c375446fb3bc44cb21ce415c88683f68e6f7259e164f585cb00",
+   "trace_sha256": "512d3832272fe29b4a9cbc6cce6da126d2272ecb53606196aa7f740c504dc788",
+   "stdout_sha256": "b57af8accf0fb778d35e75b39c801d4ef20e709beb0e02c3f5324d73df8447ed",
+   "image_id": "sha256:888c094bb23ebf3a3f4dcad9b3373a83bff6ab1a6fcd293aec3c70063f1f32b8",
+   "events": 22
+  },
+  "source": [
+   {
+    "n": 1,
+    "text": "\"\"\"PY-01 fundamentals: variables, expressions, functions, branching."
+   },
+   {
+    "n": 2,
+    "text": ""
+   },
+   {
+    "n": 3,
+    "text": "Deterministic; expected output pinned in the demo manifest. Guided story:"
+   },
+   {
+    "n": 4,
+    "text": "watch the call/line/return events for `area` and the branch taken at runtime."
+   },
+   {
+    "n": 5,
+    "text": "\"\"\""
+   },
+   {
+    "n": 6,
+    "text": "BASE = 3"
+   },
+   {
+    "n": 7,
+    "text": "HEIGHT = 7"
+   },
+   {
+    "n": 8,
+    "text": ""
+   },
+   {
+    "n": 9,
+    "text": ""
+   },
+   {
+    "n": 10,
+    "text": "def area(base: int, height: int) -> int:"
+   },
+   {
+    "n": 11,
+    "text": "    if base <= 0 or height <= 0:"
+   },
+   {
+    "n": 12,
+    "text": "        return 0"
+   },
+   {
+    "n": 13,
+    "text": "    return base * height // 2"
+   },
+   {
+    "n": 14,
+    "text": ""
+   },
+   {
+    "n": 15,
+    "text": ""
+   },
+   {
+    "n": 16,
+    "text": "if __name__ == \"__main__\":"
+   },
+   {
+    "n": 17,
+    "text": "    tri = area(BASE, HEIGHT)"
+   },
+   {
+    "n": 18,
+    "text": "    scaled = area(BASE * 2, HEIGHT) // BASE"
+   },
+   {
+    "n": 19,
+    "text": "    kind = \"valid\" if tri > 0 else \"degenerate\""
+   },
+   {
+    "n": 20,
+    "text": "    print(f\"area={tri}\")"
+   },
+   {
+    "n": 21,
+    "text": "    print(f\"scaled={scaled}\")"
+   },
+   {
+    "n": 22,
+    "text": "    print(f\"kind={kind}\")"
+   },
+   {
+    "n": 23,
+    "text": ""
+   }
+  ],
+  "steps": [
+   {
+    "kind": "call",
+    "fn": "<module>",
+    "line": 0,
+    "depth": 2,
+    "locals": {}
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 1,
+    "depth": 2
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 6,
+    "depth": 2
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 7,
+    "depth": 2
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 10,
+    "depth": 2
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 16,
+    "depth": 2
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 17,
+    "depth": 2
+   },
+   {
+    "kind": "call",
+    "fn": "area",
+    "line": 10,
+    "depth": 3,
+    "locals": {
+     "base": "3",
+     "height": "7"
+    }
+   },
+   {
+    "kind": "line",
+    "fn": "area",
+    "line": 11,
+    "depth": 3
+   },
+   {
+    "kind": "line",
+    "fn": "area",
+    "line": 13,
+    "depth": 3
+   },
+   {
+    "kind": "return",
+    "fn": "area",
+    "line": 13,
+    "depth": 3,
+    "ret": "10"
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 18,
+    "depth": 2
+   },
+   {
+    "kind": "call",
+    "fn": "area",
+    "line": 10,
+    "depth": 3,
+    "locals": {
+     "base": "6",
+     "height": "7"
+    }
+   },
+   {
+    "kind": "line",
+    "fn": "area",
+    "line": 11,
+    "depth": 3
+   },
+   {
+    "kind": "line",
+    "fn": "area",
+    "line": 13,
+    "depth": 3
+   },
+   {
+    "kind": "return",
+    "fn": "area",
+    "line": 13,
+    "depth": 3,
+    "ret": "21"
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 19,
+    "depth": 2
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 20,
+    "depth": 2
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 21,
+    "depth": 2
+   },
+   {
+    "kind": "line",
+    "fn": "<module>",
+    "line": 22,
+    "depth": 2
+   },
+   {
+    "kind": "return",
+    "fn": "<module>",
+    "line": 22,
+    "depth": 2,
+    "ret": "None"
+   }
+  ],
+  "stdout": "area=10\nscaled=7\nkind=valid\n"
+ }
+}

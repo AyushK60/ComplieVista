@@ -48,3 +48,7 @@ Thumbs.db
 # --- M8-G0 one-click launcher state (pid files, logs, ownership state) ---
 .local/
 pv_*.json
+
+# the home and catalog figures import these recorded-data files; keep them tracked
+!frontend/src/data/
+!frontend/src/data/**

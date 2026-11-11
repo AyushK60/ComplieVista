@@ -674,14 +674,14 @@ export default function GraphView({
                      nodeColor={(n) => {
                        const raw = (n.data as { raw?: Record<string, unknown> })?.raw;
                        const cat = raw ? nodeCategory(raw) : "cat-expr";
-                       return ({ "cat-decl": "#c4a8f4", "cat-stmt": "#aebfc8",
-                                 "cat-expr": "#86c8ee", "cat-op": "#86c8ee",
-                                 "cat-name": "#6a95ad", "cat-literal": "#f4ae68",
-                                 "cat-synthetic": "#3a5663", "cat-block": "#e8b84a",
-                               } as Record<string, string>)[cat] ?? "#6a95ad";
+                       return ({ "cat-decl": "#3a4fb5", "cat-stmt": "#8a8171",
+                                 "cat-expr": "#d9a02a", "cat-op": "#d9a02a",
+                                 "cat-name": "#efe6d2", "cat-literal": "#d98a70",
+                                 "cat-synthetic": "#5a5246", "cat-block": "#d9a02a",
+                               } as Record<string, string>)[cat] ?? "#d9a02a";
                      }}
                      nodeStrokeWidth={0}
-                     maskColor="rgba(4, 20, 28, 0.72)"
+                     maskColor="rgba(12, 9, 7, 0.72)"
                      style={{ background: "#0a1f2b", border: "1px solid rgba(233,239,241,0.14)", borderRadius: 4 }}
                      className="cv-minimap" />
           )}

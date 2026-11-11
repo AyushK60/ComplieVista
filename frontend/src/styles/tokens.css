@@ -1,38 +1,30 @@
-/* CompileVista design tokens — "Petrol & Coral".
+/* CompileVista design tokens — "Title Sequence".
  *
- * Direction: a precise instrument. Sand paper and deep petrol, one hot coral signal.
- * Proportions: ~60% base surface, ~30% petrol (hero band, code plates, structure), ~10% coral.
- *
- *   coral (--signal)  = the thing you are looking at: selection, active stage, the one primary
- *                       action, the highlighter mark. Never decoration, never a data colour.
- *   data hues         = meaning in code and status only:
- *                       sky = identifiers · violet = keywords, structure · apricot = numbers
- *                       mint = strings, exact/verified · amber = derived/partial · crimson = error
- *
- * Code and graphs sit on a petrol "plate" in both themes: instruments set into the page.
- * Decisions live here; the other stylesheets only consume these tokens.
- */
+ * Cream paper and warm ink; one hot vermilion signal (--signal = what you are looking at:
+ * selection, active stage, the primary action). Cobalt and saffron appear on the landing's title
+ * cards. Data hues carry meaning in code and status only. Code and graphs sit on a warm-black
+ * plate in both themes. Decisions live here; the other stylesheets only consume these tokens. */
 :root {
   color-scheme: light;
 
   /* ——— surfaces: sand paper ——— */
-  --bg: #eeeae1;
-  --surface: #f8f5ee;
-  --surface-2: #e4dfd2;
-  --line: rgba(11, 34, 48, 0.16);
-  --line-strong: rgba(11, 34, 48, 0.38);
-  --ink: #0b2230;
-  --ink-2: #3d525e;
-  --ink-3: #4a5f6b;          /* meta and large text only */
+  --bg: #efe6d2;
+  --surface: #faf5e8;
+  --surface-2: #e8dfc8;
+  --line: rgba(16, 13, 11, 0.16);
+  --line-strong: rgba(16, 13, 11, 0.4);
+  --ink: #100d0b;
+  --ink-2: #433c32;
+  --ink-3: #5a5246;          /* meta and large text only */
 
   /* ——— the 30%: petrol band and plates ——— */
-  --band: #0c3547;
+  --band: #100d0b;
   --band-ink: #f1efe9;
   --band-ink-2: #b4c4cc;
   --band-line: rgba(241, 239, 233, 0.16);
-  --canvas: #071f2b;
-  --canvas-raised: #0d2a38;
-  --canvas-inset: #04141c;
+  --canvas: #15110e;
+  --canvas-raised: #1f1a15;
+  --canvas-inset: #0c0907;
   --canvas-line: rgba(233, 239, 241, 0.12);
   --canvas-line-strong: rgba(233, 239, 241, 0.28);
   --c-ink: #e9eff1;
@@ -40,12 +32,12 @@
   --c-ink-3: #8399a5;
 
   /* ——— the 10%: coral ——— */
-  --signal: #ff5533;           /* fills: primary button, selected mark, highlighter */
+  --signal: #cf4a2d;           /* fills: primary button, selected mark, highlighter */
   --accent: var(--signal);
-  --accent-ink: #0b2230;       /* text on a coral fill */
-  --accent-text: #a8341a;      /* coral as text/border on paper (AA on --bg) */
-  --accent-soft: rgba(255, 85, 51, 0.14);
-  --sel: #ff6b4a;              /* selection on a plate */
+  --accent-ink: #100d0b;       /* text on a coral fill */
+  --accent-text: #b3240a;      /* coral as text/border on paper (AA on --bg) */
+  --accent-soft: rgba(207, 74, 45, 0.14);
+  --sel: #e8694a;              /* selection on a plate */
   --sel-dim: rgba(255, 107, 74, 0.16);
 
   /* ——— data hues on paper (AA on --bg / --surface) ——— */
@@ -83,8 +75,9 @@
   --conf-unavailable: var(--ink-3);
 
   /* ——— type ——— */
-  --font-display: "Archivo Variable", Archivo, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Big Shoulders Display Variable", "Archivo Variable", Archivo, "Helvetica Neue", Arial, sans-serif;
   --font-ui: "Archivo Variable", Archivo, "Helvetica Neue", Arial, sans-serif;
+  --font-title: "Big Shoulders Display Variable", "Archivo Narrow", Impact, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
   --display-stretch: 80%;
   --tracking-display: -0.025em;
@@ -110,8 +103,8 @@
   --r-m: 4px;
   --r-l: 8px;
   --r-bezel: 6px;
-  --shadow-1: 0 1px 0 rgba(11, 34, 48, 0.06);
-  --shadow-2: 0 1px 2px rgba(11, 34, 48, 0.1), 0 14px 32px -8px rgba(11, 34, 48, 0.22);
+  --shadow-1: 0 1px 0 rgba(16, 13, 11, 0.06);
+  --shadow-2: 0 1px 2px rgba(16, 13, 11, 0.1), 0 14px 32px -8px rgba(16, 13, 11, 0.22);
 
   /* ——— spacing (4/8 grid) ——— */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 72px; --sp-9: 112px;
@@ -168,23 +161,23 @@ html[data-mode="technical"] .explore-only { display: none !important; }
 /* ——— dark: the same instrument, lights off ——— */
 html[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #08171f;
-  --surface: #0e2430;
-  --surface-2: #143040;
-  --line: rgba(220, 235, 240, 0.12);
-  --line-strong: rgba(220, 235, 240, 0.3);
-  --ink: #e9eff1;
-  --ink-2: #9fb4bf;
-  --ink-3: #809aa6;
+  --bg: #14100d;
+  --surface: #1d1814;
+  --surface-2: #2a231d;
+  --line: rgba(243, 236, 220, 0.14);
+  --line-strong: rgba(243, 236, 220, 0.32);
+  --ink: #f3ecdc;
+  --ink-2: #c9bfa9;
+  --ink-3: #a99f8a;
 
-  --band: #0c2a3a;
-  --canvas: #051219;
-  --canvas-raised: #0a1f2b;
-  --canvas-inset: #030c11;
+  --band: #0c0907;
+  --canvas: #0c0907;
+  --canvas-raised: #17120e;
+  --canvas-inset: #070504;
 
-  --signal: #ff6b4a;
-  --accent-ink: #08171f;
-  --accent-text: #ff7d5f;
+  --signal: #dd5c3e;
+  --accent-ink: #100d0b;
+  --accent-text: #ff7a5c;
   --accent-soft: rgba(255, 107, 74, 0.16);
 
   --sky: #86c8ee;

@@ -28,7 +28,7 @@ code, pre, kbd, .pl-body, .sourcedock-body, .cvnode, .cm-editor { font-variant-l
 
 /* display face: condensed, heavy, tight. Used for page titles and the landing. */
 .display, .obs-title h1, .dl-head h1, .cmp-head h1, .about-head h1, .dd-head h1, .obs-ingest h1 {
-  font-family: var(--font-display); font-weight: 800; font-stretch: var(--display-stretch);
+  font-family: var(--font-display); font-weight: 900; font-stretch: normal;
   letter-spacing: var(--tracking-display); line-height: 1.02;
 }
 
@@ -183,7 +183,7 @@ pre.excerpt {
 }
 .topnav .brand {
   display: flex; align-items: center; gap: 9px; margin-right: 20px;
-  font-family: var(--font-display); font-weight: 800; font-stretch: var(--display-stretch);
+  font-family: var(--font-display); font-weight: 900; font-stretch: normal;
   font-size: 20px; letter-spacing: var(--tracking-display); color: var(--ink);
 }
 .topnav .brand:hover { text-decoration: none; }
@@ -247,3 +247,12 @@ main:focus { outline: none; }
 
 /* links inside running text must not rely on colour alone (WCAG 1.4.1) */
 :where(p, li, .muted) a:where(:not(.btn, .navlink, .brand)) { text-decoration: underline; text-underline-offset: 2px; }
+
+/* home: nav sits on the brick title card */
+.topnav.is-home:not(.scrolled) {
+  --ink: #efe6d2; --ink-2: #efe6d2; --ink-3: #efe6d2; --line: rgba(239, 230, 210, 0.35); --line-strong: #efe6d2;
+  --surface: transparent; --surface-2: rgba(239, 230, 210, 0.14); --bg: #a93a26; background: transparent; border-bottom-color: rgba(239, 230, 210, 0.45);
+}
+.topnav.is-home:not(.scrolled) .brand-mark { background: #efe6d2; }
+.topnav.is-home:not(.scrolled) .brand-mark::after { border-color: #a93a26; }
+.topnav.is-home:not(.scrolled) .modeswitch button[aria-pressed="true"] { background: #efe6d2; color: #14110f; }

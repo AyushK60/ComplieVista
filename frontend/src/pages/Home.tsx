@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Capabilities, Health } from "../api";
-import SpecimenHero from "../components/hero/SpecimenHero";
+import TitleSequence from "../components/hero/TitleSequence";
+import { AstFigure, LowerFigure, RunFigure } from "../components/figures/Figures";
 
 /**
  * Landing page. One real figure up top (the hero), then three short, quiet sections:
@@ -17,12 +18,12 @@ const INSPECT: Chapter[] = [
   { n: "01", title: "Tokens", text: "The exact pieces the lexer produces, each with its kind and source position.",
     src: "/media/tokens.jpg", w: 966, h: 163, alt: "Python source line 9 to 11 split into tokens: def, accumulate, parentheses, names and numbers, each in its own box.",
     cap: "Real output · PY-02 · CPython tokenize" },
-  { n: "02", title: "Syntax trees", text: "The parser's tree, laid out so you can zoom, collapse and click a node back to its line.",
+  { n: "02", title: "Syntax trees", text: "Clang's own tree for one function: pick a line and the nodes it became light up.",
     src: "/media/ast.jpg", w: 1012, h: 829, alt: "A syntax tree graph: a FunctionDef node named accumulate selected, with its children Assign, For and Return on the right.",
     cap: "Real output · PY-02 · ast.parse" },
   { n: "03", title: "IR and bytecode", text: "LLVM IR and assembly for C, code objects and bytecode for Python, linked to your source lines.",
     src: "/media/bytecode.jpg", w: 958, h: 481, alt: "Python bytecode instructions grouped by source line, with jump arcs on the left.",
-    cap: "Real output · PY-02 · dis (C shows IR and assembly the same way)" },
+    cap: "Real output · PY-02 · dis" },
   { n: "04", title: "Recorded runs", text: "A sandboxed run replayed event by event: call stack, variables, memory and output.",
     src: "/media/run-light.jpg", dark: "/media/run-dark.jpg", w: 1000, h: 470, alt: "The execution observatory: a call structure with the module and accumulate calls, a stack scene and a replay bar.",
     cap: "Real output · PY-02 · sys.settrace in a sandbox" },
@@ -36,16 +37,12 @@ export default function Home() {
     api.capabilities().then(setTools).catch(() => setTools(null));
   }, []);
 
-  // sections fade up once as they enter the view (honours reduced motion through the base rule)
+  // the reels run: one frame lights at a time, like a projector gate moving along the strip
+  const [tick, setTick] = useState(0);
   useEffect(() => {
-    if (!("IntersectionObserver" in window)) return;
-    const els = Array.from(document.querySelectorAll<HTMLElement>(".landing .reveal"));
-    els.forEach((e) => e.classList.add("rv-hide"));
-    const io = new IntersectionObserver((entries) => entries.forEach((en) => {
-      if (en.isIntersecting) { en.target.classList.remove("rv-hide"); io.unobserve(en.target); }
-    }), { threshold: 0.12 });
-    els.forEach((e) => io.observe(e));
-    return () => io.disconnect();
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => setTick((n) => n + 1), 1300);
+    return () => clearInterval(t);
   }, []);
 
   const toolLine = useMemo(() => {
@@ -56,65 +53,69 @@ export default function Home() {
 
   return (
     <main className="landing">
-      <SpecimenHero />
-
-      <div className="builton" role="note">
-        <span className="label">Built on</span>
-        <span>Clang/LLVM 18</span><span>CPython 3.12</span><span>Docker sandbox</span><span>SHA-256 per stage</span>
-      </div>
-
-      <section className="proof" aria-label="the numbers">
-        <dl>
-          <div><dt>76 / 76</dt><dd>metrics match an independent oracle</dd></div>
-          <div><dt>20</dt><dd>real programs to take apart</dd></div>
-          <div><dt>0</dt><dd>bytes leave your machine</dd></div>
-        </dl>
-      </section>
-
-      <section className="sec reveal" aria-labelledby="sec-roads">
-        <p className="sec-no">01 — The pipelines</p>
-        <h2 id="sec-roads">Compiled or interpreted, your code is transformed before it runs.</h2>
-        <dl className="roads">
-          <div>
-            <dt>C <span>Clang/LLVM 18</span></dt>
-            <dd>{C_STAGES.map((s, i) => <span key={s}>{i > 0 && <i aria-hidden>→</i>}{s}</span>)}</dd>
+      <header className="hero">
+        <div className="hero-copy">
+          <h1><span className="hl"><span>Your program,</span></span><span className="hl"><span>cut open.</span></span></h1>
+          <p className="hero-lede">
+            See how code becomes execution. Real Clang/LLVM and CPython output for C and Python you bring,
+            stage by stage, nothing simulated.
+          </p>
+          <div className="hero-ctas">
+            <Link to="/demos" className="btn primary big">Explore the demos</Link>
+            <Link to="/workspace" className="btn big">Paste your own code</Link>
           </div>
-          <div>
-            <dt>Python <span>CPython 3.12</span></dt>
-            <dd>{PY_STAGES.map((s, i) => <span key={s}>{i > 0 && <i aria-hidden>→</i>}{s}</span>)}</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section className="sec" aria-labelledby="sec-inspect">
-        <div className="sec-head">
-          <p className="sec-no">02 — What you can inspect</p>
-          <h2 id="sec-inspect">Each stage is the tool's own output, never a redrawing.</h2>
         </div>
-        <ol className="inspect">
-          {INSPECT.map((c) => (
-            <li key={c.n} className="reveal">
-              <div className="ch-text">
-                <span className="ins-n">{c.n}</span><h3>{c.title}</h3><p>{c.text}</p>
-              </div>
-              <figure className="ch-fig">
-                <img className={c.dark ? "fig-light" : undefined} src={c.src} width={c.w} height={c.h} alt={c.alt} loading="lazy" decoding="async" />
-                {c.dark && <img className="fig-dark" src={c.dark} width={c.w} height={c.h} alt="" aria-hidden loading="lazy" decoding="async" />}
-                <figcaption>{c.cap}</figcaption>
-              </figure>
-            </li>
-          ))}
-        </ol>
+        <TitleSequence />
+        <p className="credits" role="note">
+          <span>Clang/LLVM 18</span><span>CPython 3.12</span><span>Docker sandbox</span><span>SHA-256 on every stage</span>
+        </p>
+      </header>
+
+      <section className="strips" aria-labelledby="sec-roads">
+        <h2 id="sec-roads">Compiled or interpreted, your code is transformed before it runs.</h2>
+        {[["C", "Clang/LLVM 18", C_STAGES], ["Python", "CPython 3.12", PY_STAGES]].map(([name, tool, stages]) => (
+          <div className="strip" key={name as string}>
+            <p className="strip-h"><b>{name as string}</b> <span>{tool as string}</span></p>
+            <ol className="frames">
+              {(stages as string[]).map((st, i) => <li key={st} data-on={tick % (stages as string[]).length === i + (name === "C" ? 0 : 0) ? "" : undefined}><span>{st}</span></li>)}
+            </ol>
+          </div>
+        ))}
       </section>
 
-      <section className="sec reveal" aria-labelledby="sec-start">
-        <p className="sec-no">03 — Start</p>
+      <section className="cards" aria-labelledby="sec-inspect">
+        <h2 id="sec-inspect" className="sr-only">What you can inspect</h2>
+        {INSPECT.map((c, i) => (
+          <article key={c.n} id={`stage-${c.n}`} className="card" data-wide={c.n === "02" ? "" : undefined} data-tone={["cream", "ink", "cobalt", "saffron"][i % 4]}>
+            <div className="card-in">
+              <div className="ch-text">
+                <h3>{c.title}</h3>
+                <p>{c.text}</p>
+              </div>
+              {c.n === "02" ? <AstFigure /> : c.n === "03" ? <LowerFigure /> : c.n === "04" ? <RunFigure /> : (
+              <figure className="ch-fig">
+                <img src={c.src} width={c.w} height={c.h} alt={c.alt} loading="lazy" decoding="async" />
+                <figcaption>{c.cap}</figcaption>
+              </figure>)}
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="roll" aria-label="what was measured">
+        <p>
+          <b>76 of 76</b> metrics match an independent oracle. <b>Twenty</b> real programs to take apart.
+          <b> Zero</b> bytes leave your machine.
+        </p>
+      </section>
+
+      <section className="sec" aria-labelledby="sec-start">
         <h2 id="sec-start">Pick a way in.</h2>
         <ul className="start start-row">
-          <li><Link to="/demos"><span className="st-t">Demo Library</span><span className="st-d">Twenty curated programs, each with a guided path through real artifacts.</span><span className="st-a" aria-hidden>→</span></Link></li>
-          <li><Link to="/workspace"><span className="st-t">Workspace</span><span className="st-d">Paste code, upload files or import a public repository as a read-only snapshot.</span><span className="st-a" aria-hidden>→</span></Link></li>
-          <li><Link to="/compare"><span className="st-t">Compare</span><span className="st-d">The same idea in C and in Python, run through both pipelines side by side.</span><span className="st-a" aria-hidden>→</span></Link></li>
-          <li><Link to="/about"><span className="st-t">Method and limits</span><span className="st-d">How the honesty contract works, what was measured, and what it does not do.</span><span className="st-a" aria-hidden>→</span></Link></li>
+          <li><Link to="/demos"><span className="st-t">Demo Library</span><span className="st-d">Twenty curated programs, each with a guided path through real artifacts.</span><svg className="st-a" viewBox="0 0 24 24" aria-hidden><path d="M3 12h17M13 5l7 7-7 7" /></svg></Link></li>
+          <li><Link to="/workspace"><span className="st-t">Workspace</span><span className="st-d">Paste code, upload files or import a public repository as a read-only snapshot.</span><svg className="st-a" viewBox="0 0 24 24" aria-hidden><path d="M3 12h17M13 5l7 7-7 7" /></svg></Link></li>
+          <li><Link to="/compare"><span className="st-t">Compare</span><span className="st-d">The same idea in C and in Python, run through both pipelines side by side.</span><svg className="st-a" viewBox="0 0 24 24" aria-hidden><path d="M3 12h17M13 5l7 7-7 7" /></svg></Link></li>
+          <li><Link to="/about"><span className="st-t">Method and limits</span><span className="st-d">How the honesty contract works, what was measured, and what it does not do.</span><svg className="st-a" viewBox="0 0 24 24" aria-hidden><path d="M3 12h17M13 5l7 7-7 7" /></svg></Link></li>
         </ul>
       </section>
 

@@ -1,0 +1,70 @@
+{
+  "provenance": {
+    "tool": "clang version 18.1.3 (Ubuntu 1ubuntu1)",
+    "source": "demos/m0/c_fixture.c line 8",
+    "invocations": "clang -Xclang -dump-tokens; clang -Xclang -ast-dump=json",
+    "recorded": "evidence/m0/c/tokens/tokens.json, evidence/m0/c/ast/ast.json",
+    "source_sha256": "b2fcbfe2b3181e468b60dcb7edece0c41f5b721475e99e239982df84e6e1fa19",
+    "note": "The recorded token list for this line has these five tokens, then the macro M0_SCALE (defined on line 5) expands; the AST records the expansion as IntegerLiteral 3."
+  },
+  "line": "int scaled = base * M0_SCALE;",
+  "tokens": [
+    {
+      "kind": "int",
+      "text": "int"
+    },
+    {
+      "kind": "identifier",
+      "text": "scaled"
+    },
+    {
+      "kind": "equal",
+      "text": "="
+    },
+    {
+      "kind": "identifier",
+      "text": "base"
+    },
+    {
+      "kind": "star",
+      "text": "*"
+    }
+  ],
+  "ast": [
+    {
+      "id": "d",
+      "kind": "DeclStmt",
+      "parent": null
+    },
+    {
+      "id": "v",
+      "kind": "VarDecl",
+      "name": "scaled",
+      "parent": "d"
+    },
+    {
+      "id": "b",
+      "kind": "BinaryOperator",
+      "name": "*",
+      "parent": "v"
+    },
+    {
+      "id": "c",
+      "kind": "ImplicitCastExpr",
+      "name": "LValueToRValue",
+      "parent": "b"
+    },
+    {
+      "id": "r",
+      "kind": "DeclRefExpr",
+      "name": "base",
+      "parent": "c"
+    },
+    {
+      "id": "l",
+      "kind": "IntegerLiteral",
+      "name": "3",
+      "parent": "b"
+    }
+  ]
+}

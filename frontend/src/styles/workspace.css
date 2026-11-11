@@ -1,0 +1,59 @@
+/* CompileVista — Workspace and Compare in the title-sequence world: the journey stepper reads like
+ * numbered film frames, and Compare pairs show the two real frames side by side. */
+button.jstage .jstage-dot { border-radius: 0; width: 22px; height: 22px; border: 2px solid var(--ink); background: transparent; color: var(--ink); font-weight: 800; }
+button.jstage.ok .jstage-dot { background: #d9a02a; border-color: #14110f; color: #14110f; }
+button.jstage.partial .jstage-dot { background: transparent; border: 2px dashed #d9a02a; color: #d9a02a; }
+button.jstage.active .jstage-dot { background: var(--signal); border-color: #14110f; color: #14110f; }
+button.jstage.active { background: transparent; box-shadow: inset 0 -3px 0 var(--signal); border-radius: 0; }
+.jstage-link::after { height: 2px; width: 16px; }
+.journey-phase-label { font-family: var(--font-ui); font-weight: 700; letter-spacing: 0.08em; }
+.obs-title h1, .dl-head h1, .cmp-head h1, .about-head h1 { text-transform: none; }
+.cmp-head h1, .about-head h1 { font-family: var(--font-title); font-weight: 900; text-transform: uppercase; font-size: clamp(2.6rem, 1rem + 5vw, 4.8rem); line-height: 0.9; max-width: 16ch; }
+
+/* Compare: each pair is a short film of two frames */
+.paircard.panel { background: #14110f; color: #efe6d2; border: 0; border-radius: 0; padding: 18px 16px; text-align: left; display: grid; gap: 10px; position: relative; }
+.paircard.panel.active { outline: 3px solid #d9a02a; outline-offset: -3px; }
+.paircard.panel h3 { color: #efe6d2; font: 800 1.15rem/1.2 var(--font-ui); }
+.paircard.panel .muted, .paircard.panel code { color: #cfc4aa; }
+.paircard.panel > code { font: 900 1.9rem/1 var(--font-title); color: #d98a70; text-transform: uppercase; }
+.pc-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pc-pair .dth-code { font-size: 0.62rem; }
+.paircard.panel .dc-open { color: #d9a02a; }
+.paircard.panel::before, .paircard.panel::after { content: ""; position: absolute; left: 0; right: 0; height: 7px; opacity: 0.8; background: repeating-linear-gradient(90deg, transparent 0 9px, #efe6d2 9px 22px); animation: reel-run 3.4s linear infinite; }
+.paircard.panel::before { top: 4px; } .paircard.panel::after { bottom: 4px; }
+@media (max-width: 640px) { .pc-pair { grid-template-columns: 1fr; } }
+.cmp-pairs { grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 22px; }
+.compare, .paircard { --ink-b: #14110f; --cream: #efe6d2; --saffron: #d9a02a; --brick: #a93a26; --cobalt: #2c3d8f; --acc: #d98a70; }
+.cmp-anchor { scroll-margin-top: calc(var(--bar-h) + 12px); }
+.cmp-progress { position: sticky; top: calc(var(--bar-h) + 8px); z-index: 5; padding: 12px 16px; background: #14110f; color: #efe6d2; border: 2px solid #d9a02a; font: 600 var(--fs-body)/1.4 var(--font-ui); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cmp-progress .muted { color: #cfc4aa; font-weight: 500; }
+
+/* ——— the rest of the observatory: flat plates, square marks, one saffron highlight ——— */
+.obs-app .panel, .walkthrough .panel, .demo-detail .panel, .about .panel, .errcard.panel, .rail.panel {
+  border: 2px solid var(--ink); border-radius: 0; background: var(--surface); box-shadow: none;
+}
+.obs-app .panel .panel, .walkthrough .panel .panel { border: 0; }
+.panel-h, .wt-flow .panel-h, .wt-stack .panel-h, .wt-vars .panel-h, .wt-out .panel-h {
+  font-family: var(--font-ui); font-weight: 800; font-size: var(--fs-micro); letter-spacing: 0.1em; text-transform: uppercase;
+  background: transparent; color: var(--ink); border-bottom: 2px solid var(--line); padding: 8px 14px;
+}
+.panel-h .muted, .panel-h span { color: inherit; opacity: 0.8; }
+.badge, .chip, .langbadge, .conceptchip, .st { border-radius: 0; }
+.badge.ok { background: #d9a02a; color: #14110f; border-color: #14110f; }
+.badge.partial, .badge.derived { background: transparent; border-style: dashed; }
+.wt-flowline { border-radius: 0; }
+.wt-flowline.active { background: rgba(217, 160, 42, 0.28); box-shadow: inset 4px 0 0 var(--signal); }
+.wt-frame { border-radius: 0; border-width: 2px; }
+.wt-frame.top { border-color: #d9a02a; background: rgba(217, 160, 42, 0.18); }
+.wt-controls button { border-radius: 0; }
+.wt-controls input[type="range"], .fg-scrub input { accent-color: var(--signal); }
+.wt-controls .play, .wt-controls button.primary { background: var(--signal); color: #14110f; border-color: #14110f; }
+.wt-outbody { border-radius: 0; background: #14110f; color: #efe6d2; }
+.obs-app .obs-viewtabs button.active, .obs-app .tabs button[aria-selected="true"] { box-shadow: inset 0 -3px 0 var(--signal); }
+button.btn, .btn { border-radius: 0; }
+.btn.primary { color: #14110f; border: 2px solid #14110f; font-weight: 800; }
+html[data-theme="dark"] .btn.primary { border-color: var(--signal); }
+
+/* About */
+.about-head h1 { margin-bottom: var(--sp-4); }
+.about h2 { font-family: var(--font-title); font-weight: 900; text-transform: uppercase; letter-spacing: 0; font-size: clamp(1.6rem, 1rem + 1.6vw, 2.4rem); line-height: 1; }

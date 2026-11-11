@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DemoEntry, DemoRunResult, demos, errorFixtures } from "../api";
 import { Button, EmptyState, Skeleton } from "../ui";
-import Specimen from "../components/Specimen";
+import DemoThumb from "../components/DemoThumb";
 import { loadRecent, recentUrl } from "../lib/recent";
 import { prefetch } from "../lib/prefetch";
 
@@ -28,6 +28,12 @@ const DIFF_TIER: Record<string, string> = {
 const tier = (d: string) => DIFF_TIER[d] ?? d;
 /** concepts used by only one demo are tucked behind a toggle to keep the filter row scannable */
 const MIN_SHARED_CONCEPT = 2;
+
+function chunk<T>(xs: T[], n: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < xs.length; i += n) out.push(xs.slice(i, i + n));
+  return out;
+}
 
 function demoLang(d: DemoEntry): Lang {
   return (d.id.startsWith("PY-") || d.id.endsWith("-PY")) ? "python" : "c";
@@ -105,7 +111,7 @@ export default function DemoLibrary() {
   const groups: Array<[string, string, DemoEntry[]]> = [
     ["Explore Python", "Five programs interpreted by CPython 3.12 — from fundamentals to recursion, closures and the runtime itself.", filtered.filter((d) => demoLang(d) === "python" && d.group === "A")],
     ["Explore C", "Five programs compiled with Clang/LLVM 18 — memory you manage yourself, optimization you can watch happen.", filtered.filter((d) => demoLang(d) === "c" && d.group === "B")],
-    ["Compare both languages", "Matched pairs: the same problem taken down both pipelines, each stage synchronized by concept — never pretended equivalent.", filtered.filter((d) => d.group === "C")],
+    ["Compare both languages", "Matched pairs: the same problem taken down both pipelines, each stage synchronized by concept — never pretended equivalent.", filtered.filter((d) => d.group === "C").sort((a, b) => a.id.localeCompare(b.id))],
   ];
 
   const launch = async (d: DemoEntry, mode: "analyze" | "run" | "watch") => {
@@ -217,7 +223,6 @@ export default function DemoLibrary() {
   return (
     <main className="demolib">
       <div className="dl-head">
-        <p className="dl-eyebrow">Demo Library</p>
         <h1>Twenty real programs. What do you want to understand?</h1>
         <p className="muted">
           5 Python-only · 5 C-only · 5 matched pairs. Every demo runs through the real
@@ -295,29 +300,33 @@ export default function DemoLibrary() {
         <section key={label} className="dl-group">
           <h2>{label} <span className="chip">{demos_.length}</span></h2>
           <p className="dl-grouplede">{lede}</p>
-          <div className="dl-grid">
-            {demos_.map((d) => (
-              <button key={d.id} className="democard panel" onClick={() => setOpenId(d.id)}
-                      onMouseEnter={() => prefetch("/workspace")} onFocus={() => prefetch("/workspace")}>
-                <Specimen d={d} />
-                <div className="dc-body">
-                  <div className="dc-top">
+          <div className="dl-reels">
+            {chunk(demos_, label.startsWith("Compare") ? 2 : 3).map((row, ri) => (
+              <div key={ri} className="dl-grid reel" data-n={row.length} data-pair={label.startsWith("Compare") ? "" : undefined}>
+                {row.map((d) => (
+                <button key={d.id} className="democard panel frame" data-lang={d.group === "C" ? "pair-" + demoLang(d) : demoLang(d)} onClick={() => setOpenId(d.id)}
+                        onMouseEnter={() => prefetch("/workspace")} onFocus={() => prefetch("/workspace")}>
+                  <div className="fr-top">
+                    <span className="fr-id">{d.id}</span>
                     <span className={`langbadge ${d.group === "C" ? "pair" : demoLang(d)}`}>{demoLang(d)}</span>
-                    <code className="dc-id">{d.id}</code>
                     <span className="spacer" />
                     <span className="chip">{tier(d.difficulty)}</span>
                   </div>
-                  <h3>{d.title}</h3>
-                  <p className="dc-teaches"><b>Teaches:</b> {teaches(d)}</p>
-                  <div className="dc-concepts">
-                    {d.concepts.slice(0, 4).map((c) => <span key={c} className="conceptchip mini">{c}</span>)}
+                  <DemoThumb id={d.id} />
+                  <div className="dc-body">
+                    <h3>{d.title}</h3>
+                    <p className="dc-teaches">{teaches(d)}</p>
+                    <div className="dc-concepts">
+                      {d.concepts.slice(0, 4).map((c) => <span key={c} className="conceptchip mini">{c}</span>)}
+                    </div>
+                    <div className="dc-stages tech-only" aria-label="available stages">
+                      {stageChips(d).slice(0, 7).map((s) => <span key={s} className="st">{s}</span>)}
+                    </div>
+                    <span className="dc-open">Open this frame →</span>
                   </div>
-                  <div className="dc-stages tech-only" aria-label="available stages">
-                    {stageChips(d).slice(0, 7).map((s) => <span key={s} className="st">{s}</span>)}
-                  </div>
-                  <span className="dc-open">Explore →</span>
-                </div>
-              </button>
+                </button>
+                ))}
+              </div>
             ))}
           </div>
         </section>

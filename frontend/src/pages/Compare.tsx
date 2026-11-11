@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PairSpec, api, experiments, pairs } from "../api";
-import Specimen from "../components/Specimen";
+import DemoThumb, { hasThumb } from "../components/DemoThumb";
 
 /**
  * Dual-Language Observatory — the two pipelines shown as what they are: two
@@ -13,6 +13,7 @@ import Specimen from "../components/Specimen";
  * real artifacts on its own terms.
  */
 
+const TERMINAL = ["COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "BLOCKED"];
 const C_STAGES = ["Source", "Tokens", "AST", "LLVM IR", "Assembly", "Runtime"];
 const PY_STAGES = ["Source", "Tokens", "AST", "Bytecode", "Interpreter"];
 
@@ -42,6 +43,23 @@ export default function Compare() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deepLinks, setDeepLinks] = useState<{ c: string | null; py: string | null }>({ c: null, py: null });
+  const [elapsed, setElapsed] = useState(0);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
+  // a comparison is in flight from the click until the experiment reaches a final state; cards stay
+  // locked for all of it, so repeated clicks cannot pile more work onto the single worker
+  const busy = status !== null && !TERMINAL.includes(status);
+
+  useEffect(() => {
+    if (!busy) return;
+    const t0 = Date.now();
+    setElapsed(0);
+    const t = setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [busy]);
+  // bring the comparison into view as soon as it starts, and again when its result arrives
+  useEffect(() => {
+    if (selected) resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selected, result]);
 
   if (specs === null) {
     pairs.list().then((p) => setSpecs(p.pairs)).catch((e) => setError(String(e)));
@@ -76,7 +94,7 @@ export default function Compare() {
       for (let i = 0; i < 300; i++) {
         const e = await experiments.get(id);
         setStatus(e.status);
-        if (["COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "BLOCKED"].includes(e.status)) {
+        if (TERMINAL.includes(e.status)) {
           setResult((e.stages.find((s) => s.stage === "compare")?.result ?? {}) as Record<string, unknown>);
           return;
         }
@@ -121,7 +139,6 @@ export default function Compare() {
   return (
     <main className="compare">
       <div className="cmp-head">
-        <p className="dl-eyebrow">Dual-Language Observatory</p>
         <h1>The same idea, two machines.</h1>
         <p className="muted">
           Two <b>independent</b> pipelines — Clang/LLVM 18 and CPython 3.12 — synchronized by
@@ -133,21 +150,36 @@ export default function Compare() {
       </div>
 
       <div className="cmp-pairs">
-        {specs.map((p) => (
+        {specs.map((p, pi) => (
           <button key={p.id} className={"paircard panel" + (selected?.id === p.id ? " active" : "")}
-                  onClick={() => runPair(p)} disabled={status === "running"}>
-            <Specimen d={{ id: p.id.toUpperCase(), concepts: [p.concept] }} />
+                  onClick={() => runPair(p)} disabled={busy}>
+            {hasThumb(`PAIR-0${pi + 1}-C`) && (
+              <div className="pc-pair">
+                <DemoThumb id={`PAIR-0${pi + 1}-C`} />
+                <DemoThumb id={`PAIR-0${pi + 1}-PY`} />
+              </div>
+            )}
             <code>{p.id}</code>
             <h3>{p.concept}</h3>
             <p className="muted">expected output: <code>{p.expected_stdout}</code></p>
-            <span className="dc-open">{status === "running" && selected?.id === p.id ? "running both pipelines…" : "Run both pipelines →"}</span>
+            <span className="dc-open">{busy && selected?.id === p.id ? "running both pipelines…" : "Run both pipelines →"}</span>
           </button>
         ))}
       </div>
 
+      <div ref={resultsRef} className="cmp-anchor" />
       {error && <p className="err" role="alert">{error}</p>}
-      {status && status !== "COMPLETED" && (
-        <p className="notice"><span className="spinner" /> experiment: {status}…</p>
+      {busy && (
+        <p className="notice cmp-progress" role="status">
+          <span className="spinner" />
+          {status === "QUEUED" || status === "running"
+            ? " Preparing both sides and queuing the comparison"
+            : " Running both pipelines in sandboxed containers"}
+          {" "}· {elapsed}s <span className="muted">(usually 20 to 90 s; the page fills in below as soon as it finishes)</span>
+        </p>
+      )}
+      {!busy && status && status !== "COMPLETED" && (
+        <p className="err" role="alert">The experiment ended as {status}. Nothing was compared; try the pair again.</p>
       )}
 
       {selected && (

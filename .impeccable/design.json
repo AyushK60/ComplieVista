@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-11T00:00:00Z",
+  "title": "Design System: CompileVista",
+  "extensions": {
+    "colorMeta": {
+      "vermilion": { "role": "primary", "displayName": "Vermilion", "canonical": "#ff3d17", "tonalRamp": ["#3d0f06", "#6b1a0a", "#9c2610", "#cc3014", "#ff3d17", "#ff7655", "#ffa790", "#ffd6cb"] },
+      "cobalt": { "role": "secondary", "displayName": "Cobalt", "canonical": "#1f3fff", "tonalRamp": ["#0a1347", "#101f80", "#162ec0", "#1f3fff", "#5468ff", "#8895ff", "#bcc4ff", "#e3e6ff"] },
+      "saffron": { "role": "secondary", "displayName": "Saffron", "canonical": "#ffb81c", "tonalRamp": ["#4a3200", "#7a5300", "#a87000", "#d99600", "#ffb81c", "#ffcc5c", "#ffdf99", "#fff0cf"] },
+      "ink": { "role": "neutral", "displayName": "Warm Ink", "canonical": "#100d0b", "tonalRamp": ["#100d0b", "#1f1a15", "#2a231d", "#433c32", "#5a5246", "#8a8070", "#c9bfa9", "#f3ecdc"] },
+      "cream": { "role": "neutral", "displayName": "Cream Stock", "canonical": "#f3ecdc", "tonalRamp": ["#5a5246", "#8a8070", "#b3a78e", "#d2c6aa", "#e8dfc8", "#f3ecdc", "#faf5e8", "#fffcf4"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Title Card", "purpose": "Stage card and closing titles, uppercase, weight 900." },
+      "headline": { "displayName": "Section Heading", "purpose": "Landing section headings." },
+      "title": { "displayName": "Panel Title", "purpose": "App panel and stage titles." },
+      "body": { "displayName": "Body", "purpose": "Running text in the app." },
+      "lead": { "displayName": "Lead", "purpose": "Hero and card copy." },
+      "label": { "displayName": "Label", "purpose": "Buttons, tabs, chips." },
+      "code": { "displayName": "Artifact", "purpose": "Tokens, node labels, credits, hashes." }
+    },
+    "shadows": [
+      { "name": "shadow-1", "value": "0 1px 0 rgba(16,13,11,0.06)", "purpose": "App hairline lift; landing uses none." },
+      { "name": "shadow-2", "value": "0 1px 2px rgba(16,13,11,0.1), 0 14px 32px -8px rgba(16,13,11,0.22)", "purpose": "Floating app layers only (menus, palette)." }
+    ],
+    "motion": [
+      { "name": "ease", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Every transition and entrance." },
+      { "name": "t-fast", "value": "150ms", "purpose": "Hover colour and border changes." },
+      { "name": "t-med", "value": "240ms", "purpose": "Poster row padding nudge." },
+      { "name": "t-slow", "value": "700ms", "purpose": "Fade-up entrances." },
+      { "name": "t-cinema", "value": "1100ms", "purpose": "Title sequence step timing." },
+      { "name": "title-rise", "value": "900ms translateY(104%) to 0", "purpose": "Hero headline lines rise from a mask." },
+      { "name": "wipe", "value": "clip-path inset(22% 0 0 0) to inset(0), view() entry 0-70%", "purpose": "Stage cards wipe over the previous card." }
+    ],
+    "breakpoints": [
+      { "name": "wide", "value": "1080px" },
+      { "name": "stack", "value": "960px" },
+      { "name": "narrow", "value": "760px" },
+      { "name": "phone", "value": "560px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Hero Primary Button",
+      "kind": "button",
+      "refersTo": "button-hero-primary",
+      "description": "Primary action on a vermilion field; flips to cobalt on hover.",
+      "html": "<button class=\"ds-btn-hero\">Explore the demos</button>",
+      "css": ".ds-btn-hero{background:#100d0b;color:#f3ecdc;border:2px solid #100d0b;border-radius:2px;min-height:48px;padding:0 24px;font:700 12.5px 'Archivo Variable',Archivo,Arial,sans-serif;cursor:pointer;transition:background-color 150ms,border-color 150ms,color 150ms}.ds-btn-hero:hover{background:#1f3fff;border-color:#1f3fff;color:#fff}.ds-btn-hero:focus-visible{outline:2px solid #100d0b;outline-offset:3px}"
+    },
+    {
+      "name": "Hero Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined companion action on a vermilion field.",
+      "html": "<button class=\"ds-btn-outline\">Paste your own code</button>",
+      "css": ".ds-btn-outline{background:transparent;color:#100d0b;border:2px solid #100d0b;border-radius:2px;min-height:48px;padding:0 24px;font:700 12.5px 'Archivo Variable',Archivo,Arial,sans-serif;cursor:pointer;transition:background-color 150ms}.ds-btn-outline:hover{background:#f3ecdc}.ds-btn-outline:focus-visible{outline:2px solid #100d0b;outline-offset:3px}"
+    },
+    {
+      "name": "App Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one signal action inside the app.",
+      "html": "<button class=\"ds-btn-app\">Run</button>",
+      "css": ".ds-btn-app{background:#ff3d17;border:1px solid #ff3d17;color:#100d0b;border-radius:2px;min-height:32px;padding:0 14px;font:600 12.5px 'Archivo Variable',Archivo,Arial,sans-serif;cursor:pointer;transition:background-color 150ms,transform 150ms}.ds-btn-app:hover{background:color-mix(in srgb,#ff3d17 88%,#fff);transform:translateY(-1px)}.ds-btn-app:active{transform:translateY(1px)}.ds-btn-app:focus-visible{outline:2px solid #b3240a;outline-offset:2px}"
+    },
+    {
+      "name": "Token Block",
+      "kind": "custom",
+      "refersTo": "token-block",
+      "description": "A cut-paper plate standing for one real token or node, tilted a degree or two.",
+      "html": "<span class=\"ds-token\">BinaryOperator</span>",
+      "css": ".ds-token{display:inline-grid;place-items:center;min-height:2.6rem;padding:6px 10px;background:#ffb81c;color:#100d0b;border:2px solid #100d0b;transform:rotate(-1.6deg);font:600 1rem/1.15 'IBM Plex Mono',ui-monospace,Consolas,monospace}"
+    },
+    {
+      "name": "Implied Node",
+      "kind": "custom",
+      "refersTo": "token-block",
+      "description": "A syntax-tree node with no token of its own: vermilion with a dashed border.",
+      "html": "<span class=\"ds-implied\">ImplicitCastExpr</span>",
+      "css": ".ds-implied{display:inline-grid;place-items:center;min-height:2.6rem;padding:6px 10px;background:#ff3d17;color:#100d0b;border:2px dashed #100d0b;transform:rotate(1.4deg);font:600 1rem/1.15 'IBM Plex Mono',ui-monospace,Consolas,monospace}"
+    },
+    {
+      "name": "Stage Title Card",
+      "kind": "card",
+      "refersTo": "title-card-cobalt",
+      "description": "Full-bleed flat field with a display-face title and one sentence.",
+      "html": "<section class=\"ds-card\"><h3>Syntax tree</h3><p>Clang's own AST for the line, drawn as it was recorded.</p></section>",
+      "css": ".ds-card{background:#1f3fff;color:#fff;padding:48px 32px}.ds-card h3{margin:0 0 24px;font:900 4rem/0.88 'Big Shoulders Display Variable','Archivo Narrow',Impact,sans-serif;text-transform:uppercase}.ds-card p{margin:0;max-width:34ch;font:500 1.15rem/1.5 'Archivo Variable',Arial,sans-serif}"
+    },
+    {
+      "name": "Poster Row",
+      "kind": "nav",
+      "refersTo": "title-card-cobalt",
+      "description": "A way in: 3px ink rules, display title, description; floods vermilion on hover.",
+      "html": "<a class=\"ds-row\" href=\"#\"><span class=\"t\">Demo library</span><span class=\"d\">Twenty real programs.</span></a>",
+      "css": ".ds-row{display:grid;grid-template-columns:5fr 6fr;gap:24px;align-items:center;padding:24px 12px;border-top:3px solid #100d0b;border-bottom:3px solid #100d0b;color:#100d0b;text-decoration:none;background:#f3ecdc;transition:background-color 150ms,padding 240ms}.ds-row:hover{background:#ff3d17;padding-left:24px}.ds-row:focus-visible{outline:2px solid #100d0b;outline-offset:-4px}.ds-row .t{font:900 2.6rem/0.95 'Big Shoulders Display Variable','Archivo Narrow',Impact,sans-serif;text-transform:uppercase}.ds-row .d{font:400 15.5px/1.5 'Archivo Variable',Arial,sans-serif}"
+    },
+    {
+      "name": "Honesty Badge",
+      "kind": "chip",
+      "refersTo": "badge-honesty",
+      "description": "Status as text plus colour: exact, derived, blocked, unavailable.",
+      "html": "<span class=\"ds-badge\">exact</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;padding:1px 7px;border:1px solid #165c3e;border-radius:2px;background:rgba(22,92,62,0.1);color:#165c3e;font:500 10.5px 'IBM Plex Mono',ui-monospace,Consolas,monospace;letter-spacing:0.04em;text-transform:uppercase}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Paper field with a strong 1px line; coral-text outline on focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"Paste C or Python\">",
+      "css": ".ds-input{width:100%;min-height:36px;padding:6px 12px;background:#faf5e8;color:#100d0b;border:1px solid rgba(16,13,11,0.4);border-radius:4px;font:400 14px 'Archivo Variable',Arial,sans-serif;transition:border-color 150ms}.ds-input:hover{border-color:#5a5246}.ds-input:focus{outline:2px solid #b3240a;outline-offset:1px;border-color:#b3240a}.ds-input::placeholder{color:#5a5246}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Title Sequence",
+    "overview": "Compilation is staged as a film title sequence. Each stage of the toolchain is a full-bleed card in one flat, drenched field (vermilion, ink, cream, cobalt, saffron), set in a single heavy condensed grotesque, and the cards wipe over one another as the visitor scrolls. The shapes on screen are never decoration: a coral or saffron block is a real token, a rotated cream plate is a real syntax-tree node, and the 2px-bordered screenshots are real captures of the product's output.\n\nThe landing is loud and poster-like; the application behind it is the same instrument with the lights down. App pages keep the cream paper and warm ink (or warm black in dark theme), reserve vermilion for the single thing you are looking at, and put code and graphs on a warm-black plate in both themes.",
+    "keyCharacteristics": [
+      "Flat drenched colour fields; depth comes from stacking, rotation, and 2-3px ink rules, never from gradients or blur.",
+      "One display face (Big Shoulders Display, weight 900, uppercase, line-height about 0.9) carries every headline.",
+      "Mono is reserved for artifact text: tokens, node labels, tool/version credits, hashes.",
+      "Vermilion is the signal; data hues carry meaning in code and status only.",
+      "Sharp corners (2px to 4px); the only larger radius is 8px on app surfaces."
+    ],
+    "rules": [
+      { "name": "The One Signal Rule", "body": "Vermilion marks what the visitor is looking at or about to act on. In the app it is never a decorative fill.", "section": "colors" },
+      { "name": "The Flat Field Rule", "body": "A surface is one solid colour. If it needs separation, use a 2-3px ink rule, a rotation, or a different field, not a gradient or tint ramp.", "section": "colors" },
+      { "name": "The Real Shape Rule", "body": "A coloured block on the landing must stand for a real token or node from recorded output.", "section": "colors" },
+      { "name": "The Mono Is Evidence Rule", "body": "Mono type appears only for artifact text: source lines, tokens, node and tool names, versions, hashes, captions of real captures.", "section": "typography" },
+      { "name": "The One Face Rule", "body": "Headlines on any surface use the display face at weight 900; do not mix a second display voice.", "section": "typography" },
+      { "name": "The Cut Paper Rule", "body": "Layering is shown with a flat shape, a tilt, and a hard border; never with a blur or glow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do set every headline in the display face at weight 900, uppercase, line-height 0.88-0.95.",
+      "Do give each stage card one solid field and let it wipe over the previous one.",
+      "Do keep vermilion for the active or primary thing; use `vermilion-text` (not the fill colour) for coral text on paper.",
+      "Do make every coloured block on landing correspond to a real token, node, or capture, and label implied nodes with a dashed border.",
+      "Do border cut plates and captures with 2px in the text colour; separate rows with 2-3px ink rules.",
+      "Do put code and graphs on the warm-black plate in both themes, with data hues from the `-l` set.",
+      "Do keep the reduced-motion path static and complete."
+    ],
+    "donts": [
+      "Don't use gradients, glass, blur, or glow on landing surfaces; depth is stacking, tilt, and borders.",
+      "Don't return to the dark dev-tool hero with a screenshot beneath a gradient headline.",
+      "Don't set body or UI text in the display face, or headlines in the grotesque.",
+      "Don't use mono for decoration; it is for artifact text only.",
+      "Don't use `ink-3` for small body text, or vermilion fill colour as text on cream.",
+      "Don't invent a token, node, or capture to fill a plate; show \"unavailable\" instead."
+    ]
+  }
+}
