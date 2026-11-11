@@ -90,7 +90,9 @@ export default function Workspace() {
   // view switch: compilation stages, the recorded run, or the optimization lab —
   // siblings in one viewport-oriented workspace instead of a scrolling page
   const [view, setView] = useState<"compile" | "execution" | "walkthrough" | "optimization">(
-    () => (new URLSearchParams(window.location.search).get("walkthrough") ? "walkthrough"
+    () => (/^(diff|lesson|quiz)$/.test(new URLSearchParams(window.location.search).get("view") ?? "")
+      && new URLSearchParams(window.location.search).get("target") ? "optimization"
+      : new URLSearchParams(window.location.search).get("walkthrough") ? "walkthrough"
       : new URLSearchParams(window.location.search).get("execution") ? "execution" : "compile"));
   const dragRef = useRef<{ startX: number; startW: number } | null>(null);
   const stageSeqRef = useRef(0);

@@ -10,7 +10,7 @@ lesson with Next/Back, a predict-then-reveal quiz scored from the real line map,
 step" (`?view=&line=&step=`), Print/PDF poster styles, and a Teacher toggle in the nav. All text states
 counts from the stored compiler output, never reasons. Verified: `tsc`, vitest (20), `vite build`.
 Live check (manual, Browser pane, C-02 via the real backend, zero console errors): diff, lesson,
-quiz, Teacher toggle and link copy all worked on real -O0/-O2 data. Known gap: a shared link opens the
+quiz, Teacher toggle and link copy all worked on real -O0/-O2 data. Shared links (`?view=`) now open the Optimization lab and reuse the idempotent build (verified live). Earlier gap: a link opened the
 workspace but does not yet jump to the Optimization lab, and the experiment must be rebuilt first.
 No e2e suite covers this yet.
 Not started: new languages, pasted-code execution (stays BLOCKED until the M4 gate), evidence page,

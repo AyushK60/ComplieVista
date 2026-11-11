@@ -76,6 +76,14 @@ export default function OptimizationExplorer({ snapshotId, targetId, language }:
     setArtA(null); setArtB(null); setError(null);
   }, [snapshotId, targetId]);
 
+  // a shared learning link (?view=diff|lesson|quiz): rebuild-or-reuse the -O0/-O1/-O2 experiment
+  // once; the server is idempotent per fingerprint, so this returns the existing result.
+  useEffect(() => {
+    if (/^(diff|lesson|quiz)$/.test(new URLSearchParams(window.location.search).get("view") ?? "")) {
+      void start("opt");
+    }
+  }, [snapshotId, targetId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => { if (optId) poll(optId, setOpt).catch((e) => setError(String(e))); }, [optId, poll]);
   useEffect(() => { if (benchId) poll(benchId, setBench).catch((e) => setError(String(e))); }, [benchId, poll]);
 
