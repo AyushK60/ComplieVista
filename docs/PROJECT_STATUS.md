@@ -23,6 +23,22 @@ behaviour is unchanged). The earlier failures were the Compare job exceeding the
 was busy (a game was using about a quarter of the CPU; per-side run times for the same recursion pair had
 roughly doubled since 14:51). That cause is likely but was not proven by stopping the load.
 
+## Pasted-code execution: verified (11-Nov-2026)
+
+The M4 gate had already passed (`docs/milestones/M4.json` and `M4QA.json`: PASS, 2026-11-01), so pasted code
+is allowed to run in the restricted container; older "BLOCKED" wording in this file was stale. Verified now:
+
+- `backend/tests` m4 execution, m4qa audit, m4qa oracles, m4g0: 27 passed (timeouts remove containers,
+  stdout and trace caps, cancel cleanup, readiness flag).
+- `e2e/paste_exec_check.py` (new, ALL CHECKS PASSED): a pasted Python program and a pasted C program ran
+  through the real API (Python 2 s, 15 trace events; C 9 s, exit code 3 preserved, stdout exact); pasted code
+  is labelled `UNTRUSTED_TARGET`; a pasted probe could not open a network connection or write outside its
+  scratch area; a runaway `while True` loop ended as TIMEOUT after 33 s. Pasted Python needs an
+  `if __name__ == "__main__"` guard and stdlib-only imports to be execution-eligible; C needs `main`.
+- Limits: this is a self-test of the app's own sandbox on this machine, not an independent security review.
+  Execution of GitHub-imported code stays disabled (`EXECUTION_ORIGIN_BLOCKED`); the debugger profile stays
+  limited to curated C fixtures.
+
 ## Fourth pass: learning-layer tests, wording, phone fixes
 
 - `optLearnModel.ts` holds the lesson/quiz logic with 5 unit tests (vitest total 25). A line the compiler
@@ -32,7 +48,7 @@ roughly doubled since 14:51). That cause is likely but was not proven by stoppin
 - Fixed a real 336 px overflow on a phone-width workspace with a run (five view tabs now wrap; the per-line
   comparison table scrolls inside its own region; line-link panes use minmax(0, 1fr)).
 - C demo thumbnails (real token and syntax-node counts) were already in place from an earlier pass.
-- Still out of scope: Rust/Java; pasted-code execution is governed by the M4 gate (see SECURITY.md).
+- Still out of scope: Rust/Java; pasted-code execution was verified afterwards (see below).
 
 ## Third pass: Memory and process view, keyboard audit (frontend + one e2e suite)
 
@@ -60,7 +76,7 @@ roughly doubled since 14:51). That cause is likely but was not proven by stoppin
 - Checked live (Browser pane): evidence table (13 rows), home figure in light and dark, 375 px layout.
   Suites run on this pass: `a11y_suite.py` PASS (16 screens, 0 violations), `layout_widths_suite.py` PASS
   (after fixing a 15 px header overflow at 768 px that the new nav items caused), `m9`, `m8d`, `m8` PASS.
-  Not re-run: m8b, m8c, m10, m11, repair_watch_ast. Not done: Rust/Java; pasted-code execution (BLOCKED until the M4 gate);
+  Not re-run: m8b, m8c, m10, m11, repair_watch_ast. Not done: Rust/Java; pasted-code execution (now verified, see below);
   token cap and launcher were already fixed in ae4f012.
 
 ## Learning layer: -O0 vs -O2 diff, guided lesson, quiz, teacher mode (frontend only)
@@ -74,7 +90,7 @@ Live check (manual, Browser pane, C-02 via the real backend, zero console errors
 quiz, Teacher toggle and link copy all worked on real -O0/-O2 data. Shared links (`?view=`) now open the Optimization lab and reuse the idempotent build (verified live). Earlier gap: a link opened the
 workspace but does not yet jump to the Optimization lab, and the experiment must be rebuilt first.
 No e2e suite covers this yet.
-Not started: new languages, pasted-code execution (stays BLOCKED until the M4 gate), evidence page,
+Not started: new languages, pasted-code execution (now verified, see below), evidence page,
 light/mobile/perf passes.
 
 ## Redesign pass: Petrol & Coral (frontend styles and markup only)
