@@ -80,7 +80,7 @@ export default function Home() {
       <section className="sec" aria-labelledby="sec-start">
         <p className="sec-no">03 — Start</p>
         <h2 id="sec-start">Pick a way in.</h2>
-        <ul className="start">
+        <ul className="start start-row">
           <li><Link to="/demos"><span className="st-t">Demo Library</span><span className="st-d">Twenty curated programs, each with a guided path through real artifacts.</span><span className="st-a" aria-hidden>→</span></Link></li>
           <li><Link to="/workspace"><span className="st-t">Workspace</span><span className="st-d">Paste code, upload files or import a public repository as a read-only snapshot.</span><span className="st-a" aria-hidden>→</span></Link></li>
           <li><Link to="/compare"><span className="st-t">Compare</span><span className="st-d">The same idea in C and in Python, run through both pipelines side by side.</span><span className="st-a" aria-hidden>→</span></Link></li>

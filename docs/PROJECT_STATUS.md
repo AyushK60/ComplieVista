@@ -1,6 +1,17 @@
 # CompileVista Project Status
 
-Updated: 1 November 2026 (post-M8 usability repair: Watch It Work + AST viewing)
+Updated: 11 November 2026 (Petrol & Coral redesign, presentation only)
+
+## Redesign pass: Petrol & Coral (frontend styles and markup only)
+
+New tokens, self-hosted Archivo + IBM Plex Mono, rectangular tags, a petrol hero band with a wide
+live stage, ruled numbered sections, a coral call-to-action band, a two-row phone header, flat graph
+nodes. Backend, routes, IDs, form fields and API calls untouched. Design summary in
+`docs/M8_DESIGN_SYSTEM.md`. Verified on this pass: `tsc`, vitest (20), `vite build`,
+`e2e/a11y_suite.py` (axe, 16 screens, light and dark, PASS after contrast fixes),
+`e2e/layout_widths_suite.py` (7 widths, PASS), `e2e/m8d_journeys.py` and `e2e/m8_journeys.py` (PASS,
+zero console errors). Not re-run: m8b, m8c, m10, m11, repair_watch_ast suites. Evidence screenshots
+from the suites above were regenerated on the new UI.
 
 ## Portfolio pass: foundation, flagship features, research framing
 
