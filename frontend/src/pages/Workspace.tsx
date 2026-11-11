@@ -16,6 +16,7 @@ import ExecutionDock from "../components/observatory/ExecutionDock";
 import ProgramWalkthrough from "../components/observatory/ProgramWalkthrough";
 
 const CodeEditor = lazy(() => import("../components/CodeEditor"));
+const MemoryProcessView = lazy(() => import("../components/observatory/MemoryProcessView"));
 const OptimizationExplorer = lazy(() => import("../components/observatory/OptimizationExplorer"));
 import { SourceSpan } from "../components/observatory/TokenFormation";
 import { Selection, STAGE_BLURBS } from "../components/observatory/types";
@@ -89,10 +90,11 @@ export default function Workspace() {
   const [canvasFull, setCanvasFull] = useState(false);
   // view switch: compilation stages, the recorded run, or the optimization lab —
   // siblings in one viewport-oriented workspace instead of a scrolling page
-  const [view, setView] = useState<"compile" | "execution" | "walkthrough" | "optimization">(
+  const [view, setView] = useState<"compile" | "execution" | "walkthrough" | "memory" | "optimization">(
     () => (/^(diff|lesson|quiz)$/.test(new URLSearchParams(window.location.search).get("view") ?? "")
       && new URLSearchParams(window.location.search).get("target") ? "optimization"
       : new URLSearchParams(window.location.search).get("walkthrough") ? "walkthrough"
+      : new URLSearchParams(window.location.search).get("memory") ? "memory"
       : new URLSearchParams(window.location.search).get("execution") ? "execution" : "compile"));
   const dragRef = useRef<{ startX: number; startW: number } | null>(null);
   const stageSeqRef = useRef(0);
@@ -340,7 +342,7 @@ export default function Workspace() {
   const viewIds = useMemo(() => {
     const v: Array<typeof view> = [];
     if (job?.status === "COMPLETED" || (executionId && !analysisId)) v.push("compile");
-    if (executionId) v.push("execution", "walkthrough");
+    if (executionId) v.push("execution", "walkthrough", "memory");
     if (optPair) v.push("optimization");
     return v;
   }, [job, executionId, analysisId, optPair]);
@@ -349,7 +351,7 @@ export default function Workspace() {
     return !o;
   }), []);
   const VIEW_NAMES: Record<string, string> = { compile: "Compilation journey", execution: "Execution observatory",
-    walkthrough: "Watch it work", optimization: "Optimization lab" };
+    walkthrough: "Watch it work", memory: "Memory and process", optimization: "Optimization lab" };
   const wsCommands = useMemo<Command[]>(() => {
     if (!project || !snapshot) return [];
     const c: Command[] = viewIds.map((v, i) => ({
@@ -536,6 +538,7 @@ export default function Workspace() {
                   { id: "compile", label: "Compilation journey" },
                   { id: "execution", label: "Execution observatory", hidden: !executionId },
                   { id: "walkthrough", label: "Watch it work", hidden: !executionId },
+                  { id: "memory", label: "Memory and process", hidden: !executionId },
                   { id: "optimization", label: "Optimization lab", hidden: !optPair },
                 ]} />
         )}
@@ -701,6 +704,11 @@ export default function Workspace() {
             {view === "walkthrough" && executionId && (
               <ProgramWalkthrough executionId={executionId} sourceText={sourceText}
                                   onSelectLine={(l) => showLine(l, true)} />
+            )}
+            {view === "memory" && executionId && (
+              <Suspense fallback={<p className="muted"><span className="spinner" /> loading…</p>}>
+                <MemoryProcessView executionId={executionId} onSelectLine={(l) => showLine(l, true)} />
+              </Suspense>
             )}
             {view === "optimization" && optPair && (
               <Suspense fallback={<p className="muted"><span className="spinner" /> loading…</p>}>

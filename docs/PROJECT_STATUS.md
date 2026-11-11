@@ -2,6 +2,21 @@
 
 Updated: 11 November 2026 (Petrol & Coral redesign, presentation only)
 
+## Third pass: Memory and process view, keyboard audit (frontend + one e2e suite)
+
+- New workspace tab **Memory and process** (`MemoryProcessView.tsx`, shown once a run exists, deep link
+  `?memory=1`): a scrubbable, playable call-stack and call-tree replay over the recorded trace events
+  (verified on PY-03 recursion: stack grows to depth 8 and unwinds to empty), followed by the existing
+  MemoryScope heap/frame panel and ProcessScope /proc lanes. Replay only; nothing is simulated.
+- `e2e/keyboard_suite.py` (new): Tab audit of home (light and dark), library, evidence, about, workspace,
+  memory view: visible focus indicator on every stop, no trap, on-screen focus, sane order, skip link,
+  plus keyboard-only use of the slider, Play, lesson Next, diff rows and quiz. ALL CHECKS PASSED, zero
+  console errors. Two false alarms during development (smooth scroll in flight, CodeMirror applying its
+  focus class a tick late) were fixed in the test, not the app.
+- Native C tokens card: already present on the home page (C tab of the tokens figure, real
+  `clang -dump-tokens` output), so nothing added.
+- Re-run after these changes: a11y_suite, layout_widths_suite, m8d, m9 all PASS; tsc, vitest (20), build OK.
+
 ## Second enhancement pass: home figure, Evidence page, polish (frontend + one script)
 
 - Home: "What does -O2 delete?" figure from a real C-02 -O0/-O2 build (`scripts/media/build_opt_figure.py`
