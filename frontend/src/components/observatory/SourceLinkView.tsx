@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { experiments, LineMap } from "../../api";
+import OptLearn, { LearnView } from "./OptLearn";
 
 /**
  * Source <-> LLVM IR <-> assembly linking (Stage C).
@@ -14,7 +15,12 @@ export default function SourceLinkView({ experimentId }: { experimentId: string 
   const [map, setMap] = useState<LineMap | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [level, setLevel] = useState<string>("O2");
-  const [line, setLine] = useState<number | null>(null);
+  const qs = new URLSearchParams(window.location.search);
+  const initView = qs.get("view");
+  const [view, setView] = useState<LearnView>(
+    initView === "diff" || initView === "lesson" || initView === "quiz" ? initView : "off");
+  const [line, setLine] = useState<number | null>(() => Number(qs.get("line")) || null);
+  const [focus, setFocus] = useState<"source" | "ir" | "asm" | null>(null);
   const [ir, setIr] = useState<string[] | null>(null);
   const [asm, setAsm] = useState<string[] | null>(null);
   const [onlyLinked, setOnlyLinked] = useState(true);
@@ -102,10 +108,18 @@ export default function SourceLinkView({ experimentId }: { experimentId: string 
           only lines linked to source
         </label>
       </div>
+      <div className="ol-tabs" role="group" aria-label="learning view">
+        {([["off", "Explore links"], ["diff", "-O0 vs -O2 diff"], ["lesson", "Guided lesson"], ["quiz", "Quiz"]] as const).map(([v, l]) => (
+          <button key={v} className="btn" aria-pressed={view === v} onClick={() => setView(v)}>{l}</button>
+        ))}
+        <button className="btn" onClick={() => window.print()} title="Print or save as PDF for lecture slides">Print / PDF</button>
+      </div>
+      <OptLearn experimentId={experimentId} map={map} srcLines={srcLines} view={view}
+                line={line} setLine={setLine} setFocus={setFocus} />
       {lm.artifacts_truncated && (
         <p className="notice">The stored artifact for this level was truncated; links beyond the cut are not shown.</p>
       )}
-      <div className="slv-grid">
+      <div className={"slv-grid" + (focus ? " focus-" + focus : "")}>
         <section aria-label="source">
           <h5>Source</h5>
           <div className="slv-pane" tabIndex={0} role="region" aria-label="source lines">

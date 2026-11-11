@@ -2,6 +2,17 @@
 
 Updated: 11 November 2026 (Petrol & Coral redesign, presentation only)
 
+## Learning layer: -O0 vs -O2 diff, guided lesson, quiz, teacher mode (frontend only)
+
+Added `frontend/src/components/observatory/OptLearn.tsx`, wired into `SourceLinkView`: a per-line
+-O0 vs -O2 diff (asm counts, real instructions side by side), an 8-step source -> IR -> assembly
+lesson with Next/Back, a predict-then-reveal quiz scored from the real line map, "copy link to this
+step" (`?view=&line=&step=`), Print/PDF poster styles, and a Teacher toggle in the nav. All text states
+counts from the stored compiler output, never reasons. Verified: `tsc`, vitest (20), `vite build`.
+NOT verified: no browser run against a live backend/experiment yet; no e2e suite covers it.
+Not started: new languages, pasted-code execution (stays BLOCKED until the M4 gate), evidence page,
+light/mobile/perf passes.
+
 ## Redesign pass: Petrol & Coral (frontend styles and markup only)
 
 New tokens, self-hosted Archivo + IBM Plex Mono, rectangular tags, a petrol hero band with a wide

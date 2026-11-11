@@ -16,3 +16,16 @@ export function useMode(): [Mode, (m: Mode) => void] {
   }, [mode]);
   return [mode, setMode];
 }
+
+/** Teacher mode: large type, technical panels hidden. Presentation-only; persisted;
+ * applied on <html data-teacher>. */
+export function useTeacher(): [boolean, () => void] {
+  const [on, setOn] = useState(() => {
+    try { return localStorage.getItem("cv.teacher") === "on"; } catch { return false; }
+  });
+  useEffect(() => {
+    document.documentElement.dataset.teacher = on ? "on" : "off";
+    try { localStorage.setItem("cv.teacher", on ? "on" : "off"); } catch { /* ignore */ }
+  }, [on]);
+  return [on, () => setOn((v) => !v)];
+}

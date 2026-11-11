@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate, useNavigationType } from "react-router-dom";
-import { useMode } from "../state/mode";
+import { useMode, useTeacher } from "../state/mode";
 import { useTheme } from "../state/theme";
 import { Command, isTypingTarget } from "../state/commands";
 import CommandPalette, { ShortcutsHelp } from "./CommandPalette";
@@ -25,6 +25,7 @@ const LINKS: Array<[string, string]> = [
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useMode();
   const [theme, , toggleTheme] = useTheme();
+  const [teacher, toggleTeacher] = useTeacher();
   const { pathname, key } = useLocation();
   const navType = useNavigationType();
   const navigate = useNavigate();
@@ -127,6 +128,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
                   title={theme === "dark" ? "Light theme" : "Dark theme"}>
             <Icon name={theme === "dark" ? "sun" : "moon"} size={15} />
+          </button>
+          <button className="kbdhint" aria-pressed={teacher} onClick={toggleTeacher}
+                  title="Teacher mode: larger type, technical panels hidden">
+            <span className="kbdtext">Teacher</span>{" "}<span>{teacher ? "on" : "off"}</span>
           </button>
           <div className="modeswitch" role="group" aria-label="experience mode">
             <button aria-pressed={mode === "explore"} onClick={() => setMode("explore")}>Explore</button>

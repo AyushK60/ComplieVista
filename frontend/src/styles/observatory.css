@@ -1020,3 +1020,53 @@ button.jstage.active .jstage-dot { background: var(--teal); }
 
 /* file chips: wrappers must not change the file bar layout */
 .obs-filebar .filechips, .obs-filebar .filechip-item { display: contents; }
+
+/* ---- -O0 vs -O2 learning layer: diff, lesson, quiz ---- */
+.ol-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ol-tabs .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.ol { border: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.ol-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.ol-head h5 { margin: 0; font-size: 14px; }
+.ol-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ol-rows { display: flex; flex-direction: column; max-height: 340px; overflow: auto; }
+.ol-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) 110px 70px auto; gap: 10px; align-items: center;
+  padding: 4px 6px; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ol-row:hover { background: var(--accent-soft); }
+.ol-row.hit { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--signal); }
+.ol-n { color: var(--ink-3); text-align: right; font-size: 11px; }
+.ol-src { white-space: pre; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+.ol-bars { display: flex; flex-direction: column; gap: 2px; }
+.ol-bars i { display: block; height: 4px; min-width: 1px; }
+.ol-bars .b0 { background: var(--ink-3); }
+.ol-bars .b2 { background: var(--signal); }
+.ol-num { font-size: 12px; font-variant-numeric: tabular-nums; }
+.ol-side { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ol-side h6 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.ol-side pre { margin: 0; padding: 8px; max-height: 220px; overflow: auto; border: 1px solid var(--line); font-size: 12px; }
+.ol-phases { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.ol-phases li { padding: 3px 10px; border: 1px solid var(--line); font-size: 12px; color: var(--ink-2); }
+.ol-phases li.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.ol-phases li.done { border-color: var(--signal); }
+.ol-say { font-size: 16px; margin: 0; }
+.ol-nav, .ol-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.ol-opts .btn.picked { outline: 2px solid var(--ink); }
+.ol-opts .btn.right { outline: 2px solid var(--signal); }
+.ol-ok { color: var(--ink); font-weight: 600; margin: 0 0 8px; }
+.ol-no { color: var(--accent-text); font-weight: 600; margin: 0 0 8px; }
+.slv-grid.focus-source > section:not(:first-child),
+.slv-grid.focus-ir > section:not(:nth-child(2)),
+.slv-grid.focus-asm > section:not(:nth-child(3)) { opacity: .35; }
+@media (max-width: 720px) { .ol-row { grid-template-columns: 30px minmax(0, 1fr) 64px; } .ol-row .badge { display: none; } .ol-side { grid-template-columns: 1fr; } }
+
+/* ---- teacher mode: one program, big type, no technical panels ---- */
+html[data-teacher="on"] { font-size: 120%; }
+html[data-teacher="on"] .tech-only, html[data-teacher="on"] .slv-head .muted { display: none !important; }
+html[data-teacher="on"] .slv-row code, html[data-teacher="on"] .ol-src, html[data-teacher="on"] .ol-side pre { font-size: 16px; }
+html[data-teacher="on"] .ol-say { font-size: 22px; }
+
+/* ---- print: a one-program poster for lecture slides ---- */
+@media print {
+  nav, .skip, .navtools, .ol-tabs, .ol-nav, .ol-opts, .btn { display: none !important; }
+  .slv-pane, .ol-rows, .ol-side pre { max-height: none !important; overflow: visible !important; }
+  body { background: #fff; color: #000; }
+}
