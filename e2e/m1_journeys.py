@@ -46,8 +46,8 @@ def journey_home(page: Page) -> None:
     # state instead of a hard-coded claim) is preserved against the current page.
     step("Home: landing page + live backend health")
     page.goto(BASE + "/")
-    expect(page.get_by_role("heading", name=re.compile("Watch your code"))).to_be_visible()
-    expect(page.get_by_role("link", name="Explore live demos")).to_be_visible()
+    expect(page.get_by_role("heading", name=re.compile("Your program"))).to_be_visible()
+    expect(page.get_by_role("link", name="Explore the demos")).to_be_visible()
     expect(page.get_by_text("ok · python 3.12", exact=False).first).to_be_visible(timeout=15000)
     expect(page.get_by_text("clang", exact=False).first).to_be_visible()
     expect_or_fail(True, "home renders and shows live backend health + toolchain versions")

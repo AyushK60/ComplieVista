@@ -76,7 +76,7 @@ def main() -> int:
                 FAIL.append(f"{name}: could not reach screen: {str(e)[:200]}")
                 print(f"[{name}] COULD NOT REACH: {str(e)[:200]}")
 
-        go("home", lambda: (page.goto(BASE + "/"), expect(page.locator(".hw-steps")).to_be_visible(timeout=60000), page.wait_for_timeout(800)))
+        go("home", lambda: (page.goto(BASE + "/"), expect(page.locator(".jw-rail")).to_be_visible(timeout=60000), page.wait_for_timeout(800)))
         go("about", lambda: (page.goto(BASE + "/about"), expect(page.get_by_role("heading", level=1)).to_be_visible(timeout=15000)))
         def palette():
             page.goto(BASE + "/demos")

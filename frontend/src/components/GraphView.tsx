@@ -291,7 +291,7 @@ export default function GraphView({
         direction: isTreeStage ? direction : "TB",
         nodeWidth: NODE_W, nodeHeight: NODE_H,
         siblingGap: isTreeStage && direction === "LR" ? 16 : 14,
-        levelGap: isTreeStage && direction === "LR" ? 76 : 104,
+        levelGap: isTreeStage ? (direction === "LR" ? 76 : 96) : 44,
       },
     });
   }, [payload, hiddenSubtrees, structuralLevel, hideSynthetic, isTreeStage, childCount, descendantCount, direction]);

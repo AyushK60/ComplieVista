@@ -73,7 +73,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         const m = document.querySelector<HTMLElement>("main");
         if (m) { m.setAttribute("tabindex", "-1"); m.focus(); }
       }}>Skip to main content</a>
-      <nav className={"topnav" + (pathname === "/" ? " on-hero" : "")} aria-label="primary">
+      <nav className={"topnav" + ""} aria-label="primary">
         <Link to="/" className="brand"><span className="brand-mark" aria-hidden />CompileVista</Link>
         {LINKS.map(([to, label]) => (
           <NavLink key={to} to={to} end={to === "/"}

@@ -1,69 +1,83 @@
-/* CompileVista Design System — "The Living Compiler"
- * Porcelain Instrument × Ink Canvas × Scientific Precision
- * Spec: docs/M8_DESIGN_SYSTEM.md (revision 2 — replaces Project Phoenix). */
+/* CompileVista design tokens — "Paper & Ink".
+ *
+ * One idea: a technical manuscript that happens to be alive. Warm paper, near-black ink,
+ * ONE accent (ultramarine) for links, selection, focus and active state, and a small muted
+ * set of hues that mean something in code and in status (never decoration):
+ *   accent  = identifiers / the thing you are looking at
+ *   clay    = keywords, runtime, derived values
+ *   ochre   = numbers and literals
+ *   sage    = strings, exact / verified
+ *   brick   = errors, blocked
+ *   lilac   = structure (declarations, AST)
+ * Code and graphs sit on an ink "plate" in both themes so they read as instruments set into the page.
+ */
 :root {
-  /* ——— porcelain chrome (the page) ——— */
   color-scheme: light;
-  --teal-solid: #166d68;
-  --on-solid: #f4faf8;
-  --bg: #f6f5f0;
-  --bg-raised: #fcfbf8;
-  --bg-panel: #fcfbf8;
-  --bg-inset: #efeee7;
-  --line: rgba(29, 41, 47, 0.17);
-  --line-strong: rgba(29, 41, 47, 0.34);
-  --ink: #1d292f;
-  --ink-2: #45535b;
-  --ink-3: #57676f;
 
-  /* ——— ink canvas (the screens set into the instrument) ——— */
-  --canvas: #1d292f;
-  --canvas-raised: #25333a;
-  --canvas-inset: #172126;
-  --canvas-line: rgba(216, 230, 230, 0.14);
-  --canvas-line-strong: rgba(216, 230, 230, 0.3);
-  --c-ink: #e9efed;
-  --c-ink-2: #b1c3c3;
-  --c-ink-3: #94a8ae;
+  /* ——— paper ——— */
+  --bg: #f6f3ec;
+  --bg-raised: #fbf9f4;
+  --bg-panel: #fbf9f4;
+  --bg-inset: #ece8de;
+  --line: rgba(20, 24, 28, 0.14);
+  --line-strong: rgba(20, 24, 28, 0.32);
+  --ink: #14181b;
+  --ink-2: #3d454b;
+  --ink-3: #5c646a;
 
-  /* ——— semantic accents (porcelain context) ——— */
-  --teal: #166d68;       /* primary · interactive · identifiers */
-  --clay: #9c562e;       /* warm · runtime/execution · numbers · DERIVED */
-  --plum: #6a5b80;       /* structural · AST/keywords/code objects */
-  --moss: #4d6f47;       /* verified · strings/literals · EXACT */
-  /* darker text variants for small badges on tinted backgrounds (WCAG AA 4.5:1) */
-  --clay-text: #8c4c28;
-  --moss-text: #426040;
-  --crimson: #b0453b;    /* alert · errors · BLOCKED */
-  --teal-dim: rgba(22, 109, 104, 0.1);
-  --clay-dim: rgba(199, 121, 80, 0.12);
-  --plum-dim: rgba(132, 113, 155, 0.13);
-  --moss-dim: rgba(86, 121, 79, 0.12);
-  --crimson-dim: rgba(176, 69, 59, 0.1);
+  /* ——— ink plates (code, graphs): dark in both themes ——— */
+  --canvas: #12151a;
+  --canvas-raised: #191d23;
+  --canvas-inset: #0d1014;
+  --canvas-line: rgba(233, 229, 218, 0.12);
+  --canvas-line-strong: rgba(233, 229, 218, 0.28);
+  --c-ink: #e9e5da;
+  --c-ink-2: #b6b2a7;
+  --c-ink-3: #8c8d8a;
 
-  /* ——— semantic accents (ink-canvas context) ——— */
-  --teal-l: #6fc3b8;
-  --clay-l: #e6a87e;
-  --plum-l: #b9a8d8;
-  --moss-l: #96c68b;
-  --crimson-l: #e28d80;
-  --teal-l-dim: rgba(111, 195, 184, 0.13);
-  --clay-l-dim: rgba(230, 168, 126, 0.13);
-  --plum-l-dim: rgba(185, 168, 216, 0.13);
-  --moss-l-dim: rgba(150, 198, 139, 0.13);
-  --crimson-l-dim: rgba(226, 141, 128, 0.13);
+  /* ——— accent and semantic hues on paper ——— */
+  --accent: #2a3bd0;
+  --accent-strong: #1f2da8;
+  --teal: var(--accent);               /* legacy name: "the accent" */
+  --clay: #a5481e;
+  --plum: #6a4c93;
+  --moss: #3f6b3a;
+  --ochre: #8a6410;
+  --crimson: #a32a1b;
+  /* small text on tinted fills needs the darker variants (WCAG AA 4.5:1) */
+  --clay-text: #8e3c17;
+  --moss-text: #335a2f;
+  --accent-dim: rgba(42, 59, 208, 0.08);
+  --teal-dim: var(--accent-dim);
+  --clay-dim: rgba(165, 72, 30, 0.1);
+  --plum-dim: rgba(106, 76, 147, 0.1);
+  --moss-dim: rgba(63, 107, 58, 0.1);
+  --crimson-dim: rgba(163, 42, 27, 0.09);
 
-  /* ——— legacy aliases (used by restyled components; keep meanings) ——— */
-  --cyan: var(--teal);
-  --cyan-dim: var(--teal-dim);
-  --violet: var(--plum);
-  --violet-dim: var(--plum-dim);
-  --mint: var(--moss);
-  --mint-dim: var(--moss-dim);
-  --coral: var(--crimson);
-  --coral-dim: var(--crimson-dim);
-  --amber: var(--clay);
-  --amber-dim: var(--clay-dim);
+  /* the same hues, tuned for ink plates */
+  --accent-l: #9db1ff;
+  --teal-l: var(--accent-l);
+  --clay-l: #f0a47c;
+  --ochre-l: #e6c16a;
+  --plum-l: #cdb8ee;
+  --moss-l: #a3d3a0;
+  --crimson-l: #f29a8c;
+  --teal-l-dim: rgba(157, 177, 255, 0.14);
+  --clay-l-dim: rgba(240, 164, 124, 0.14);
+  --plum-l-dim: rgba(205, 184, 238, 0.14);
+  --moss-l-dim: rgba(163, 211, 160, 0.14);
+  --crimson-l-dim: rgba(242, 154, 140, 0.14);
+
+  /* primary buttons are ink on paper (flips in dark) */
+  --teal-solid: var(--ink);
+  --on-solid: var(--bg);
+
+  /* ——— legacy aliases (keep meanings) ——— */
+  --cyan: var(--accent); --cyan-dim: var(--accent-dim);
+  --violet: var(--plum); --violet-dim: var(--plum-dim);
+  --mint: var(--moss); --mint-dim: var(--moss-dim);
+  --coral: var(--crimson); --coral-dim: var(--crimson-dim);
+  --amber: var(--clay); --amber-dim: var(--clay-dim);
 
   /* ——— honesty ——— */
   --conf-exact: var(--moss);
@@ -75,93 +89,75 @@
   --font-ui: "Inter Variable", "Inter", system-ui, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
 
-  /* ——— radius: restrained (no giant rounded rectangles) ——— */
-  --r-s: 6px;
-  --r-m: 10px;
-  --r-l: 14px;
-  --r-bezel: 16px;
+  /* ——— shape: small, honest radii; elevation is a rule, not a glow ——— */
+  --r-s: 4px;
+  --r-m: 6px;
+  --r-l: 8px;
+  --r-bezel: 8px;
+  --shadow-1: 0 1px 0 rgba(20, 24, 28, 0.06);
+  --shadow-2: 0 1px 2px rgba(20, 24, 28, 0.08), 0 12px 28px rgba(20, 24, 28, 0.1);
 
-  /* ——— shadow: warm, quiet ——— */
-  --shadow-1: 0 1px 2px rgba(29, 41, 47, 0.05), 0 3px 14px rgba(29, 41, 47, 0.06);
-  --shadow-2: 0 2px 6px rgba(29, 41, 47, 0.07), 0 14px 36px rgba(29, 41, 47, 0.1);
-
-
-  /* ——— spacing scale (use these, not ad-hoc pixels) ——— */
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  /* ——— spacing scale ——— */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 72px;
 
   /* ——— type scale: one role per size ——— */
   --fs-micro: 11px;   /* overlines, badges */
   --fs-label: 12.5px; /* tabs, buttons, chips, table heads */
   --fs-body: 14px;    /* running text, panels */
-  --fs-lead: 15px;    /* page intro */
+  --fs-lead: 15.5px;  /* page intro */
   --fs-title: 18px;   /* panel / stage titles */
   --fs-page: 22px;    /* page titles */
   --fs-code: 12.5px;  /* code and mono data */
 
-  /* ——— surfaces: one border, two elevations ——— */
+  /* ——— surfaces ——— */
   --surface: var(--bg-raised);
   --surface-sunk: var(--bg-inset);
   --hairline: 1px solid var(--line);
-  --bar-h: 48px;      /* top navigation height */
+  --bar-h: 52px;
 
-  /* ——— motion ——— */
-  --t-fast: 140ms;
-  --t-med: 260ms;
-  --t-slow: 480ms;
-  --ease: cubic-bezier(0.22, 0.61, 0.21, 1);
+  /* ——— motion: short and plain ——— */
+  --t-fast: 120ms;
+  --t-med: 220ms;
+  --t-slow: 400ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 /* mode switching: technical detail is hidden in explore mode */
 html[data-mode="explore"] .tech-only { display: none !important; }
 html[data-mode="technical"] .explore-only { display: none !important; }
 
-/* ——— dark theme: graphite surfaces, one cool hue, bright accents ——— */
+/* ——— dark: the same paper, lights off ——— */
 html[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0b0f14;
-  --bg-raised: #131922;
-  --bg-panel: #131922;
-  --bg-inset: #0a0d12;
-  --line: rgba(173, 189, 214, 0.14);
-  --line-strong: rgba(173, 189, 214, 0.3);
-  --ink: #e8eef5;
-  --ink-2: #b4c0cf;
-  --ink-3: #8a97a9;
+  --bg: #0f1216;
+  --bg-raised: #151a1f;
+  --bg-panel: #151a1f;
+  --bg-inset: #0b0e11;
+  --line: rgba(233, 229, 218, 0.12);
+  --line-strong: rgba(233, 229, 218, 0.28);
+  --ink: #ece8de;
+  --ink-2: #bab7ac;
+  --ink-3: #8f908c;
 
-  --canvas: #070a0e;
-  --canvas-raised: #0f151c;
-  --canvas-inset: #05070a;
-  --canvas-line: rgba(173, 189, 214, 0.12);
-  --canvas-line-strong: rgba(173, 189, 214, 0.28);
-  --c-ink: #e8eef5;
-  --c-ink-2: #b4c0cf;
-  --c-ink-3: #8a97a9;
+  --canvas: #0a0c0f;
+  --canvas-raised: #11151a;
+  --canvas-inset: #07090b;
 
-  --teal: #5eead4;
-  --teal-solid: #0c7a71;
-  --clay: #fdba74;
-  --plum: #c4b5fd;
-  --moss: #86efac;
-  --clay-text: #fdba74;
-  --moss-text: #86efac;
-  --crimson: #fca5a5;
-  --teal-dim: rgba(94, 234, 212, 0.13);
-  --clay-dim: rgba(253, 186, 116, 0.13);
-  --plum-dim: rgba(196, 181, 253, 0.14);
-  --moss-dim: rgba(134, 239, 172, 0.12);
-  --crimson-dim: rgba(252, 165, 165, 0.13);
+  --accent: #9db1ff;
+  --accent-strong: #b8c6ff;
+  --clay: #f0a47c;
+  --plum: #cdb8ee;
+  --moss: #a3d3a0;
+  --ochre: #e6c16a;
+  --crimson: #f29a8c;
+  --clay-text: #f0a47c;
+  --moss-text: #a3d3a0;
+  --accent-dim: rgba(157, 177, 255, 0.12);
+  --clay-dim: rgba(240, 164, 124, 0.12);
+  --plum-dim: rgba(205, 184, 238, 0.12);
+  --moss-dim: rgba(163, 211, 160, 0.11);
+  --crimson-dim: rgba(242, 154, 140, 0.12);
 
-  --teal-l: #5eead4;
-  --clay-l: #fdba74;
-  --plum-l: #c4b5fd;
-  --moss-l: #86efac;
-  --crimson-l: #fca5a5;
-  --teal-l-dim: rgba(94, 234, 212, 0.14);
-  --clay-l-dim: rgba(253, 186, 116, 0.14);
-  --plum-l-dim: rgba(196, 181, 253, 0.14);
-  --moss-l-dim: rgba(134, 239, 172, 0.13);
-  --crimson-l-dim: rgba(252, 165, 165, 0.13);
-
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.28);
-  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 18px 44px rgba(0, 0, 0, 0.5);
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.4), 0 18px 40px rgba(0, 0, 0, 0.5);
 }
