@@ -271,3 +271,8 @@ main:focus { outline: none; }
   .topnav a.navlink { padding: 0 5px; font-size: 12px; }
   .topnav a.navlink[href="/"] { display: none; }
 }
+@media (max-width: 900px) and (min-width: 721px) {
+  .topnav { padding: 0 10px; gap: 0; }
+  .topnav a.navlink { padding: 0 5px; font-size: 13px; }
+  .topnav .navtools { gap: 6px; }
+}

@@ -11,7 +11,9 @@ Updated: 11 November 2026 (Petrol & Coral redesign, presentation only)
 - Home reel pauses when off-screen or the tab is hidden; header fixed for the new Evidence link and
   Teacher toggle (two rows at 375 px, no overflow at 1024 px).
 - Checked live (Browser pane): evidence table (13 rows), home figure in light and dark, 375 px layout.
-  Not done: axe/e2e suites not re-run; Rust/Java; pasted-code execution (BLOCKED until the M4 gate);
+  Suites run on this pass: `a11y_suite.py` PASS (16 screens, 0 violations), `layout_widths_suite.py` PASS
+  (after fixing a 15 px header overflow at 768 px that the new nav items caused), `m9`, `m8d`, `m8` PASS.
+  Not re-run: m8b, m8c, m10, m11, repair_watch_ast. Not done: Rust/Java; pasted-code execution (BLOCKED until the M4 gate);
   token cap and launcher were already fixed in ae4f012.
 
 ## Learning layer: -O0 vs -O2 diff, guided lesson, quiz, teacher mode (frontend only)
